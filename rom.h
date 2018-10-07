@@ -23,4 +23,6 @@ typedef struct rom_t {
 
 int has_trainer(ines_header* header);
 
+rom* read_rom(char* filename);
+
 #endif
