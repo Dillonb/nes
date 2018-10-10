@@ -1,5 +1,6 @@
 #ifndef ROM_H_
 #define ROM_H_
+#include <stdio.h>
 
 #define BYTES_PER_PRG_ROM_BLOCK 16384
 #define BYTES_PER_CHR_ROM_BLOCK 8192
@@ -20,10 +21,11 @@ typedef struct ines_header_t {
 typedef struct rom_t {
   ines_header* header;
   unsigned char* trainer; // 512 bytes, or NULL.
+  unsigned char* prg_rom;
 } rom;
 
+size_t get_prg_rom_bytes(rom* r);
 int has_trainer(ines_header* header);
-
 rom* read_rom(char* filename);
 
 #endif
