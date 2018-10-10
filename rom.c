@@ -16,7 +16,7 @@ rom* read_rom(char* filename) {
   fread(header, sizeof(*header), 1, fp);
   r->header = header;
 
-  if (!has_trainer(header)) {
+  if (has_trainer(header)) {
       r->trainer = malloc(TRAINER_BYTES);
       fread(r->trainer, TRAINER_BYTES, 1, fp);
       printf("Has trainer.\n");

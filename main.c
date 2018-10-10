@@ -3,6 +3,10 @@
 #include "rom.h"
 
 int main(int argc, char** argv) {
-    rom* r = read_rom("smd.nes");
+    if (argc != 2) {
+        printf("Usage: %s <rom.nes>\n", argv[0]);
+        return 1;
+    }
+    rom* r = read_rom(argv[1]);
     printf("Sup %s", r->header->nes);
 }
