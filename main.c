@@ -3,6 +3,6 @@
 #include "rom.h"
 
 int main(int argc, char** argv) {
-    printf("Sup");
-    rom* r = read_rom("asdf");
+    rom* r = read_rom("smd.nes");
+    printf("Sup %s", r->header->nes);
 }
