@@ -8,5 +8,11 @@ int main(int argc, char** argv) {
         return 1;
     }
     rom* r = read_rom(argv[1]);
-    printf("Sup %s", r->header->nes);
+    printf("Sup %s\n", r->header->nes);
+
+    for (int i = 0; i < 100; i++) {
+        printf("%x", r->prg_rom[i]);
+    }
+
+    printf("\n");
 }

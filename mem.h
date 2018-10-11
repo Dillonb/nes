@@ -3,6 +3,6 @@
 
 typedef struct mem_t {
   
-};
+} mem;
 
 #endif

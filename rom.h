@@ -22,9 +22,11 @@ typedef struct rom_t {
   ines_header* header;
   unsigned char* trainer; // 512 bytes, or NULL.
   unsigned char* prg_rom;
+  unsigned char* chr_rom;
 } rom;
 
 size_t get_prg_rom_bytes(rom* r);
+size_t get_chr_rom_bytes(rom* r);
 int has_trainer(ines_header* header);
 rom* read_rom(char* filename);
 
