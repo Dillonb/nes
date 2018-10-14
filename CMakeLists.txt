@@ -11,9 +11,6 @@ add_executable (nes main.c
     rom.c
     rom.h
 
-    system.c
-    system.h
-
     lib.c
     lib.h
     )

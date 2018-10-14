@@ -1,5 +1,4 @@
-#ifndef ROM_H_
-#define ROM_H_
+#pragma once
 #include <stdio.h>
 
 #define BYTES_PER_PRG_ROM_BLOCK 16384
@@ -29,5 +28,3 @@ size_t get_prg_rom_bytes(rom* r);
 size_t get_chr_rom_bytes(rom* r);
 int has_trainer(ines_header* header);
 rom* read_rom(char* filename);
-
-#endif
