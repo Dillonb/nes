@@ -41,6 +41,11 @@ void cpu_step(memory* mem) {
       cycles = 4;
       break;
 
+    case 0xA2: // LDX Immediate
+      mem->x = read_byte_and_inc_pc(mem);
+      cycles = 2;
+      break;
+
     case 0xA9: // LDA Immediate
       mem->a = read_byte_and_inc_pc(mem);
       cycles = 2;

@@ -34,7 +34,7 @@ byte read_byte(memory* mem, unsigned short address) {
 }
 
 void write_byte(memory* mem, unsigned short address, byte value) {
-  printf("Tried to write %02x to %04x\n", value, address);
+  printf("WARN: Tried to write %02x to %04x. Implement me!\n", value, address);
 }
 
 memory get_blank_memory(rom* r) {
