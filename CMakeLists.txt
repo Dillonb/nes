@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.12)
+cmake_minimum_required (VERSION 3.10)
 project (NES)
 set(CMAKE_BUILD_TYPE Debug)
 add_executable (nes main.c
