@@ -5,15 +5,15 @@
 #include "mem.h"
 
 char read_cartridge_space_address(rom* r, unsigned short address) {
-    errx(EXIT_FAILURE, "read_cartridge_space_address() not implemented");
+  errx(EXIT_FAILURE, "attempted to read_cartridge_space_address() at 0x%x, but this is not implemented (yet?)", address);
 }
 
+// http://wiki.nesdev.com/w/index.php/CPU_memory_map
 char read_byte(memory* mem, unsigned short address) {
     if (address < 0x2000) {
         return mem->ram[address % 0x800];
     }
-    if (address >= 0x4020 && address < 0x10000) {
-        // cartridge space
+    if (address >= 0x4020) { // 0x4020 -> USHRT_MAX is cartridge space
         return read_cartridge_space_address(mem->r, address);
     }
 

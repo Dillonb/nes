@@ -3,11 +3,39 @@
 
 #include "rom.h"
 
+/*
+ * For extracting information out of the header
+ */
 int has_trainer(ines_header* header) {
     return (header->flags_6 & 0b00000100) > 0;
 }
 
-// Read trainer
+size_t get_prg_rom_bytes(rom* r) {
+  return BYTES_PER_PRG_ROM_BLOCK * r->header->prg_rom_blocks;
+}
+
+size_t get_chr_rom_bytes(rom* r) {
+  int blocks = BYTES_PER_CHR_ROM_BLOCK;
+
+  // See https://wiki.nesdev.com/w/index.php/INES#iNES_file_format
+  if (blocks == 0) {
+    blocks = 1;
+  }
+
+  return blocks * r->header->chr_rom_blocks;
+}
+
+
+unsigned char get_mapper_number(rom* r) {
+  unsigned char lower_nybble = r->header->flags_6 & 0b11110000;
+  unsigned char upper_nybble = r->header->flags_7 & 0b11110000;
+
+  return (lower_nybble >> 4 ) | upper_nybble;
+}
+
+/*
+ * For reading the rom itself
+ */
 void read_trainer(FILE* fp, rom* r) {
     if (has_trainer(r->header)) {
         r->trainer = malloc(TRAINER_BYTES);
@@ -33,21 +61,6 @@ void read_chr_rom(FILE* fp, rom* r) {
     printf("Read %lu bytes of CHR ROM\n", chr_rom_bytes);
 }
 
-size_t get_prg_rom_bytes(rom* r) {
-    return BYTES_PER_PRG_ROM_BLOCK * r->header->prg_rom_blocks;
-}
-
-size_t get_chr_rom_bytes(rom* r) {
-    int blocks = BYTES_PER_CHR_ROM_BLOCK;
-
-    // See https://wiki.nesdev.com/w/index.php/INES#iNES_file_format
-    if (blocks == 0) {
-        blocks = 1;
-    }
-
-    return blocks * r->header->chr_rom_blocks;
-}
-
 rom* read_rom(char* filename) {
     rom* r = malloc(sizeof(rom));
     ines_header* header = malloc(sizeof(ines_header));
@@ -60,6 +73,8 @@ rom* read_rom(char* filename) {
     read_trainer(fp, r);
     read_prg_rom(fp, r);
     read_chr_rom(fp, r);
+
+    printf("Rom has mapper %d\n", get_mapper_number(r));
 
     fclose(fp);
     return r;

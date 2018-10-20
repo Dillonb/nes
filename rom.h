@@ -28,3 +28,4 @@ size_t get_prg_rom_bytes(rom* r);
 size_t get_chr_rom_bytes(rom* r);
 int has_trainer(ines_header* header);
 rom* read_rom(char* filename);
+unsigned char get_mapper_number(rom* r);
