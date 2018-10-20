@@ -22,6 +22,7 @@ typedef struct rom_t {
   unsigned char* trainer; // 512 bytes, or NULL.
   unsigned char* prg_rom;
   unsigned char* chr_rom;
+  unsigned char mapper;
 } rom;
 
 size_t get_prg_rom_bytes(rom* r);

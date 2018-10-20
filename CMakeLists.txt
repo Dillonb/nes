@@ -13,4 +13,6 @@ add_executable (nes main.c
 
     lib.c
     lib.h
+
+    util.h
     )

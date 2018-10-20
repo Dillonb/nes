@@ -1,5 +1,6 @@
 #pragma once
 #include "mem.h"
+#include "util.h"
 
-char read_byte_and_inc_pc(memory* mem);
+byte read_byte_and_inc_pc(memory* mem);
 void cpu_step(memory* mem);

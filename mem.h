@@ -1,5 +1,6 @@
 #pragma once
 #include "rom.h"
+#include "util.h"
 
 typedef struct memory_t {
     // accumulator
@@ -27,7 +28,8 @@ typedef struct memory_t {
     char ram[0x800];
 } memory;
 
-char read_byte(memory* mem, unsigned short address);
+byte read_byte(memory* mem, unsigned short address);
+void write_byte(memory* mem, unsigned short address, byte value);
 
 memory get_blank_memory();
 

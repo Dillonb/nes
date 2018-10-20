@@ -74,7 +74,9 @@ rom* read_rom(char* filename) {
     read_prg_rom(fp, r);
     read_chr_rom(fp, r);
 
-    printf("Rom has mapper %d\n", get_mapper_number(r));
+    r->mapper = get_mapper_number(r);
+
+    printf("Rom has mapper %d\n", r->mapper);
 
     fclose(fp);
     return r;
