@@ -41,6 +41,11 @@ void cpu_step(memory* mem) {
       cycles = 4;
       break;
 
+    case 0x9A: // TXS
+      mem->sp = mem->x;
+      cycles = 2;
+      break;
+
     case 0xA2: // LDX Immediate
       mem->x = read_byte_and_inc_pc(mem);
       cycles = 2;
@@ -51,6 +56,10 @@ void cpu_step(memory* mem) {
       cycles = 2;
       break;
 
+    case 0xAD: // LDA absolute
+      mem->a = read_byte(mem, read_address_and_inc_pc(mem));
+      cycles = 4;
+      break;
 
     case 0xD8: // CLD
       // Clear decimal mode flag on status register
@@ -63,5 +72,5 @@ void cpu_step(memory* mem) {
       errx(EXIT_FAILURE, "Invalid opcode: 0x%x\n", opcode);
   }
 
-  printf("Step took %d cycles\n", cycles);
+  //printf("Step took %d cycles\n", cycles);
 }
