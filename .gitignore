@@ -3,4 +3,5 @@ build/CMakeFiles/
 build/Makefile
 build/cmake_install.cmake
 build/nes
+build/prgdump
 build/*.nes

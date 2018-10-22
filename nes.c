@@ -12,18 +12,6 @@ int main(int argc, char** argv) {
     }
     rom* r = read_rom(argv[1]);
 
-    /*
-    int bytes = get_prg_rom_bytes(r);
-    for (int i = 0; i < bytes; i++) {
-      if (i % 16 == 0) {
-        printf("\n0x04%x ", i);
-      }
-      printf("%02x ", r->prg_rom[i]);
-    }
-    */
-
-    printf("\n");
-
     memory mem = get_blank_memory(r);
 
     while (true) {
