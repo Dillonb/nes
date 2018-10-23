@@ -5,13 +5,13 @@
 #include "util.h"
 #include "mem.h"
 
-byte read_cartridge_space_address(rom* r, unsigned short address) {
+byte read_cartridge_space_address(rom* r, uint16_t address) {
   // http://wiki.nesdev.com/w/index.php/Mapper
 
   // NROM
   if (r->mapper == 0) {
     if (address >= 0x8000) { // Can't be more than 0xFFFF
-      unsigned short prg_rom_address = (address - 0x8000) % get_prg_rom_bytes(r); // TODO optimize
+      uint16_t prg_rom_address = (address - 0x8000) % get_prg_rom_bytes(r); // TODO optimize
       byte result = r->prg_rom[prg_rom_address];
       //printf("Reading cartridge space address 0x%x from PRG ROM at 0x%x: %02x\n", address, prg_rom_address, result);
 
@@ -22,7 +22,7 @@ byte read_cartridge_space_address(rom* r, unsigned short address) {
 }
 
 // http://wiki.nesdev.com/w/index.php/CPU_memory_map
-byte read_byte(memory* mem, unsigned short address) {
+byte read_byte(memory* mem, uint16_t address) {
     if (address < 0x2000) {
         return mem->ram[address % 0x800];
     }
@@ -44,7 +44,7 @@ void write_ppu_register(byte register_num, byte value) {
   printf("WARN: wrote PPU register %d with value 0x%02x - Implement me when the PPU is implemented\n", register_num, value);
 }
 
-void write_byte(memory* mem, unsigned short address, byte value) {
+void write_byte(memory* mem, uint16_t address, byte value) {
   if (address < 0x2000) { // RAM
     mem->ram[address % 0x800] = value;
   }

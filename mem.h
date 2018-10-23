@@ -1,4 +1,6 @@
 #pragma once
+#include <stdint.h>
+
 #include "rom.h"
 #include "util.h"
 
@@ -16,7 +18,7 @@ typedef struct memory_t {
     byte sp;
 
     // program counter
-    unsigned short pc;
+    uint16_t pc;
 
     // processor status register (bitwise flags)
     byte p;
@@ -28,8 +30,8 @@ typedef struct memory_t {
     char ram[0x800];
 } memory;
 
-byte read_byte(memory* mem, unsigned short address);
-void write_byte(memory* mem, unsigned short address, byte value);
+byte read_byte(memory* mem, uint16_t address);
+void write_byte(memory* mem, uint16_t address, byte value);
 
 memory get_blank_memory();
 

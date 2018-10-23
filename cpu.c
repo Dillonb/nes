@@ -12,7 +12,7 @@ byte read_byte_and_inc_pc(memory* mem) {
   return data;
 }
 
-unsigned short read_address_and_inc_pc(memory* mem) {
+uint16_t read_address_and_inc_pc(memory* mem) {
   byte lower = read_byte_and_inc_pc(mem);
   byte upper = read_byte_and_inc_pc(mem);
   return (upper << 8) | lower;
