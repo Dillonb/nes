@@ -1,1 +1,1 @@
-int flag(unsigned char* byte, index);
+int flag(byte* data, index);

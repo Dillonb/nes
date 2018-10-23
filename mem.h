@@ -4,22 +4,22 @@
 
 typedef struct memory_t {
     // accumulator
-    unsigned char a;
+    byte a;
 
     // x index register
-    unsigned char x;
+    byte x;
 
     // y index register
-    unsigned char y;
+    byte y;
 
     // stack pointer
-    unsigned char sp;
+    byte sp;
 
     // program counter
     unsigned short pc;
 
     // processor status register (bitwise flags)
-    unsigned char p;
+    byte p;
 
     // currently loaded nes rom
     rom* r;
