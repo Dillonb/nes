@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.10)
 project (NES)
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_C_COMPILER "clang")
 add_executable (nes main.c
     cpu.c
     cpu.h
