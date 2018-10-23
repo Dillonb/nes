@@ -1,7 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <err.h>
 
 #include "rom.h"
+
+const unsigned char magic_string[4] = {0x4E, 0x45, 0x53, 0x1A}; // ASCII: NES<EOF>
 
 /*
  * For extracting information out of the header
@@ -61,7 +65,9 @@ void read_chr_rom(FILE* fp, rom* r) {
     printf("Read %lu bytes of CHR ROM\n", chr_rom_bytes);
 }
 
+
 rom* read_rom(char* filename) {
+
     rom* r = malloc(sizeof(rom));
     ines_header* header = malloc(sizeof(ines_header));
 
@@ -69,6 +75,10 @@ rom* read_rom(char* filename) {
 
     fread(header, sizeof(*header), 1, fp);
     r->header = header;
+
+    if (memcmp(r->header->nes, magic_string, 4)) {
+        errx(EXIT_FAILURE, "This is not an INES ROM!");
+    }
 
     read_trainer(fp, r);
     read_prg_rom(fp, r);
