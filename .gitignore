@@ -10,3 +10,4 @@ build/bin
 build/DartConfiguration.tcl
 build/src
 build/tests
+build/Testing

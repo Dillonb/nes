@@ -1,3 +1,5 @@
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+
 add_executable (nes nes.c
     cpu.c
     cpu.h
@@ -18,3 +20,4 @@ add_executable (prgdump prgdump.c
     rom.c
     rom.h
     )
+
