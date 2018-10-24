@@ -5,3 +5,8 @@ build/cmake_install.cmake
 build/nes
 build/prgdump
 build/*.nes
+build/CTestTestfile.cmake
+build/bin
+build/DartConfiguration.tcl
+build/src
+build/tests

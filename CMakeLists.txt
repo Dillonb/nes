@@ -2,23 +2,7 @@ cmake_minimum_required (VERSION 3.10)
 project (NES)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_COMPILER "clang")
-add_executable (nes nes.c
-    cpu.c
-    cpu.h
-
-    mem.c
-    mem.h
-
-    rom.c
-    rom.h
-
-    lib.c
-    lib.h
-
-    util.h
-    )
-
-add_executable (prgdump prgdump.c
-    rom.c
-    rom.h
-    )
+include(CTest)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+add_subdirectory(src)
+add_subdirectory(tests)
