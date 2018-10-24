@@ -76,3 +76,24 @@ memory get_blank_memory(rom* r) {
 
     return mem;
 }
+
+// 01-34567
+// NV-BDIZC
+
+byte mask_flag(int index) {
+  if (index > 7) {
+    errx(EXIT_FAILURE, "Attempted to mask a flag > 7: %d. WTF?", index);
+  }
+
+  return 0b10000000 >> index;
+}
+
+void set_p_flag(memory* mem, int index) {
+  mem->p |= mask_flag(index);
+}
+void clear_p_flag(memory* mem, int index) {
+  mem->p &= ~mask_flag(index);
+}
+int get_p_flag(memory* mem, int index) {
+  return (mem->p & mask_flag(index)) > 0;
+}
