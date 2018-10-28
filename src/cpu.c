@@ -77,15 +77,16 @@ void cpu_step(memory* mem) {
       break;
 
     case BPL: {
+      cycles = 2;
+      int8_t offset = read_byte_and_inc_pc(mem);
       if (get_p_negative(mem) == false) {
-        int8_t offset = read_byte_and_inc_pc(mem);
         uint16_t newaddr = mem->pc + offset;
         printf("Last calc was positive, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
+        cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
         mem->pc = newaddr;
       }
       else {
         printf("Last calc was negative, not branching!\n");
-        mem->pc++;
       }
       break;
     }

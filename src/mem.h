@@ -53,6 +53,10 @@ void load_rom_into_memory(memory* mem, rom* r);
 #define P_ZERO 1
 #define P_CARRY 0
 
+
+#define SAME_PAGE(addr1, addr2) (addr1 & 0xFF00) == (addr2 & 0xFF00)
+
+
 bool is_negative(byte value);
 
 int get_p_negative(memory* mem);
