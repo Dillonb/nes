@@ -85,8 +85,16 @@ byte mask_flag(int index) {
     errx(EXIT_FAILURE, "Attempted to mask a flag > 7: %d. WTF?", index);
   }
 
-  return 0b10000000 >> index;
+  return 0b10000000 >> (7 - index);
 }
+
+const int P_NEGATIVE = 7;
+const int P_OVERFLOW = 6;
+const int P_BREAK = 4;
+const int P_DECIMAL = 3;
+const int P_INTERRUPT = 2;
+const int P_ZERO = 1;
+const int P_CARRY = 0;
 
 void set_p_flag(memory* mem, int index) {
   mem->p |= mask_flag(index);
@@ -96,4 +104,70 @@ void clear_p_flag(memory* mem, int index) {
 }
 int get_p_flag(memory* mem, int index) {
   return (mem->p & mask_flag(index)) > 0;
+}
+
+int get_p_negative(memory* mem) {
+  return get_p_flag(mem, P_NEGATIVE);
+}
+int get_p_overflow(memory* mem) {
+  return get_p_flag(mem, P_OVERFLOW);
+}
+int get_p_break(memory* mem) {
+  return get_p_flag(mem, P_BREAK);
+}
+int get_p_decimal(memory* mem) {
+  return get_p_flag(mem, P_DECIMAL);
+}
+int get_p_interrupt(memory* mem) {
+  return get_p_flag(mem, P_INTERRUPT);
+}
+int get_p_zero(memory* mem) {
+  return get_p_flag(mem, P_ZERO);
+}
+int get_p_carry(memory* mem) {
+  return get_p_flag(mem, P_CARRY);
+}
+
+void set_p_negative(memory* mem) {
+  set_p_flag(mem, P_NEGATIVE);
+}
+void set_p_overflow(memory* mem) {
+  set_p_flag(mem, P_OVERFLOW);
+}
+void set_p_break(memory* mem) {
+  set_p_flag(mem, P_BREAK);
+}
+void set_p_decimal(memory* mem) {
+  set_p_flag(mem, P_DECIMAL);
+}
+void set_p_interrupt(memory* mem) {
+  set_p_flag(mem, P_INTERRUPT);
+}
+void set_p_zero(memory* mem) {
+  set_p_flag(mem, P_ZERO);
+}
+void set_p_carry(memory* mem) {
+  set_p_flag(mem, P_CARRY);
+}
+
+void clear_p_negative(memory* mem) {
+  clear_p_flag(mem, P_NEGATIVE);
+}
+void clear_p_overflow(memory* mem) {
+  clear_p_flag(mem, P_OVERFLOW);
+}
+void clear_p_break(memory* mem) {
+  clear_p_flag(mem, P_BREAK);
+}
+void clear_p_decimal(memory* mem) {
+  clear_p_flag(mem, P_DECIMAL);
+}
+void clear_p_interrupt(memory* mem) {
+  clear_p_flag(mem, P_INTERRUPT);
+}
+void clear_p_zero(memory* mem) {
+  clear_p_flag(mem, P_ZERO);
+}
+void clear_p_carry(memory* mem) {
+  clear_p_flag(mem, P_CARRY);
 }

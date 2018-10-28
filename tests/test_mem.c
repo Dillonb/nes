@@ -1,5 +1,4 @@
-#include "unity.h"
-#include <src/cpu.h>
+#include "unity/unity.h"
 #include <src/mem.h>
 
 memory mock_memory() {
@@ -15,16 +14,15 @@ memory mock_memory() {
   return mem;
 }
 
-void test_brk(void) {
+void test_pflags() {
   memory mem = mock_memory();
-  write_byte(&mem, 0x0000, BRK);
-  cpu_step(&mem);
-  TEST_ASSERT_MESSAGE(get_p_interrupt(&mem) == 1, "Interrupt flag not set by BRK");
+  mem.p = 0x00;
+  set_p_negative(&mem);
+  TEST_ASSERT_EQUAL_UINT8(0b10000000, mem.p);
 }
 
 int main(void) {
-    UNITY_BEGIN();
-    RUN_TEST(test_brk);
-    //RUN_TEST(test_sei);
-    return UNITY_END();
+  UNITY_BEGIN();
+  RUN_TEST(test_pflags);
+  return UNITY_END();
 }

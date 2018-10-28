@@ -43,3 +43,27 @@ int get_flag(memory* mem, int index);
 memory get_blank_memory();
 
 void load_rom_into_memory(memory* mem, rom* r);
+
+int get_p_negative(memory* mem);
+int get_p_overflow(memory* mem);
+int get_p_break(memory* mem);
+int get_p_decimal(memory* mem);
+int get_p_interrupt(memory* mem);
+int get_p_zero(memory* mem);
+int get_p_carry(memory* mem);
+
+void set_p_negative(memory* mem);
+void set_p_overflow(memory* mem);
+void set_p_break(memory* mem);
+void set_p_decimal(memory* mem);
+void set_p_interrupt(memory* mem);
+void set_p_zero(memory* mem);
+void set_p_carry(memory* mem);
+
+void clear_p_negative(memory* mem);
+void clear_p_overflow(memory* mem);
+void clear_p_break(memory* mem);
+void clear_p_decimal(memory* mem);
+void clear_p_interrupt(memory* mem);
+void clear_p_zero(memory* mem);
+void clear_p_carry(memory* mem);
