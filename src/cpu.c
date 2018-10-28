@@ -27,14 +27,14 @@ void cpu_step(memory* mem) {
   int cycles = 0;
 
   switch (opcode) {
-    case BRK: // 0x00
+    case BRK:
       // Set interrupt flag on status register
       set_p_interrupt(mem);
       mem->pc++; // Skip next byte
       cycles = 7;
       break;
 
-    case SEI: // 0x78
+    case SEI:
       set_p_interrupt(mem);
       cycles = 2;
       break;
@@ -44,33 +44,33 @@ void cpu_step(memory* mem) {
       cycles = 4;
       break;
 
-    case TXS: // 0x9A
+    case TXS:
       mem->sp = mem->x;
       cycles = 2;
       break;
 
-    case LDX_Immediate: // 0xA2
+    case LDX_Immediate:
       mem->x = read_byte_and_inc_pc(mem);
       set_p_zero_on(mem, mem->x);
       set_p_negative_on(mem, mem->x);
       cycles = 2;
       break;
 
-    case LDA_Immediate: // 0xA9
+    case LDA_Immediate:
       mem->a = read_byte_and_inc_pc(mem);
       set_p_zero_on(mem, mem->a);
       set_p_negative_on(mem, mem->a);
       cycles = 2;
       break;
 
-    case LDA_Absolute: // 0xAD
+    case LDA_Absolute:
       mem->a = read_byte(mem, read_address_and_inc_pc(mem));
       set_p_zero_on(mem, mem->a);
       set_p_negative_on(mem, mem->a);
       cycles = 4;
       break;
 
-    case CLD: // 0xDA
+    case CLD:
       clear_p_decimal(mem);
       cycles = 2;
       break;
