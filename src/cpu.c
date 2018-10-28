@@ -29,13 +29,13 @@ void cpu_step(memory* mem) {
   switch (opcode) {
     case BRK: // 0x00
       // Set interrupt flag on status register
-      mem->p |= 0b0000100;
+      set_p_interrupt(mem);
       mem->pc++; // Skip next byte
       cycles = 7;
       break;
 
     case SEI: // 0x78
-      mem->p |= 0b0000100;
+      set_p_interrupt(mem);
       cycles = 2;
       break;
 
@@ -51,22 +51,27 @@ void cpu_step(memory* mem) {
 
     case LDX_Immediate: // 0xA2
       mem->x = read_byte_and_inc_pc(mem);
+      set_p_zero_on(mem, mem->x);
+      set_p_negative_on(mem, mem->x);
       cycles = 2;
       break;
 
     case LDA_Immediate: // 0xA9
       mem->a = read_byte_and_inc_pc(mem);
+      set_p_zero_on(mem, mem->a);
+      set_p_negative_on(mem, mem->a);
       cycles = 2;
       break;
 
     case LDA_Absolute: // 0xAD
       mem->a = read_byte(mem, read_address_and_inc_pc(mem));
+      set_p_zero_on(mem, mem->a);
+      set_p_negative_on(mem, mem->a);
       cycles = 4;
       break;
 
     case CLD: // 0xDA
-      // Clear decimal mode flag on status register
-      mem->p &= 0b1111101;
+      clear_p_decimal(mem);
       cycles = 2;
       break;
 

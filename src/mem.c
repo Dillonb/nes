@@ -77,6 +77,10 @@ memory get_blank_memory(rom* r) {
     return mem;
 }
 
+bool is_negative(byte value) {
+  return (value & 0b10000000) > 0;
+}
+
 // 01-34567
 // NV-BDIZC
 
@@ -162,4 +166,22 @@ void clear_p_zero(memory* mem) {
 }
 void clear_p_carry(memory* mem) {
   clear_p_flag(mem, P_CARRY);
+}
+
+void set_p_zero_on(memory* mem, byte value) {
+  if (value == 0x00) {
+    set_p_zero(mem);
+  }
+  else {
+    clear_p_zero(mem);
+  }
+}
+
+void set_p_negative_on(memory* mem, byte value) {
+  if (is_negative(value)) {
+    set_p_negative(mem);
+  }
+  else {
+    clear_p_negative(mem);
+  }
 }

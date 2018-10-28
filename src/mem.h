@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "rom.h"
 #include "util.h"
@@ -52,6 +53,7 @@ void load_rom_into_memory(memory* mem, rom* r);
 #define P_ZERO 1
 #define P_CARRY 0
 
+bool is_negative(byte value);
 
 int get_p_negative(memory* mem);
 int get_p_overflow(memory* mem);
@@ -76,3 +78,6 @@ void clear_p_decimal(memory* mem);
 void clear_p_interrupt(memory* mem);
 void clear_p_zero(memory* mem);
 void clear_p_carry(memory* mem);
+
+void set_p_zero_on(memory* mem, byte value);
+void set_p_negative_on(memory* mem, byte value);
