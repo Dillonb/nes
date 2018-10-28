@@ -23,6 +23,7 @@ uint16_t read_address_and_inc_pc(memory* mem) {
 
 void cpu_step(memory* mem) {
   byte opcode = read_byte_and_inc_pc(mem);
+  printf("Executing instruction %s\n", opcode_to_name_full(opcode));
 
   int cycles = 0;
 
@@ -74,6 +75,20 @@ void cpu_step(memory* mem) {
       clear_p_decimal(mem);
       cycles = 2;
       break;
+
+    case BPL: {
+      if (get_p_negative(mem) == false) {
+        int8_t offset = read_byte_and_inc_pc(mem);
+        uint16_t newaddr = mem->pc + offset;
+        printf("Last calc was positive, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
+        mem->pc = newaddr;
+      }
+      else {
+        printf("Last calc was negative, not branching!\n");
+        mem->pc++;
+      }
+      break;
+    }
 
 
     default: {
