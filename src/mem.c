@@ -88,14 +88,6 @@ byte mask_flag(int index) {
   return 0b10000000 >> (7 - index);
 }
 
-const int P_NEGATIVE = 7;
-const int P_OVERFLOW = 6;
-const int P_BREAK = 4;
-const int P_DECIMAL = 3;
-const int P_INTERRUPT = 2;
-const int P_ZERO = 1;
-const int P_CARRY = 0;
-
 void set_p_flag(memory* mem, int index) {
   mem->p |= mask_flag(index);
 }

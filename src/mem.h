@@ -44,6 +44,15 @@ memory get_blank_memory();
 
 void load_rom_into_memory(memory* mem, rom* r);
 
+#define P_NEGATIVE 7
+#define P_OVERFLOW 6
+#define P_BREAK 4
+#define P_DECIMAL 3
+#define P_INTERRUPT 2
+#define P_ZERO 1
+#define P_CARRY 0
+
+
 int get_p_negative(memory* mem);
 int get_p_overflow(memory* mem);
 int get_p_break(memory* mem);
