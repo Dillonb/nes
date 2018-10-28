@@ -29,7 +29,7 @@ byte read_byte(memory* mem, uint16_t address) {
     else if (address < 0x4000) { // PPU registers
       // 8 ppu registers, repeating every 8 bytes from 0x2000 to 0x3FFF
       byte register_num = (address - 2000) % 8;
-      printf("WARN: reading PPU register %d, returning 0x00 for now. Implement me when PPU is implemented!\n", register_num);
+      printf("WARN: reading PPU register %d (0x%x), returning 0x00 for now. Implement me when PPU is implemented!\n", register_num, address);
       return 0x00;
     }
     else if (address >= 0x4020) { // 0x4020 -> USHRT_MAX is cartridge space
