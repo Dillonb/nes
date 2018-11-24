@@ -21,7 +21,7 @@ uint16_t read_address_and_inc_pc(memory* mem) {
   return (upper << 8) | lower;
 }
 
-void cpu_step(memory* mem) {
+int cpu_step(memory* mem) {
   byte opcode = read_byte_and_inc_pc(mem);
   printf("Executing instruction %s\n", opcode_to_name_full(opcode));
 
@@ -100,7 +100,7 @@ void cpu_step(memory* mem) {
     }
   }
 
-  //printf("Step took %d cycles\n", cycles);
+  return cycles;
 }
 
 const char* opcode_to_name_full(byte opcode) {

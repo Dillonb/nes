@@ -11,3 +11,5 @@ build/DartConfiguration.tcl
 build/src
 build/tests
 build/Testing
+*.c~
+*.h~
