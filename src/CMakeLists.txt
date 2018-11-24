@@ -5,6 +5,7 @@ add_library(libnes
     cpu.c
     mem.c
     rom.c
+    ppu.c
     )
 
 

@@ -4,32 +4,36 @@
 
 #include "rom.h"
 #include "util.h"
+#include "ppu.h"
 
 typedef struct memory_t {
-    // accumulator
-    byte a;
+     // accumulator
+     byte a;
 
-    // x index register
-    byte x;
+     // x index register
+     byte x;
 
-    // y index register
-    byte y;
+     // y index register
+     byte y;
 
-    // stack pointer
-    byte sp;
+     // stack pointer
+     byte sp;
 
-    // program counter
-    uint16_t pc;
+     // program counter
+     uint16_t pc;
 
-    // processor status register (bitwise flags)
-    // NV-BDIZC
-    byte p;
+     // processor status register (bitwise flags)
+     // NV-BDIZC
+     byte p;
 
-    // currently loaded nes rom
-    rom* r;
+     // currently loaded nes rom
+     rom* r;
 
-    // Internal RAM
-    char ram[0x800];
+     // PPU
+     ppu_memory ppu_mem;
+
+     // Internal RAM
+     char ram[0x800];
 } memory;
 
 byte read_byte(memory* mem, uint16_t address);
