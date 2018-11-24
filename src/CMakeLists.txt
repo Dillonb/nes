@@ -1,5 +1,4 @@
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-ADD_COMPILE_OPTIONS(-Werror)
 
 # For testing
 add_library(libnes

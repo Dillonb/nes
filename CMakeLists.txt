@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
+ADD_COMPILE_OPTIONS(-Werror)
 project (NES)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_COMPILER "clang")
