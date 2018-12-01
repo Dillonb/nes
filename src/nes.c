@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "cpu.h"
+#include "system.h"
 #include "mem.h"
 #include "rom.h"
 #include "util.h"
@@ -16,6 +16,6 @@ int main(int argc, char** argv) {
     memory mem = get_blank_memory(r);
 
     while (true) {
-        cpu_step(&mem);
+        system_step(&mem);
     }
 }
