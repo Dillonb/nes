@@ -57,6 +57,13 @@ int cpu_step(memory* mem) {
       cycles = 2;
       break;
 
+    case LDY_Immediate:
+      mem->y = read_byte_and_inc_pc(mem);
+      set_p_zero_on(mem, mem->y);
+      set_p_negative_on(mem, mem->y);
+      cycles = 2;
+      break;
+
     case LDA_Immediate:
       mem->a = read_byte_and_inc_pc(mem);
       set_p_zero_on(mem, mem->a);
@@ -96,7 +103,7 @@ int cpu_step(memory* mem) {
       const char* opcode_short = opcode_to_name_short(opcode);
       char docs_link[DOCS_PREFIX_LENGTH + 10];
       snprintf(docs_link, sizeof(docs_link), "%s%s", docs_prefix, opcode_short);
-      errx(EXIT_FAILURE, "Invalid opcode: %s hex 0x%x\nSee %s", opcode_to_name_full(opcode), opcode, docs_link);
+      errx(EXIT_FAILURE, "Opcode not implemented: %s hex 0x%x\nSee %s", opcode_to_name_full(opcode), opcode, docs_link);
     }
   }
 

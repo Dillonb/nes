@@ -9,5 +9,7 @@ int system_step(memory* mem) {
           ppu_step(&mem->ppu_mem);
      }
 
+     // TODO step APU here. One APU step per CPU step.
+
      return cpu_steps;
 }

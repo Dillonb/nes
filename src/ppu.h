@@ -4,6 +4,7 @@
 typedef struct ppu_memory_t {
      byte control;
      byte mask;
+     byte status;
      byte oamAddress;
      byte oamData;
      byte scroll;
