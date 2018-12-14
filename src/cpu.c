@@ -21,9 +21,11 @@ uint16_t read_address_and_inc_pc(memory* mem) {
   return (upper << 8) | lower;
 }
 
+int cpu_steps = 0;
+
 int cpu_step(memory* mem) {
      byte opcode = read_byte_and_inc_pc(mem);
-     printf("Executing instruction %s\n", opcode_to_name_full(opcode));
+     printf("%08d: Executing instruction %s\n", cpu_steps++, opcode_to_name_full(opcode));
 
      int cycles = 0;
 
@@ -134,6 +136,34 @@ int cpu_step(memory* mem) {
                break;
           }
 
+          case CPY_Immediate: {
+               cycles = 2;
+               byte value = read_byte_and_inc_pc(mem);
+               byte result = mem->y - value;
+               set_p_zn_on(mem, result);
+               if (result >= 0) {
+                    set_p_carry(mem);
+               }
+               else {
+                    clear_p_carry(mem);
+               }
+               break;
+          }
+
+          case CPY_Absolute: {
+               cycles = 4;
+               uint16_t addr = read_address_and_inc_pc(mem);
+               byte value = read_byte(mem, addr);
+               byte result = mem->y - value;
+               set_p_zn_on(mem, result);
+               if (result >= 0) {
+                    set_p_carry(mem);
+               }
+               else {
+                    clear_p_carry(mem);
+               }
+               break;
+          }
 
           default: {
                const char* opcode_short = opcode_to_name_short(opcode);
