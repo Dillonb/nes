@@ -89,3 +89,4 @@ void clear_p_carry(memory* mem);
 
 void set_p_zero_on(memory* mem, byte value);
 void set_p_negative_on(memory* mem, byte value);
+void set_p_zn_on(memory* mem, byte value);

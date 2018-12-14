@@ -52,29 +52,25 @@ int cpu_step(memory* mem) {
 
           case LDX_Immediate:
                mem->x = read_byte_and_inc_pc(mem);
-               set_p_zero_on(mem, mem->x);
-               set_p_negative_on(mem, mem->x);
+               set_p_zn_on(mem, mem->x);
                cycles = 2;
                break;
 
           case LDY_Immediate:
                mem->y = read_byte_and_inc_pc(mem);
-               set_p_zero_on(mem, mem->y);
-               set_p_negative_on(mem, mem->y);
+               set_p_zn_on(mem, mem->y);
                cycles = 2;
                break;
 
           case LDA_Immediate:
                mem->a = read_byte_and_inc_pc(mem);
-               set_p_zero_on(mem, mem->a);
-               set_p_negative_on(mem, mem->a);
+               set_p_zn_on(mem, mem->a);
                cycles = 2;
                break;
 
           case LDA_Absolute:
                mem->a = read_byte(mem, read_address_and_inc_pc(mem));
-               set_p_zero_on(mem, mem->a);
-               set_p_negative_on(mem, mem->a);
+               set_p_zn_on(mem, mem->a);
                cycles = 4;
                break;
 
@@ -83,8 +79,7 @@ int cpu_step(memory* mem) {
                addr += mem->x;
                addr += get_p_carry(mem);
                mem->a = read_byte(mem, addr);
-               set_p_zero_on(mem, mem->a);
-               set_p_negative_on(mem, mem->a);
+               set_p_zn_on(mem, mem->a);
                break;
           }
 
@@ -95,6 +90,7 @@ int cpu_step(memory* mem) {
 
           case BPL: {
                cycles = 2;
+               // Read as a signed byte
                int8_t offset = read_byte_and_inc_pc(mem);
                if (get_p_negative(mem) == false) {
                     uint16_t newaddr = mem->pc + offset;
@@ -108,8 +104,35 @@ int cpu_step(memory* mem) {
                break;
           }
 
-          case CMP_Immediate:
+          case BCS: {
+               cycles = 2;
+               // Read as a signed byte
+               int8_t offset = read_byte_and_inc_pc(mem);
+
+               if (get_p_carry(mem) == true) {
+                    uint16_t newaddr = mem->pc + offset;
+                    printf("Carry flag set, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
+                    cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
+                    mem->pc = newaddr;
+               }
+               else {
+                    printf("Carry flag not set, not branching!\n");
+               }
+          }
+
+          case CMP_Immediate: {
+               cycles = 2;
+               byte value = read_byte_and_inc_pc(mem);
+               byte result = mem->a - value;
+               set_p_zn_on(mem, result);
+               if (result >= 0) {
+                    set_p_carry(mem);
+               }
+               else {
+                    clear_p_carry(mem);
+               }
                break;
+          }
 
 
           default: {

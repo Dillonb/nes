@@ -182,3 +182,8 @@ void set_p_negative_on(memory* mem, byte value) {
     clear_p_negative(mem);
   }
 }
+
+void set_p_zn_on(memory* mem, byte value) {
+     set_p_zero_on(mem, value);
+     set_p_negative_on(mem, value);
+}
