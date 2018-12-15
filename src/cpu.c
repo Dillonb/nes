@@ -10,18 +10,81 @@ const char* docs_prefix = "https://www.masswerk.at/6502/6502_instruction_set.htm
 #define DOCS_PREFIX_LENGTH 55
 
 byte read_byte_and_inc_pc(memory* mem) {
-  byte data = read_byte(mem, mem->pc);
-  mem->pc++;
-  return data;
+     byte data = read_byte(mem, mem->pc);
+     mem->pc++;
+     return data;
+}
+
+uint16_t read_address(memory* mem, uint16_t address) {
+     byte lower = read_byte(mem, address);
+     byte upper = read_byte(mem, address + 1);
+     return (upper << 8) | lower;
 }
 
 uint16_t read_address_and_inc_pc(memory* mem) {
-  byte lower = read_byte_and_inc_pc(mem);
-  byte upper = read_byte_and_inc_pc(mem);
-  return (upper << 8) | lower;
+     byte lower = read_byte_and_inc_pc(mem);
+     byte upper = read_byte_and_inc_pc(mem);
+     return (upper << 8) | lower;
 }
 
 int cpu_steps = 0;
+
+typedef enum addressing_mode_t {
+     Immediate,
+     Zeropage,
+     Zeropage_X,
+     Absolute,
+     Absolute_X,
+     Absolute_Y,
+     Indirect_X,
+     Indirect_Y,
+     Accumulator
+} addressing_mode;
+
+byte read_value(memory* mem, addressing_mode mode) {
+     switch (mode) {
+          case Immediate:
+               return read_byte_and_inc_pc(mem);
+
+          case Absolute:
+               return read_byte(mem, read_address_and_inc_pc(mem));
+
+          case Absolute_X: {
+               uint16_t addr = read_address_and_inc_pc(mem);
+               addr += mem->x;
+               addr += get_p_carry(mem);
+               return read_byte(mem, addr);
+          }
+
+          default:
+               errx(EXIT_FAILURE, "Addressing mode not implemented.");
+     }
+}
+
+void branch_on_condition(memory* mem, int* cycles, bool condition) {
+     // Read as a signed byte
+     int8_t offset = read_byte_and_inc_pc(mem);
+     if (condition) {
+          uint16_t newaddr = mem->pc + offset;
+          printf("Branch condition hit, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
+          *cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
+          mem->pc = newaddr;
+     }
+     else {
+          printf("Did not hit branch condition, not branching!\n");
+     }
+}
+
+void cmp(memory* mem, byte reg, byte value) {
+     byte result = reg - value;
+     set_p_zn_on(mem, result);
+     if (result >= 0) {
+          set_p_carry(mem);
+     }
+     else {
+          clear_p_carry(mem);
+     }
+}
 
 int cpu_step(memory* mem) {
      uint16_t old_pc = mem->pc;
@@ -54,34 +117,32 @@ int cpu_step(memory* mem) {
                break;
 
           case LDX_Immediate:
-               mem->x = read_byte_and_inc_pc(mem);
+               mem->x = read_value(mem, Immediate);
                set_p_zn_on(mem, mem->x);
                cycles = 2;
                break;
 
           case LDY_Immediate:
-               mem->y = read_byte_and_inc_pc(mem);
+               mem->y = read_value(mem, Immediate);
                set_p_zn_on(mem, mem->y);
                cycles = 2;
                break;
 
           case LDA_Immediate:
-               mem->a = read_byte_and_inc_pc(mem);
+               mem->a = read_value(mem, Immediate);
                set_p_zn_on(mem, mem->a);
                cycles = 2;
                break;
 
           case LDA_Absolute:
-               mem->a = read_byte(mem, read_address_and_inc_pc(mem));
+               //mem->a = read_byte(mem, read_address_and_inc_pc(mem));
+               mem->a = read_value(mem, Absolute);
                set_p_zn_on(mem, mem->a);
                cycles = 4;
                break;
 
           case LDA_Absolute_X: {
-               uint16_t addr = read_address_and_inc_pc(mem);
-               addr += mem->x;
-               addr += get_p_carry(mem);
-               mem->a = read_byte(mem, addr);
+               mem->a = read_value(mem, Absolute_X);
                set_p_zn_on(mem, mem->a);
                break;
           }
@@ -93,61 +154,25 @@ int cpu_step(memory* mem) {
 
           case BPL: {
                cycles = 2;
-               // Read as a signed byte
-               int8_t offset = read_byte_and_inc_pc(mem);
-               if (get_p_negative(mem) == false) {
-                    uint16_t newaddr = mem->pc + offset;
-                    printf("Last calc was positive, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
-                    cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
-                    mem->pc = newaddr;
-               }
-               else {
-                    printf("Last calc was negative, not branching!\n");
-               }
+               branch_on_condition(mem, &cycles, get_p_negative(mem) == false);
                break;
           }
 
           case BCS: {
                cycles = 2;
-               // Read as a signed byte
-               int8_t offset = read_byte_and_inc_pc(mem);
-
-               if (get_p_carry(mem) == true) {
-                    uint16_t newaddr = mem->pc + offset;
-                    printf("Carry flag set, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
-                    cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
-                    mem->pc = newaddr;
-               }
-               else {
-                    printf("Carry flag not set, not branching!\n");
-               }
+               branch_on_condition(mem, &cycles, get_p_carry(mem) == true);
+               break;
           }
 
           case CMP_Immediate: {
                cycles = 2;
-               byte value = read_byte_and_inc_pc(mem);
-               byte result = mem->a - value;
-               set_p_zn_on(mem, result);
-               if (result >= 0) {
-                    set_p_carry(mem);
-               }
-               else {
-                    clear_p_carry(mem);
-               }
+               cmp(mem, mem->a, read_value(mem, Immediate));
                break;
           }
 
           case CPY_Immediate: {
                cycles = 2;
-               byte value = read_byte_and_inc_pc(mem);
-               byte result = mem->y - value;
-               set_p_zn_on(mem, result);
-               if (result >= 0) {
-                    set_p_carry(mem);
-               }
-               else {
-                    clear_p_carry(mem);
-               }
+               cmp(mem, mem->y, read_value(mem, Immediate));
                break;
           }
 
