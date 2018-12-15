@@ -41,7 +41,7 @@ typedef enum addressing_mode_t {
      Accumulator
 } addressing_mode;
 
-byte read_value(memory* mem, addressing_mode mode) {
+byte read_value(memory* mem, int* cycles, addressing_mode mode) {
      switch (mode) {
           case Immediate:
                return read_byte_and_inc_pc(mem);
@@ -117,32 +117,32 @@ int cpu_step(memory* mem) {
                break;
 
           case LDX_Immediate:
-               mem->x = read_value(mem, Immediate);
+               mem->x = read_value(mem, &cycles, Immediate);
                set_p_zn_on(mem, mem->x);
                cycles = 2;
                break;
 
           case LDY_Immediate:
-               mem->y = read_value(mem, Immediate);
+               mem->y = read_value(mem, &cycles, Immediate);
                set_p_zn_on(mem, mem->y);
                cycles = 2;
                break;
 
           case LDA_Immediate:
-               mem->a = read_value(mem, Immediate);
+               mem->a = read_value(mem, &cycles, Immediate);
                set_p_zn_on(mem, mem->a);
                cycles = 2;
                break;
 
           case LDA_Absolute:
                //mem->a = read_byte(mem, read_address_and_inc_pc(mem));
-               mem->a = read_value(mem, Absolute);
+               mem->a = read_value(mem, &cycles, Absolute);
                set_p_zn_on(mem, mem->a);
                cycles = 4;
                break;
 
           case LDA_Absolute_X: {
-               mem->a = read_value(mem, Absolute_X);
+               mem->a = read_value(mem, &cycles, Absolute_X);
                set_p_zn_on(mem, mem->a);
                break;
           }
@@ -166,28 +166,19 @@ int cpu_step(memory* mem) {
 
           case CMP_Immediate: {
                cycles = 2;
-               cmp(mem, mem->a, read_value(mem, Immediate));
+               cmp(mem, mem->a, read_value(mem, &cycles, Immediate));
                break;
           }
 
           case CPY_Immediate: {
                cycles = 2;
-               cmp(mem, mem->y, read_value(mem, Immediate));
+               cmp(mem, mem->y, read_value(mem, &cycles, Immediate));
                break;
           }
 
           case CPY_Absolute: {
                cycles = 4;
-               uint16_t addr = read_address_and_inc_pc(mem);
-               byte value = read_byte(mem, addr);
-               byte result = mem->y - value;
-               set_p_zn_on(mem, result);
-               if (result >= 0) {
-                    set_p_carry(mem);
-               }
-               else {
-                    clear_p_carry(mem);
-               }
+               cmp(mem, mem->y, read_value(mem, &cycles, Absolute));
                break;
           }
 
