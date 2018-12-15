@@ -25,7 +25,7 @@ int cpu_steps = 0;
 
 int cpu_step(memory* mem) {
      byte opcode = read_byte_and_inc_pc(mem);
-     printf("%08d: Executing instruction %s\n", cpu_steps++, opcode_to_name_full(opcode));
+     printf("%05d $%04x: Executing instruction %s\n", cpu_steps++, mem->pc, opcode_to_name_full(opcode));
 
      int cycles = 0;
 
