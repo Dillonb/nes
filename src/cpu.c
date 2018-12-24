@@ -50,6 +50,20 @@ uint16_t indirect_y_address(memory* mem, int* cycles) {
 }
 
 // TODO: handle pages crossed cases
+uint16_t absolute_x_address(memory* mem, int* cycles) {
+    uint16_t addr = read_address_and_inc_pc(mem);
+    addr += mem->x;
+    return addr;
+}
+
+// TODO: handle pages crossed cases
+uint16_t absolute_y_address(memory* mem, int* cycles) {
+    uint16_t addr = read_address_and_inc_pc(mem);
+    addr += mem->x;
+    return addr;
+}
+
+// TODO: handle pages crossed cases
 byte read_value(memory* mem, int* cycles, addressing_mode mode) {
     switch (mode) {
         case Immediate:
@@ -59,10 +73,11 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
             return read_byte(mem, read_address_and_inc_pc(mem));
 
         case Absolute_X: {
-            uint16_t addr = read_address_and_inc_pc(mem);
-            addr += mem->x;
-            addr += get_p_carry(mem);
-            return read_byte(mem, addr);
+            return read_byte(mem, absolute_x_address(mem, cycles));
+        }
+
+        case Absolute_Y: {
+            return read_byte(mem, absolute_y_address(mem, cycles));
         }
 
         default:
@@ -118,6 +133,11 @@ int cpu_step(memory* mem) {
         case STA_Absolute: // STA Absolute
             write_byte(mem, read_address_and_inc_pc(mem), mem->a);
             cycles = 4;
+            break;
+
+        case STA_Absolute_Y:
+            cycles = 5;
+            write_byte(mem, absolute_y_address(mem, &cycles), mem->a);
             break;
 
         case STA_Zeropage:
