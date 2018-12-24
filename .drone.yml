@@ -2,6 +2,4 @@ pipeline:
     build:
         image: rikorose/gcc-cmake:latest
         commands:
-            - pushd build
-            - ./build.sh
-            - make test
+            - ./test.sh
