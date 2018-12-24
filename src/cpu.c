@@ -161,6 +161,13 @@ int cpu_step(memory* mem) {
             cycles = 2;
             break;
 
+        case TXA: {
+            cycles = 2;
+            mem->a = mem->x;
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
         case LDX_Immediate:
             mem->x = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->x);
@@ -268,6 +275,20 @@ int cpu_step(memory* mem) {
             break;
         }
 
+        case INY: {
+            mem->y++;
+            cycles = 2;
+            set_p_zn_on(mem, mem->y);
+            break;
+        }
+
+        case INX: {
+            mem->x++;
+            cycles = 2;
+            set_p_zn_on(mem, mem->x);
+            break;
+        }
+
         case BIT_Absolute: {
             cycles = 4;
             byte operand = read_value(mem, &cycles, Absolute);
@@ -276,6 +297,20 @@ int cpu_step(memory* mem) {
             set_p_negative_to(mem, new_negative);
             set_p_overflow_to(mem, new_overflow);
             set_p_zero_on(mem, operand & mem->a);
+            break;
+        }
+
+        case ORA_Immediate: {
+            cycles = 2;
+            mem->a |= read_value(mem, &cycles, Immediate);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case AND_Immediate: {
+            cycles = 2;
+            mem->a &= read_value(mem, &cycles, Immediate);
+            set_p_zn_on(mem, mem->a);
             break;
         }
 
