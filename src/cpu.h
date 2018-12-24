@@ -145,10 +145,10 @@
 #define ROL_Absolute_X  0x3E
 
 #define ROR_accumulator 0x6A
-#define ROR_zeropage    0x66
-#define ROR_zeropage_X  0x76
-#define ROR_absolute    0x6E
-#define ROR_absolute_X  0x7E
+#define ROR_Zeropage    0x66
+#define ROR_Zeropage_X  0x76
+#define ROR_Absolute    0x6E
+#define ROR_Absolute_X  0x7E
 
 #define RTI 0x40
 #define RTS 0x60
@@ -175,13 +175,13 @@
 #define STA_Indirect_Y 0x91
 
 
-#define STX_zeropage   0x86
-#define STX_zeropage_Y 0x96
-#define STX_absolute   0x8E
+#define STX_Zeropage   0x86
+#define STX_Zeropage_Y 0x96
+#define STX_Absolute   0x8E
 
-#define STY_zeropage   0x84
-#define STY_zeropage_X 0x94
-#define STY_absolute   0x8C
+#define STY_Zeropage   0x84
+#define STY_Zeropage_X 0x94
+#define STY_Absolute   0x8C
 
 #define TAX 0xAA
 #define TAY 0xA8
