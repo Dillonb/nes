@@ -111,6 +111,16 @@ int cpu_step(memory* mem) {
                cycles = 4;
                break;
 
+          case STA_Zeropage:
+               cycles = 3;
+               write_byte(mem, read_byte_and_inc_pc(mem), mem->a);
+               break;
+
+          case STX_Zeropage:
+               cycles = 3;
+               write_byte(mem, read_byte_and_inc_pc(mem), mem->x);
+               break;
+
           case TXS:
                mem->sp = mem->x;
                cycles = 2;
@@ -179,6 +189,14 @@ int cpu_step(memory* mem) {
           case CPY_Absolute: {
                cycles = 4;
                cmp(mem, mem->y, read_value(mem, &cycles, Absolute));
+               break;
+          }
+
+          case JSR: {
+               cycles = 6;
+               uint16_t addr = read_address_and_inc_pc(mem);
+               stack_push16(mem, mem->pc); // TODO: should this be mem->pc+1?
+               mem->pc = addr;
                break;
           }
 
