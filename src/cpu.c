@@ -227,6 +227,18 @@ int cpu_step(memory* mem) {
                break;
           }
 
+          case DEY: {
+               cycles = 2;
+               mem->y--;
+               break;
+          }
+
+          case DEX: {
+               cycles = 2;
+               mem->x--;
+               break;
+          }
+
           default: {
                const char* opcode_short = opcode_to_name_short(opcode);
                char docs_link[DOCS_PREFIX_LENGTH + 10];
