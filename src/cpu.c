@@ -230,12 +230,14 @@ int cpu_step(memory* mem) {
           case DEY: {
                cycles = 2;
                mem->y--;
+               set_p_zn_on(mem, mem->y);
                break;
           }
 
           case DEX: {
                cycles = 2;
                mem->x--;
+               set_p_zn_on(mem, mem->x);
                break;
           }
 
