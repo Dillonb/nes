@@ -248,6 +248,17 @@ int cpu_step(memory* mem) {
                break;
           }
 
+          case BIT_Absolute: {
+               cycles = 4;
+               byte operand = read_value(mem, &cycles, Absolute);
+               bool new_negative = (mask_flag(P_NEGATIVE) & operand) > 0;
+               bool new_overflow = (mask_flag(P_OVERFLOW) & operand) > 0;
+               set_p_negative_to(new_negative);
+               set_p_overflow_to(new_overflow);
+               set_p_zero_on(mem, operand & mem->a);
+               break;
+          }
+
           default: {
                const char* opcode_short = opcode_to_name_short(opcode);
                char docs_link[DOCS_PREFIX_LENGTH + 10];

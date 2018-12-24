@@ -49,6 +49,9 @@ void write_byte(memory* mem, uint16_t address, byte value) {
     byte register_num = (address - 2000) % 8;
     write_ppu_register(&mem->ppu_mem, register_num, value);
   }
+  else if (address < 0x4018) {
+       printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
+  }
   else {
     errx(EXIT_FAILURE, "attempted to write_byte() 0x%02x at 0x%04x, but this is not implemented (yet?)", value, address);
   }
@@ -97,6 +100,14 @@ void clear_p_flag(memory* mem, int index) {
 }
 int get_p_flag(memory* mem, int index) {
   return (mem->p & mask_flag(index)) > 0;
+}
+void set_p_flag_to(memory* mem, int index, bool value) {
+     if (value) {
+          set_p_flag(mem, index);
+     }
+     else {
+          clear_p_flag(mem, index);
+     }
 }
 
 int get_p_negative(memory* mem) {
@@ -164,6 +175,29 @@ void clear_p_zero(memory* mem) {
 void clear_p_carry(memory* mem) {
   clear_p_flag(mem, P_CARRY);
 }
+
+void set_p_negative_to(memory* mem, bool value) {
+     set_p_flag_to(mem, P_NEGATIVE, value);
+}
+void set_p_overflow_to(memory* mem, bool value) {
+     set_p_flag_to(mem, P_OVERFLOW, value);
+}
+void set_p_break_to(memory* mem, bool value) {
+     set_p_flag_to(mem, P_BREAK, value);
+}
+void set_p_decimal_to(memory* mem, bool value) {
+     set_p_flag_to(mem, P_DECIMAL, value);
+}
+void set_p_interrupt_to(memory* mem, bool value) {
+     set_p_flag_to(mem, P_INTERRUPT, value);
+}
+void set_p_zero_to(memory* mem, bool value) {
+     set_p_flag_to(mem, P_ZERO, value);
+}
+void set_p_carry_to(memory* mem, bool value) {
+     set_p_flag_to(mem, P_CARRY, value);
+}
+
 
 void set_p_zero_on(memory* mem, byte value) {
   if (value == 0x00) {

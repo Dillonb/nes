@@ -60,6 +60,7 @@ void load_rom_into_memory(memory* mem, rom* r);
 
 #define SAME_PAGE(addr1, addr2) (addr1 & 0xFF00) == (addr2 & 0xFF00)
 
+byte mask_flag(int index);
 
 bool is_negative(byte value);
 
@@ -78,6 +79,14 @@ void set_p_decimal(memory* mem);
 void set_p_interrupt(memory* mem);
 void set_p_zero(memory* mem);
 void set_p_carry(memory* mem);
+
+void set_p_negative_to(memory* mem, bool value);
+void set_p_overflow_to(memory* mem, bool value);
+void set_p_break_to(memory* mem, bool value);
+void set_p_decimal_to(memory* mem, bool value);
+void set_p_interrupt_to(memory* mem, bool value);
+void set_p_zero_to(memory* mem, bool value);
+void set_p_carry_to(memory* mem, bool value);
 
 void clear_p_negative(memory* mem);
 void clear_p_overflow(memory* mem);
