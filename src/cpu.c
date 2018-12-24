@@ -41,6 +41,15 @@ typedef enum addressing_mode_t {
      Accumulator
 } addressing_mode;
 
+// TODO: handle pages crossed cases
+uint16_t indirect_y_address(memory* mem, int* cycles) {
+     byte b = read_byte_and_inc_pc(mem);
+     uint16_t address = read_address(mem, b) + mem->y;
+
+     return address;
+}
+
+// TODO: handle pages crossed cases
 byte read_value(memory* mem, int* cycles, addressing_mode mode) {
      switch (mode) {
           case Immediate:
@@ -116,6 +125,12 @@ int cpu_step(memory* mem) {
                write_byte(mem, read_byte_and_inc_pc(mem), mem->a);
                break;
 
+          case STA_Indirect_Y: {
+               cycles = 6;
+               write_byte(mem, indirect_y_address(mem, &cycles), mem->a);
+               break;
+          }
+
           case STX_Zeropage:
                cycles = 3;
                write_byte(mem, read_byte_and_inc_pc(mem), mem->x);
@@ -174,6 +189,12 @@ int cpu_step(memory* mem) {
                break;
           }
 
+          case BNE: {
+               cycles = 2;
+               branch_on_condition(mem, &cycles, get_p_zero(mem) == false);
+               break;
+          }
+
           case CMP_Immediate: {
                cycles = 2;
                cmp(mem, mem->a, read_value(mem, &cycles, Immediate));
@@ -189,6 +210,12 @@ int cpu_step(memory* mem) {
           case CPY_Absolute: {
                cycles = 4;
                cmp(mem, mem->y, read_value(mem, &cycles, Absolute));
+               break;
+          }
+
+          case CPX_Immediate: {
+               cycles = 2;
+               cmp(mem, mem->x, read_value(mem, &cycles, Immediate));
                break;
           }
 
