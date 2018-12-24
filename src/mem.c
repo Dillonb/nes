@@ -187,3 +187,27 @@ void set_p_zn_on(memory* mem, byte value) {
      set_p_zero_on(mem, value);
      set_p_negative_on(mem, value);
 }
+
+void stack_push(memory* mem, byte value) {
+     write_byte(mem, 0x100 | mem->sp, value);
+     mem->sp--;
+}
+
+void stack_push16(memory* mem, uint16_t value) {
+     byte lower = value & 0xFF;
+     byte higher = value >> 8;
+
+     stack_push(mem, higher);
+     stack_push(mem, lower);
+}
+
+byte stack_pop(memory* mem) {
+     mem->sp++;
+     return read_byte(mem, 0x100 | mem->sp);
+}
+
+uint16_t stack_pop16(memory* mem) {
+     byte lower = stack_pop(mem);
+     byte upper = stack_pop(mem);
+     return (upper << 8) | lower;
+}
