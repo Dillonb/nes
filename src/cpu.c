@@ -289,6 +289,15 @@ int cpu_step(memory* mem) {
             break;
         }
 
+        case INC_Absolute: {
+            cycles = 6;
+            uint16_t addr = read_address_and_inc_pc(mem);
+            byte value = read_byte(mem, addr);
+            value++;
+            write_byte(mem, addr, value);
+            break;
+        }
+
         case BIT_Absolute: {
             cycles = 4;
             byte operand = read_value(mem, &cycles, Absolute);
@@ -311,6 +320,12 @@ int cpu_step(memory* mem) {
             cycles = 2;
             mem->a &= read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case JMP_Absolute: {
+            cycles = 3;
+            mem->pc = read_address_and_inc_pc(mem);
             break;
         }
 
