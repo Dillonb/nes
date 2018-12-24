@@ -227,6 +227,13 @@ int cpu_step(memory* mem) {
                break;
           }
 
+          case RTS: {
+               cycles = 6;
+               uint16_t addr = stack_pop16(mem);
+               mem->pc = addr;
+               break;
+          }
+
           case DEY: {
                cycles = 2;
                mem->y--;
