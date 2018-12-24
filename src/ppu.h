@@ -2,15 +2,15 @@
 #include "util.h"
 
 typedef struct ppu_memory_t {
-     byte control;
-     byte mask;
-     byte status;
-     byte oamAddress;
-     byte oamData;
-     byte scroll;
-     byte address;
-     byte data;
-     byte dma;
+    byte control;
+    byte mask;
+    byte status;
+    byte oamAddress;
+    byte oamData;
+    byte scroll;
+    byte address;
+    byte data;
+    byte dma;
 } ppu_memory;
 
 ppu_memory get_ppu_mem();
