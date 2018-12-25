@@ -34,6 +34,14 @@ byte read_byte(memory* mem, uint16_t address) {
       printf("Read 0x%02x from PPU register %d\n", value, register_num);
       return value;
     }
+    else if (address == 0x4016) {
+        printf("Access to controller register #1 attempted, returning 0x00 for now.\n");
+        return 0x00;
+    }
+    else if (address == 0x4017) {
+        printf("Access to controller register #2 attempted, returning 0x00 for now.\n");
+        return 0x00;
+    }
     else if (address >= 0x4020) { // 0x4020 -> USHRT_MAX is cartridge space
         return read_cartridge_space_address(mem->r, address);
     }

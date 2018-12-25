@@ -177,6 +177,12 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case STA_Absolute_X: {
+            cycles = 5;
+            write_byte(mem, absolute_x_address(mem, &cycles), mem->a);
+            break;
+        }
+
         case STA_Zeropage: {
             cycles = 3;
             write_byte(mem, read_byte_and_inc_pc(mem), mem->a);
@@ -220,6 +226,20 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case TAX: {
+            mem->x = mem->a;
+            set_p_zn_on(mem, mem->x);
+            cycles = 2;
+            break;
+        }
+
+        case TAY: {
+            mem->y = mem->a;
+            set_p_zn_on(mem, mem->y);
+            cycles = 2;
+            break;
+        }
+
         case LDX_Immediate: {
             mem->x = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->x);
@@ -227,10 +247,31 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case LDX_Absolute: {
+            mem->x = read_value(mem, &cycles, Absolute);
+            set_p_zn_on(mem, mem->x);
+            cycles = 4;
+            break;
+        }
+
+        case LDX_Absolute_Y: {
+            mem->x = read_value(mem, &cycles, Absolute_Y);
+            set_p_zn_on(mem, mem->x);
+            cycles = 4;
+            break;
+        }
+
         case LDY_Immediate: {
             mem->y = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->y);
             cycles = 2;
+            break;
+        }
+
+        case LDY_Absolute: {
+            mem->y = read_value(mem, &cycles, Absolute);
+            set_p_zn_on(mem, mem->y);
+            cycles = 4;
             break;
         }
 
@@ -408,6 +449,13 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case ORA_Zeropage: {
+            cycles = 3;
+            mem->a |= read_value(mem, &cycles, Zeropage);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
         case AND_Immediate: {
             cycles = 2;
             mem->a &= read_value(mem, &cycles, Immediate);
@@ -424,6 +472,27 @@ int normal_cpu_step(memory* mem) {
         case PHP: {
             php(mem);
             cycles = 3;
+            break;
+        }
+
+        case PHA: {
+            stack_push(mem, mem->a);
+            cycles = 3;
+            break;
+        }
+
+        case PLA: {
+            mem->a = stack_pop(mem);
+            set_p_zn_on(mem, mem->a);
+            cycles = 4;
+            break;
+        }
+
+        case LSR_Accumulator: {
+            set_p_carry_to(mem, mem->a & 1);
+            mem->a >>= 1;
+            set_p_zn_on(mem, mem->a);
+            break;
         }
 
         default: {
