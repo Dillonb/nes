@@ -191,6 +191,12 @@
 #define TXS 0x9A
 #define TYA 0x98
 
+typedef enum interrupt_type_t {
+    NONE,
+    nmi,
+    irq
+} interrupt_type;
+
 
 byte read_byte_and_inc_pc(memory* mem);
 int cpu_step(memory* mem);

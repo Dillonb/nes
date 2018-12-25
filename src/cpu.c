@@ -10,6 +10,8 @@
 const char* docs_prefix = "https://www.masswerk.at/6502/6502_instruction_set.html#";
 #define DOCS_PREFIX_LENGTH 55
 
+#define INTERRUPT_PC_LOCATION 0xFFFA
+
 byte read_byte_and_inc_pc(memory* mem) {
     byte data = read_byte(mem, mem->pc);
     mem->pc++;
@@ -111,7 +113,28 @@ void cmp(memory* mem, byte reg, byte value) {
     }
 }
 
-int cpu_step(memory* mem) {
+void php(memory* mem) {
+}
+
+int interrupt_nmi(memory* mem) {
+    stack_push16(mem, mem->pc);
+    php(mem);
+    mem->pc = read_address(mem, INTERRUPT_PC_LOCATION);
+    set_p_interrupt(mem);
+    return 7;
+}
+
+interrupt_type interrupt = NONE;
+
+int interrupt_cpu_step(memory* mem) {
+    // Before doing the step, see if there was an interrupt triggered
+    if (interrupt == nmi) {
+        return interrupt_nmi(mem);
+    }
+    errx(EXIT_FAILURE, "Interrupt type not implemented");
+}
+    
+int normal_cpu_step(memory* mem) {
     uint16_t old_pc = mem->pc;
     byte opcode = read_byte_and_inc_pc(mem);
     printf("%05d $%04x: Executing instruction %s\n", cpu_steps++, old_pc, opcode_to_name_full(opcode));
@@ -340,3 +363,13 @@ int cpu_step(memory* mem) {
 
     return cycles;
 }
+
+int cpu_step(memory* mem) {
+    if (interrupt != NONE) {
+        return interrupt_cpu_step(mem);
+    }
+    else {
+        return normal_cpu_step(mem);
+    }
+}
+
