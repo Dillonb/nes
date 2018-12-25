@@ -10,7 +10,7 @@
 const char* docs_prefix = "https://www.masswerk.at/6502/6502_instruction_set.html#";
 #define DOCS_PREFIX_LENGTH 55
 
-#define INTERRUPT_PC_LOCATION 0xFFFA
+#define NMI_PC_LOCATION 0xFFFA
 
 byte read_byte_and_inc_pc(memory* mem) {
     byte data = read_byte(mem, mem->pc);
@@ -119,7 +119,7 @@ void php(memory* mem) {
 int interrupt_nmi(memory* mem) {
     stack_push16(mem, mem->pc);
     php(mem);
-    mem->pc = read_address(mem, INTERRUPT_PC_LOCATION);
+    mem->pc = read_address(mem, NMI_PC_LOCATION);
     set_p_interrupt(mem);
     return 7;
 }
