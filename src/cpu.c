@@ -114,6 +114,7 @@ void cmp(memory* mem, byte reg, byte value) {
 }
 
 void php(memory* mem) {
+    stack_push(mem, mem->p);
 }
 
 int interrupt_nmi(memory* mem) {
@@ -351,6 +352,11 @@ int normal_cpu_step(memory* mem) {
             cycles = 3;
             mem->pc = read_address_and_inc_pc(mem);
             break;
+        }
+
+        case PHP: {
+            php(mem);
+            cycles = 3;
         }
 
         default: {
