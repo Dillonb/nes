@@ -83,6 +83,10 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
             return read_byte(mem, absolute_y_address(mem, cycles));
         }
 
+        case Indirect_Y: {
+            return read_byte(mem, indirect_y_address(mem, cycles));
+        }
+
         default:
             errx(EXIT_FAILURE, "Addressing mode not implemented.");
     }
@@ -234,7 +238,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case LDA_Absolute: {
-            //mem->a = read_byte(mem, read_address_and_inc_pc(mem));
             mem->a = read_value(mem, &cycles, Absolute);
             set_p_zn_on(mem, mem->a);
             cycles = 4;
@@ -243,6 +246,12 @@ int normal_cpu_step(memory* mem) {
 
         case LDA_Absolute_X: {
             mem->a = read_value(mem, &cycles, Absolute_X);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case LDA_Indirect_Y: {
+            mem->a = read_value(mem, &cycles, Indirect_Y);
             set_p_zn_on(mem, mem->a);
             break;
         }
