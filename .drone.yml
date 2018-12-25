@@ -1,5 +1,5 @@
 pipeline:
     build:
-        image: rikorose/gcc-cmake:latest
+        image: dillonb/alpine-cmake-clang
         commands:
             - ./test.sh
