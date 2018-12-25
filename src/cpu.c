@@ -463,6 +463,13 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case AND_Absolute_X: {
+            cycles = 4;
+            mem->a &= read_value(mem, &cycles, Absolute_X);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
         case JMP_Absolute: {
             cycles = 3;
             mem->pc = read_address_and_inc_pc(mem);
@@ -492,6 +499,20 @@ int normal_cpu_step(memory* mem) {
             set_p_carry_to(mem, mem->a & 1);
             mem->a >>= 1;
             set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case ROL_Accumulator: {
+            bool oldc = get_p_carry(mem);
+            set_p_carry_to(mem, (mem->a >> 7) & 1);
+            mem->a = (mem->a << 1) | oldc;
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case SEC: {
+            set_p_carry(mem);
+            cycles = 2;
             break;
         }
 
