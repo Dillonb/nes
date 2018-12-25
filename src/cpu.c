@@ -437,9 +437,16 @@ int normal_cpu_step(memory* mem) {
     return cycles;
 }
 
+void trigger_nmi() {
+    printf("!!! NMI TRIGGERED !!!\n");
+    interrupt = nmi;
+}
+
 int cpu_step(memory* mem) {
     if (interrupt != NONE) {
-        return interrupt_cpu_step(mem);
+        int cycles = interrupt_cpu_step(mem);
+        interrupt = NONE;
+        return cycles;
     }
     else {
         return normal_cpu_step(mem);

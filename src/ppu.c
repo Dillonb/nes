@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "ppu.h"
+#include "cpu.h"
 
 
 ppu_memory get_ppu_mem() {
@@ -15,11 +17,64 @@ ppu_memory get_ppu_mem() {
     ppu_mem.data       = 0b00000000;
     ppu_mem.dma        = 0b00000000;
 
+    ppu_mem.frame = 0;
+    ppu_mem.scan_line = 0;
+    ppu_mem.cycle = 0;
+
     return ppu_mem;
 }
 
-void ppu_step(ppu_memory* ppu_mem) {
+// 0 - 261
+// 0: Pre-render
+// 1-240: Visible
+// 241: Post-render
+// 242-261: VBLANK
+#define NUM_LINES 262
+// 0 - 340
+#define CYCLES_PER_LINE 341
 
+bool is_visible(ppu_memory* ppu_mem) {
+    // Pre-render scanline
+    if (ppu_mem->scan_line == 0) {
+        return false;
+    }
+    // Post-render and VBLANK
+    if (ppu_mem->scan_line > 240) {
+        return false;
+    }
+
+    return true;
+}
+
+void set_vblank(ppu_memory* ppu_mem) {
+    trigger_nmi();
+}
+
+void clear_vblank(ppu_memory* ppu_mem) {
+}
+
+void ppu_step(ppu_memory* ppu_mem) {
+    ppu_mem->cycle++;
+    if (ppu_mem->cycle >= CYCLES_PER_LINE) {
+        ppu_mem->cycle = 0;
+        ppu_mem->scan_line++;
+        if (ppu_mem->scan_line >= NUM_LINES) {
+            ppu_mem->frame++;
+            ppu_mem->scan_line = 0;
+        }
+    }
+
+    if (ppu_mem->cycle == 0) {
+        // Idle cycle
+    }
+    else if (ppu_mem->cycle == 1) {
+        if (ppu_mem->scan_line == 0) {
+            clear_vblank(ppu_mem);
+        }
+        else if (ppu_mem->scan_line == 241) {
+            set_vblank(ppu_mem);
+        }
+    }
 }
 
 byte read_ppu_register(ppu_memory* ppu_mem, byte register_num) {
@@ -59,7 +114,6 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
             ppu_mem->mask = value;
             return;
         case 2:
-            ppu_mem->status = value;
             return;
         case 3:
             ppu_mem->oamAddress = value;

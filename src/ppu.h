@@ -1,7 +1,11 @@
 #pragma once
+#include <stdint.h>
 #include "util.h"
 
 typedef struct ppu_memory_t {
+    unsigned long long frame;
+    uint16_t scan_line;
+    uint16_t cycle;
     byte control;
     byte mask;
     byte status;

@@ -30,7 +30,9 @@ byte read_byte(memory* mem, uint16_t address) {
     else if (address < 0x4000) { // PPU registers
       // 8 ppu registers, repeating every 8 bytes from 0x2000 to 0x3FFF
       byte register_num = (address - 2000) % 8;
-      return read_ppu_register(&mem->ppu_mem, register_num);
+      byte value = read_ppu_register(&mem->ppu_mem, register_num);
+      printf("Read 0x%02x from PPU register %d\n", value, register_num);
+      return value;
     }
     else if (address >= 0x4020) { // 0x4020 -> USHRT_MAX is cartridge space
         return read_cartridge_space_address(mem->r, address);
@@ -47,6 +49,7 @@ void write_byte(memory* mem, uint16_t address, byte value) {
   else if (address < 0x4000) { // PPU registers
     // 8 ppu registers, repeating every 8 bytes from 0x2000 to 0x3FFF
     byte register_num = (address - 2000) % 8;
+    printf("Writing 0x%02x to PPU register %d\n", value, register_num);
     write_ppu_register(&mem->ppu_mem, register_num, value);
   }
   else if (address < 0x4018) {
