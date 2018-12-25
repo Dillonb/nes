@@ -143,32 +143,37 @@ int normal_cpu_step(memory* mem) {
     int cycles = 0;
 
     switch (opcode) {
-        case BRK:
+        case BRK: {
             // Set interrupt flag on status register
             set_p_interrupt(mem);
             mem->pc++; // Skip next byte
             cycles = 7;
             break;
+        }
 
-        case SEI:
+        case SEI: {
             set_p_interrupt(mem);
             cycles = 2;
             break;
+        }
 
-        case STA_Absolute: // STA Absolute
+        case STA_Absolute: {
             write_byte(mem, read_address_and_inc_pc(mem), mem->a);
             cycles = 4;
             break;
+        }
 
-        case STA_Absolute_Y:
+        case STA_Absolute_Y: {
             cycles = 5;
             write_byte(mem, absolute_y_address(mem, &cycles), mem->a);
             break;
+        }
 
-        case STA_Zeropage:
+        case STA_Zeropage: {
             cycles = 3;
             write_byte(mem, read_byte_and_inc_pc(mem), mem->a);
             break;
+        }
 
         case STA_Indirect_Y: {
             cycles = 6;
@@ -176,15 +181,17 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case STX_Zeropage:
+        case STX_Zeropage: {
             cycles = 3;
             write_byte(mem, read_byte_and_inc_pc(mem), mem->x);
             break;
+        }
 
-        case TXS:
+        case TXS: {
             mem->sp = mem->x;
             cycles = 2;
             break;
+        }
 
         case TXA: {
             cycles = 2;
@@ -193,30 +200,34 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case LDX_Immediate:
+        case LDX_Immediate: {
             mem->x = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->x);
             cycles = 2;
             break;
+        }
 
-        case LDY_Immediate:
+        case LDY_Immediate: {
             mem->y = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->y);
             cycles = 2;
             break;
+        }
 
-        case LDA_Immediate:
+        case LDA_Immediate: {
             mem->a = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->a);
             cycles = 2;
             break;
+        }
 
-        case LDA_Absolute:
+        case LDA_Absolute: {
             //mem->a = read_byte(mem, read_address_and_inc_pc(mem));
             mem->a = read_value(mem, &cycles, Absolute);
             set_p_zn_on(mem, mem->a);
             cycles = 4;
             break;
+        }
 
         case LDA_Absolute_X: {
             mem->a = read_value(mem, &cycles, Absolute_X);
@@ -224,10 +235,11 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case CLD:
+        case CLD: {
             clear_p_decimal(mem);
             cycles = 2;
             break;
+        }
 
         case BPL: {
             cycles = 2;
