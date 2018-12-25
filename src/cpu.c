@@ -280,6 +280,12 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case BEQ: {
+            cycles = 2;
+            branch_on_condition(mem, &cycles, get_p_zero(mem) == true);
+            break;
+        }
+
         case CMP_Immediate: {
             cycles = 2;
             cmp(mem, mem->a, read_value(mem, &cycles, Immediate));
@@ -350,6 +356,15 @@ int normal_cpu_step(memory* mem) {
         case INC_Absolute: {
             cycles = 6;
             uint16_t addr = read_address_and_inc_pc(mem);
+            byte value = read_byte(mem, addr);
+            value++;
+            write_byte(mem, addr, value);
+            break;
+        }
+
+        case INC_Zeropage: {
+            cycles = 5;
+            byte addr = read_byte_and_inc_pc(mem);
             byte value = read_byte(mem, addr);
             value++;
             write_byte(mem, addr, value);
