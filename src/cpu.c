@@ -33,6 +33,8 @@ bool is_breakpoint(uint16_t address) {
 }
 
 void set_debug() {
+    // Super hacky and non-portable way to not wait for enter after getchar().
+    system("stty -icanon");
     debug = true;
 }
 
