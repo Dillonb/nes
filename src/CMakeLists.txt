@@ -2,10 +2,12 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 # For testing
 add_library(libnes
+    util.c
     cpu.c
     mem.c
     rom.c
     ppu.c
+    set.c
     )
 
 
@@ -28,6 +30,10 @@ add_executable (nes nes.c
     ppu.c
     ppu.h
 
+    set.c
+    set.h
+
+    util.c
     util.h
     )
 

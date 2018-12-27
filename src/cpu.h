@@ -203,3 +203,5 @@ int cpu_step(memory* mem);
 const char* opcode_to_name_full(byte opcode);
 const char* opcode_to_name_short(byte opcode);
 void trigger_nmi();
+void set_debug();
+void set_breakpoint(uint16_t address);

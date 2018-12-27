@@ -3,7 +3,7 @@
 
 #include "cpu.h"
 #include "mem.h"
-
+#include "set.h"
 #include "util.h"
 #include "opcode_names.h"
 
@@ -11,6 +11,30 @@ const char* docs_prefix = "https://www.masswerk.at/6502/6502_instruction_set.htm
 #define DOCS_PREFIX_LENGTH 55
 
 #define NMI_PC_LOCATION 0xFFFA
+
+bool debug = false;
+
+address_tree* breakpoints = NULL;
+
+void set_breakpoint(uint16_t address) {
+    if (breakpoints == NULL) {
+        breakpoints = new_address_tree();
+    }
+    insert_to_address_tree(breakpoints, address);
+}
+
+bool is_breakpoint(uint16_t address) {
+    if (breakpoints == NULL) {
+        breakpoints = new_address_tree();
+    }
+    bool result = address_tree_contains(breakpoints, address);
+
+    return result;
+}
+
+void set_debug() {
+    debug = true;
+}
 
 byte read_byte_and_inc_pc(memory* mem) {
     byte data = read_byte(mem, mem->pc);
@@ -47,7 +71,11 @@ typedef enum addressing_mode_t {
 // TODO: handle pages crossed cases
 uint16_t indirect_y_address(memory* mem, int* cycles) {
     byte b = read_byte_and_inc_pc(mem);
-    uint16_t address = read_address(mem, b) + mem->y;
+    uint16_t address = read_address(mem, b);
+    if (debug) {
+        printf("Ind Y: b: 0x%02x ind addr: 0x%04x y: 0x%02x\n", b, address, mem->y);
+    }
+    address += mem->y;
 
     return address;
 }
@@ -101,12 +129,14 @@ void branch_on_condition(memory* mem, int* cycles, bool condition) {
     int8_t offset = read_byte_and_inc_pc(mem);
     if (condition) {
         uint16_t newaddr = mem->pc + offset;
-        printf("Branch condition hit, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
+        if (debug) {
+            printf("Branch condition hit, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
+        }
         *cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
         mem->pc = newaddr;
     }
-    else {
-        printf("Did not hit branch condition, not branching!\n");
+    else if (debug) {
+            printf("Did not hit branch condition, not branching!\n");
     }
 }
 
@@ -151,11 +181,44 @@ int interrupt_cpu_step(memory* mem) {
     }
     errx(EXIT_FAILURE, "Interrupt type not implemented");
 }
-    
+
+typedef enum debugger_state_value_t {
+    RUNNING,
+    STOPPED,
+    STEPPING
+} debugger_state_value;
+
+debugger_state_value debugger_state = RUNNING;
+void debugger_wait() {
+    debugger_state = STOPPED;
+
+    printf("s: step, c: continue, q: quit\n");
+    while (true) {
+        switch (getchar()) {
+            case 's':
+                debugger_state = STEPPING;
+                return;
+            case 'c':
+                debugger_state = RUNNING;
+                return;
+            case 'q':
+                errx(EXIT_FAILURE, "User requested quit.");
+            default:
+                break;
+        }
+    }
+}
+
 int normal_cpu_step(memory* mem) {
     uint16_t old_pc = mem->pc;
     byte opcode = read_byte_and_inc_pc(mem);
-    printf("%05d $%04x: Executing instruction %s\n", cpu_steps++, old_pc, opcode_to_name_full(opcode));
+    if (debug) {
+        printf("%05d $%04x: Executing instruction %s\n", cpu_steps++, old_pc, opcode_to_name_full(opcode));
+    }
+
+    if (debugger_state != RUNNING || is_breakpoint(old_pc)) {
+        debugger_wait();
+    }
 
     int cycles = 0;
 
@@ -620,7 +683,25 @@ void trigger_nmi() {
     interrupt = nmi;
 }
 
+void print_status(memory* mem) {
+     printf("x   : 0x%02x\n", mem->x);
+     printf("y   : 0x%02x\n", mem->y);
+
+     printf("sp  : 0x%02x\n", mem->sp);
+
+     for (byte i = mem->sp; i < 0xFF; i++) {
+         //return read_byte(mem, 0x100 | mem->sp);
+          byte addr = (i + 1) | 0x100;
+         printf("0x%02x: 0x%02x\n", addr, read_byte(mem, addr));
+
+     }
+}
+
 int cpu_step(memory* mem) {
+    if (debug) {
+        print_status(mem);
+    }
+    
     if (interrupt != NONE) {
         int cycles = interrupt_cpu_step(mem);
         interrupt = NONE;
