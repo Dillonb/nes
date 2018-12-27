@@ -125,6 +125,15 @@ void php(memory* mem) {
     stack_push(mem, mem->p);
 }
 
+void sbc(memory* mem, byte value) {
+    byte old_a = mem->a;
+    bool carry = get_p_carry(mem);
+    mem->a = old_a - value - (1 - carry);
+    set_p_zn_on(mem, mem->a);
+    set_p_carry_to(mem, (int)old_a - (int)value - (int)(1 - carry) >= 0);
+    set_p_overflow_to(mem, ((old_a ^ value) & 0x80) != 0 && ((old_a ^ mem->a) & 0x80) != 0);
+}
+
 int interrupt_nmi(memory* mem) {
     stack_push16(mem, mem->pc);
     php(mem);
@@ -340,6 +349,12 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case BCC: {
+            cycles = 2;
+            branch_on_condition(mem, &cycles, get_p_carry(mem) == false);
+            break;
+        }
+
         case CMP_Immediate: {
             cycles = 2;
             cmp(mem, mem->a, read_value(mem, &cycles, Immediate));
@@ -380,8 +395,14 @@ int normal_cpu_step(memory* mem) {
 
         case RTS: {
             cycles = 6;
-            uint16_t addr = stack_pop16(mem);
-            mem->pc = addr;
+            mem->pc = stack_pop16(mem);
+            break;
+        }
+
+        case RTI: {
+            cycles = 6;
+            mem->p = stack_pop(mem);
+            mem->pc = stack_pop16(mem);
             break;
         }
 
@@ -419,6 +440,7 @@ int normal_cpu_step(memory* mem) {
             byte value = read_byte(mem, addr);
             value++;
             write_byte(mem, addr, value);
+            set_p_zn_on(mem, value);
             break;
         }
 
@@ -428,8 +450,30 @@ int normal_cpu_step(memory* mem) {
             byte value = read_byte(mem, addr);
             value++;
             write_byte(mem, addr, value);
+            set_p_zn_on(mem, value);
             break;
         }
+
+        case DEC_Absolute: {
+            cycles = 3; // TODO Masswerk page says this is 3 cycles, but shouldn't it be 6 like INC_Absolute? Keeping it at 3 for now, verify later.
+            uint16_t addr = read_address_and_inc_pc(mem);
+            byte value = read_byte(mem, addr);
+            value--;
+            write_byte(mem, addr, value);
+            set_p_zn_on(mem, value);
+            break;
+        }
+
+        case DEC_Zeropage: {
+            cycles = 5;
+            byte addr = read_byte_and_inc_pc(mem);
+            byte value = read_byte(mem, addr);
+            value--;
+            write_byte(mem, addr, value);
+            set_p_zn_on(mem, value);
+            break;
+        }
+
 
         case BIT_Absolute: {
             cycles = 4;
@@ -476,6 +520,14 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case JMP_Indirect: {
+            cycles = 5;
+            mem->pc = read_address_and_inc_pc(mem);
+            // Jump to address read from first address
+            mem->pc = read_address_and_inc_pc(mem);
+            break;
+        }
+
         case PHP: {
             php(mem);
             cycles = 3;
@@ -510,9 +562,45 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case ROR_Absolute_X: {
+            cycles = 7;
+            bool oldc = get_p_carry(mem);
+            byte value = read_value(mem, &cycles, Absolute_X);
+            set_p_carry_to(mem, value & 1);
+            value = (value >> 1) | ((byte)oldc << 7);
+            break;
+        }
+
         case SEC: {
             set_p_carry(mem);
             cycles = 2;
+            break;
+        }
+
+        case SBC_Absolute_Y: {
+            cycles = 4;
+            sbc(mem, read_value(mem, &cycles, Absolute_Y));
+            break;
+        }
+
+        case EOR_Zeropage: {
+            cycles = 3;
+            mem->a ^= read_value(mem, &cycles, Zeropage);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case CLC: {
+            clear_p_carry(mem);
+            cycles = 2;
+            break;
+        }
+
+        case ASL_Accumulator: {
+            cycles = 2;
+            set_p_carry_to(mem, (mem->a >> 7) & 1);
+            mem->a <<= 1;
+            set_p_zn_on(mem, mem->a);
             break;
         }
 
