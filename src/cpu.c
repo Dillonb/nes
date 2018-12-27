@@ -189,23 +189,26 @@ typedef enum debugger_state_value_t {
 } debugger_state_value;
 
 debugger_state_value debugger_state = RUNNING;
+void process_debugger_command(char command) {
+    switch (command) {
+        case 's':
+            debugger_state = STEPPING;
+            return;
+        case 'c':
+            debugger_state = RUNNING;
+            return;
+        case 'q':
+            errx(EXIT_FAILURE, "User requested quit.");
+        default:
+            break;
+    }
+}
+
 void debugger_wait() {
     debugger_state = STOPPED;
-
     printf("s: step, c: continue, q: quit\n");
-    while (true) {
-        switch (getchar()) {
-            case 's':
-                debugger_state = STEPPING;
-                return;
-            case 'c':
-                debugger_state = RUNNING;
-                return;
-            case 'q':
-                errx(EXIT_FAILURE, "User requested quit.");
-            default:
-                break;
-        }
+    while (debugger_state == STOPPED) {
+        process_debugger_command(getchar());
     }
 }
 
@@ -213,10 +216,10 @@ int normal_cpu_step(memory* mem) {
     uint16_t old_pc = mem->pc;
     byte opcode = read_byte_and_inc_pc(mem);
     if (debug) {
-        printf("%05d $%04x: Executing instruction %s\n", cpu_steps++, old_pc, opcode_to_name_full(opcode));
+        printf("\n\n%05d $%04x: Executing instruction %s\n", cpu_steps++, old_pc, opcode_to_name_full(opcode));
     }
 
-    if (debugger_state != RUNNING || is_breakpoint(old_pc)) {
+    if (debugger_state == STEPPING || debugger_state == STOPPED || is_breakpoint(old_pc)) {
         debugger_wait();
     }
 
