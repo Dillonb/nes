@@ -687,17 +687,17 @@ void trigger_nmi() {
 }
 
 void print_status(memory* mem) {
-     printf("x   : 0x%02x\n", mem->x);
-     printf("y   : 0x%02x\n", mem->y);
+    printf("x   : 0x%02x\n", mem->x);
+    printf("y   : 0x%02x\n", mem->y);
 
-     printf("sp  : 0x%02x\n", mem->sp);
+    printf("sp  : 0x%02x\n", mem->sp);
 
-     for (byte i = mem->sp; i < 0xFF; i++) {
-         //return read_byte(mem, 0x100 | mem->sp);
-          byte addr = (i + 1) | 0x100;
-         printf("0x%02x: 0x%02x\n", addr, read_byte(mem, addr));
+    for (byte i = mem->sp; i < 0xFF; i++) {
+        //return read_byte(mem, 0x100 | mem->sp);
+        byte addr = (i + 1) | 0x100;
+        printf("0x%02x: 0x%02x\n", addr, read_byte(mem, addr));
 
-     }
+    }
 }
 
 int cpu_step(memory* mem) {
