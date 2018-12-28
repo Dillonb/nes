@@ -205,3 +205,4 @@ const char* opcode_to_name_short(byte opcode);
 void trigger_nmi();
 void set_debug();
 void set_breakpoint(uint16_t address);
+void set_breakpoint_on_interrupt();

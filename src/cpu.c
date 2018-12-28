@@ -32,11 +32,48 @@ bool is_breakpoint(uint16_t address) {
     return result;
 }
 
+bool breakpoint_on_interrupt = false;
+void set_breakpoint_on_interrupt() {
+    breakpoint_on_interrupt = true;
+}
+
 void set_debug() {
     // Super hacky and non-portable way to not wait for enter after getchar().
     system("stty -icanon");
     debug = true;
 }
+
+typedef enum debugger_state_value_t {
+    RUNNING,
+    STOPPED,
+    STEPPING
+} debugger_state_value;
+
+debugger_state_value debugger_state = RUNNING;
+void process_debugger_command(char command) {
+    switch (command) {
+        case 's':
+            debugger_state = STEPPING;
+            return;
+        case 'c':
+            debugger_state = RUNNING;
+            return;
+        case 'q':
+            errx(EXIT_FAILURE, "User requested quit.");
+        default:
+            break;
+    }
+}
+
+void debugger_wait() {
+    debugger_state = STOPPED;
+    printf("s: step, c: continue, q: quit  >");
+    while (debugger_state == STOPPED) {
+        process_debugger_command(getchar());
+    }
+    printf("\n");
+}
+
 
 byte read_byte_and_inc_pc(memory* mem) {
     byte data = read_byte(mem, mem->pc);
@@ -177,41 +214,14 @@ int interrupt_nmi(memory* mem) {
 interrupt_type interrupt = NONE;
 
 int interrupt_cpu_step(memory* mem) {
+    if (breakpoint_on_interrupt) {
+        debugger_wait();
+    }
     // Before doing the step, see if there was an interrupt triggered
     if (interrupt == nmi) {
         return interrupt_nmi(mem);
     }
     errx(EXIT_FAILURE, "Interrupt type not implemented");
-}
-
-typedef enum debugger_state_value_t {
-    RUNNING,
-    STOPPED,
-    STEPPING
-} debugger_state_value;
-
-debugger_state_value debugger_state = RUNNING;
-void process_debugger_command(char command) {
-    switch (command) {
-        case 's':
-            debugger_state = STEPPING;
-            return;
-        case 'c':
-            debugger_state = RUNNING;
-            return;
-        case 'q':
-            errx(EXIT_FAILURE, "User requested quit.");
-        default:
-            break;
-    }
-}
-
-void debugger_wait() {
-    debugger_state = STOPPED;
-    printf("s: step, c: continue, q: quit\n");
-    while (debugger_state == STOPPED) {
-        process_debugger_command(getchar());
-    }
 }
 
 int normal_cpu_step(memory* mem) {
@@ -688,16 +698,27 @@ void trigger_nmi() {
     interrupt = nmi;
 }
 
+void print_byte_binary(byte value) {
+    for (int i = 0; i < 8; i++) {
+        printf("%d", value & 1);
+        value >>= 1;
+    }
+}
+
 void print_status(memory* mem) {
+    printf("pc  : 0x%04x\n", mem->pc);
     printf("x   : 0x%02x\n", mem->x);
     printf("y   : 0x%02x\n", mem->y);
-
     printf("sp  : 0x%02x\n", mem->sp);
+    printf("p   : NVBDIZC\n"); 
+    printf("    : %d%d%d", get_p_negative(mem), get_p_overflow(mem), get_p_break(mem));
+    printf("%d%d%d%d", get_p_decimal(mem), get_p_interrupt(mem), get_p_zero(mem), get_p_carry(mem));
+    printf(" -- 0x%02x\n", mem->p);
 
     for (byte i = mem->sp; i < 0xFF; i++) {
         //return read_byte(mem, 0x100 | mem->sp);
-        byte addr = (i + 1) | 0x100;
-        printf("0x%02x: 0x%02x\n", addr, read_byte(mem, addr));
+        uint16_t addr = (uint16_t)(i + 1) | 0x100;
+        printf("0x%02x: 0x%02x\n", (i + 1), read_byte(mem, addr));
 
     }
 }
