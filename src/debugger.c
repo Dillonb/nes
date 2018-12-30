@@ -5,9 +5,10 @@
 #include "debugger.h"
 #include "mem.h"
 #include "set.h"
+#include "opcode_names.h"
 
 bool debug = false;
-
+int cpu_steps = 0;
 address_tree* breakpoints = NULL;
 
 void set_breakpoint(uint16_t address) {
@@ -74,6 +75,10 @@ void debug_hook(debug_hook_type type, memory* mem) {
         debugger_wait();
     }
     else if (type == STEP) {
+        if (debug_mode()) {
+            byte opcode = read_byte(mem, mem->pc);
+            printf("\n\n%05d $%04x: Executing instruction %s\n", cpu_steps++, mem->pc, opcode_to_name_full(opcode));
+        }
         if (is_breakpoint(mem->pc) || debugger_state == STEPPING || debugger_state == STOPPED) {
             debugger_wait();
         }

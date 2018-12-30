@@ -30,8 +30,6 @@ uint16_t read_address_and_inc_pc(memory* mem) {
     return (upper << 8) | lower;
 }
 
-int cpu_steps = 0;
-
 typedef enum addressing_mode_t {
     Immediate,
     Zeropage,
@@ -160,14 +158,9 @@ int interrupt_cpu_step(memory* mem) {
 }
 
 int normal_cpu_step(memory* mem) {
+    debug_hook(STEP, mem);
     uint16_t old_pc = mem->pc;
     byte opcode = read_byte_and_inc_pc(mem);
-    if (debug_mode()) {
-        printf("\n\n%05d $%04x: Executing instruction %s\n", cpu_steps++, old_pc, opcode_to_name_full(opcode));
-    }
-
-    debug_hook(STEP, mem);
-
     int cycles = 0;
 
     switch (opcode) {

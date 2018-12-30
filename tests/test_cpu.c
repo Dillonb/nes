@@ -1,5 +1,6 @@
 #include "unity.h"
 #include <src/cpu.h>
+#include <src/opcode_names.h>
 #include <src/mem.h>
 
 memory mock_memory() {

@@ -3,6 +3,7 @@
 
 #include "system.h"
 #include "cpu.h"
+#include "debugger.h"
 #include "mem.h"
 #include "rom.h"
 #include "util.h"
@@ -19,6 +20,7 @@ int main(int argc, char** argv) {
     set_debug();
     set_breakpoint_on_interrupt();
     set_breakpoint(0x8181);
+    set_breakpoint(0x8057);
     //set_breakpoint(0x90dc);
 
     while (true) {
