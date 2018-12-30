@@ -11,6 +11,12 @@ bool debug = false;
 int cpu_steps = 0;
 address_tree* breakpoints = NULL;
 
+typedef enum debugger_state_value_t {
+    RUNNING,
+    STOPPED,
+    STEPPING
+} debugger_state_value;
+
 void set_breakpoint(uint16_t address) {
     if (breakpoints == NULL) {
         breakpoints = new_address_tree();
@@ -38,11 +44,31 @@ void set_debug() {
     debug = true;
 }
 
-typedef enum debugger_state_value_t {
-    RUNNING,
-    STOPPED,
-    STEPPING
-} debugger_state_value;
+void print_byte_binary(byte value) {
+    for (int i = 0; i < 8; i++) {
+        printf("%d", value & 1);
+        value >>= 1;
+    }
+}
+
+void print_status(memory* mem) {
+    printf("pc  : 0x%04X\n", mem->pc);
+    printf("a   : 0x%02X\n", mem->a);
+    printf("x   : 0x%02X\n", mem->x);
+    printf("y   : 0x%02X\n", mem->y);
+    printf("sp  : 0x%02X\n", mem->sp);
+    printf("p   : NVBDIZC\n"); 
+    printf("    : %d%d%d", get_p_negative(mem), get_p_overflow(mem), get_p_break(mem));
+    printf("%d%d%d%d", get_p_decimal(mem), get_p_interrupt(mem), get_p_zero(mem), get_p_carry(mem));
+    printf(" -- 0x%02X\n", mem->p);
+
+    for (byte i = mem->sp; i < 0xFF; i++) {
+        //return read_byte(mem, 0x100 | mem->sp);
+        uint16_t addr = (uint16_t)(i + 1) | 0x100;
+        printf("0x%02X: 0x%02X\n", (i + 1), read_byte(mem, addr));
+
+    }
+}
 
 debugger_state_value debugger_state = RUNNING;
 void process_debugger_command(char command) {
@@ -80,6 +106,9 @@ void print_disassembly(memory* mem, uint16_t addr) {
 }
 
 void debug_hook(debug_hook_type type, memory* mem) {
+    if (debug_mode()) {
+        print_status(mem);
+    }
     if (type == INTERRUPT && breakpoint_on_interrupt) {
         debugger_wait();
     }

@@ -47,7 +47,7 @@ uint16_t indirect_y_address(memory* mem, int* cycles) {
     byte b = read_byte_and_inc_pc(mem);
     uint16_t address = read_address(mem, b);
     if (debug_mode()) {
-        printf("Ind Y: b: 0x%02x ind addr: 0x%04x y: 0x%02x\n", b, address, mem->y);
+        printf("Ind Y: b: 0x%02X ind addr: 0x%04x y: 0x%02X\n", b, address, mem->y);
     }
     address += mem->y;
 
@@ -142,6 +142,7 @@ int interrupt_nmi(memory* mem) {
     stack_push16(mem, mem->pc);
     php(mem);
     mem->pc = read_address(mem, NMI_PC_LOCATION);
+    printf("Read and jumped to address 0x%04x out of 0x%04x for NMI handler\n", mem->pc, NMI_PC_LOCATION);
     set_p_interrupt(mem);
     return 7;
 }
@@ -624,36 +625,7 @@ void trigger_nmi() {
     interrupt = nmi;
 }
 
-void print_byte_binary(byte value) {
-    for (int i = 0; i < 8; i++) {
-        printf("%d", value & 1);
-        value >>= 1;
-    }
-}
-
-void print_status(memory* mem) {
-    printf("pc  : 0x%04x\n", mem->pc);
-    printf("x   : 0x%02x\n", mem->x);
-    printf("y   : 0x%02x\n", mem->y);
-    printf("sp  : 0x%02x\n", mem->sp);
-    printf("p   : NVBDIZC\n"); 
-    printf("    : %d%d%d", get_p_negative(mem), get_p_overflow(mem), get_p_break(mem));
-    printf("%d%d%d%d", get_p_decimal(mem), get_p_interrupt(mem), get_p_zero(mem), get_p_carry(mem));
-    printf(" -- 0x%02x\n", mem->p);
-
-    for (byte i = mem->sp; i < 0xFF; i++) {
-        //return read_byte(mem, 0x100 | mem->sp);
-        uint16_t addr = (uint16_t)(i + 1) | 0x100;
-        printf("0x%02x: 0x%02x\n", (i + 1), read_byte(mem, addr));
-
-    }
-}
-
 int cpu_step(memory* mem) {
-    if (debug_mode()) {
-        print_status(mem);
-    }
-    
     if (interrupt != NONE) {
         int cycles = interrupt_cpu_step(mem);
         interrupt = NONE;
