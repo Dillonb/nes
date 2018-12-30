@@ -8,6 +8,7 @@ add_library(libnes
     rom.c
     ppu.c
     set.c
+    debugger.c
     )
 
 
@@ -35,6 +36,9 @@ add_executable (nes nes.c
 
     util.c
     util.h
+
+    debugger.c
+    debugger.h
     )
 
 add_executable (prgdump prgdump.c

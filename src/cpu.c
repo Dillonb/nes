@@ -3,7 +3,7 @@
 
 #include "cpu.h"
 #include "mem.h"
-#include "set.h"
+#include "debugger.h"
 #include "util.h"
 #include "opcode_names.h"
 
@@ -11,69 +11,6 @@ const char* docs_prefix = "https://www.masswerk.at/6502/6502_instruction_set.htm
 #define DOCS_PREFIX_LENGTH 55
 
 #define NMI_PC_LOCATION 0xFFFA
-
-bool debug = false;
-
-address_tree* breakpoints = NULL;
-
-void set_breakpoint(uint16_t address) {
-    if (breakpoints == NULL) {
-        breakpoints = new_address_tree();
-    }
-    insert_to_address_tree(breakpoints, address);
-}
-
-bool is_breakpoint(uint16_t address) {
-    if (breakpoints == NULL) {
-        breakpoints = new_address_tree();
-    }
-    bool result = address_tree_contains(breakpoints, address);
-
-    return result;
-}
-
-bool breakpoint_on_interrupt = false;
-void set_breakpoint_on_interrupt() {
-    breakpoint_on_interrupt = true;
-}
-
-void set_debug() {
-    // Super hacky and non-portable way to not wait for enter after getchar().
-    system("stty -icanon");
-    debug = true;
-}
-
-typedef enum debugger_state_value_t {
-    RUNNING,
-    STOPPED,
-    STEPPING
-} debugger_state_value;
-
-debugger_state_value debugger_state = RUNNING;
-void process_debugger_command(char command) {
-    switch (command) {
-        case 's':
-            debugger_state = STEPPING;
-            return;
-        case 'c':
-            debugger_state = RUNNING;
-            return;
-        case 'q':
-            errx(EXIT_FAILURE, "User requested quit.");
-        default:
-            break;
-    }
-}
-
-void debugger_wait() {
-    debugger_state = STOPPED;
-    printf("s: step, c: continue, q: quit  >");
-    while (debugger_state == STOPPED) {
-        process_debugger_command(getchar());
-    }
-    printf("\n");
-}
-
 
 byte read_byte_and_inc_pc(memory* mem) {
     byte data = read_byte(mem, mem->pc);
@@ -111,7 +48,7 @@ typedef enum addressing_mode_t {
 uint16_t indirect_y_address(memory* mem, int* cycles) {
     byte b = read_byte_and_inc_pc(mem);
     uint16_t address = read_address(mem, b);
-    if (debug) {
+    if (debug_mode()) {
         printf("Ind Y: b: 0x%02x ind addr: 0x%04x y: 0x%02x\n", b, address, mem->y);
     }
     address += mem->y;
@@ -168,13 +105,13 @@ void branch_on_condition(memory* mem, int* cycles, bool condition) {
     int8_t offset = read_byte_and_inc_pc(mem);
     if (condition) {
         uint16_t newaddr = mem->pc + offset;
-        if (debug) {
+        if (debug_mode()) {
             printf("Branch condition hit, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
         }
         *cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
         mem->pc = newaddr;
     }
-    else if (debug) {
+    else if (debug_mode()) {
             printf("Did not hit branch condition, not branching!\n");
     }
 }
@@ -214,9 +151,7 @@ int interrupt_nmi(memory* mem) {
 interrupt_type interrupt = NONE;
 
 int interrupt_cpu_step(memory* mem) {
-    if (breakpoint_on_interrupt) {
-        debugger_wait();
-    }
+    debug_hook(INTERRUPT, mem);
     // Before doing the step, see if there was an interrupt triggered
     if (interrupt == nmi) {
         return interrupt_nmi(mem);
@@ -227,13 +162,11 @@ int interrupt_cpu_step(memory* mem) {
 int normal_cpu_step(memory* mem) {
     uint16_t old_pc = mem->pc;
     byte opcode = read_byte_and_inc_pc(mem);
-    if (debug) {
+    if (debug_mode()) {
         printf("\n\n%05d $%04x: Executing instruction %s\n", cpu_steps++, old_pc, opcode_to_name_full(opcode));
     }
 
-    if (debugger_state == STEPPING || debugger_state == STOPPED || is_breakpoint(old_pc)) {
-        debugger_wait();
-    }
+    debug_hook(STEP, mem);
 
     int cycles = 0;
 
@@ -724,7 +657,7 @@ void print_status(memory* mem) {
 }
 
 int cpu_step(memory* mem) {
-    if (debug) {
+    if (debug_mode()) {
         print_status(mem);
     }
     
