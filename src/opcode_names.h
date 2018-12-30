@@ -191,5 +191,7 @@
 #define TXS 0x9A
 #define TYA 0x98
 
+byte opcode_sizes[256];
+
 const char* opcode_to_name_full(byte opcode);
 const char* opcode_to_name_short(byte opcode);

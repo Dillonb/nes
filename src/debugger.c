@@ -69,6 +69,15 @@ void debugger_wait() {
     printf("\n");
 }
 
+void print_disassembly(memory* mem, uint16_t addr) {
+    byte opcode = read_byte(mem, mem->pc);
+    printf("%s", opcode_to_name_full(opcode));
+    byte size = opcode_sizes[opcode];
+
+    for (int offset = 1; offset < size; offset++) {
+        printf(" %02X", read_byte(mem, mem->pc + offset));
+    }
+}
 
 void debug_hook(debug_hook_type type, memory* mem) {
     if (type == INTERRUPT && breakpoint_on_interrupt) {
@@ -76,8 +85,9 @@ void debug_hook(debug_hook_type type, memory* mem) {
     }
     else if (type == STEP) {
         if (debug_mode()) {
-            byte opcode = read_byte(mem, mem->pc);
-            printf("\n\n%05d $%04x: Executing instruction %s\n", cpu_steps++, mem->pc, opcode_to_name_full(opcode));
+            printf("\n\n%05d $%04x: Executing instruction ", cpu_steps++, mem->pc);
+            print_disassembly(mem, mem->pc);
+            printf("\n");
         }
         if (is_breakpoint(mem->pc) || debugger_state == STEPPING || debugger_state == STOPPED) {
             debugger_wait();
