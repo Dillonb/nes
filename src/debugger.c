@@ -70,14 +70,32 @@ void print_status(memory* mem) {
     }
 }
 
+void debugger_read_byte(memory* mem) {
+    char buf[10] = {0,0,0,0,0,0,0,0,0,0};
+    while (true) {
+        uint16_t address;
+        printf("\nEnter an address (0x0000 - 0xFFFF). Enter to continue program\n0x");
+        fgets(buf, 10, stdin);
+        if (buf[0] == '\n') {
+            break;
+        }
+        address = strtol(buf, NULL, 16);
+        printf("0x%04X: 0x%02X", address, read_byte(mem, address));
+    }
+}
+
 debugger_state_value debugger_state = RUNNING;
-void process_debugger_command(char command) {
+void process_debugger_command(memory* mem, char command) {
     switch (command) {
         case 's':
             debugger_state = STEPPING;
             return;
         case 'c':
             debugger_state = RUNNING;
+            return;
+        case 'r':
+            debugger_read_byte(mem);
+            debugger_state = STEPPING;
             return;
         case 'q':
             errx(EXIT_FAILURE, "User requested quit.");
@@ -86,11 +104,11 @@ void process_debugger_command(char command) {
     }
 }
 
-void debugger_wait() {
+void debugger_wait(memory* mem) {
     debugger_state = STOPPED;
-    printf("s: step, c: continue, q: quit  >");
+    printf("s: step, c: continue, q: quit, r: read byte >");
     while (debugger_state == STOPPED) {
-        process_debugger_command(getchar());
+        process_debugger_command(mem, getchar());
     }
     printf("\n");
 }
@@ -110,7 +128,7 @@ void debug_hook(debug_hook_type type, memory* mem) {
         print_status(mem);
     }
     if (type == INTERRUPT && breakpoint_on_interrupt) {
-        debugger_wait();
+        debugger_wait(mem);
     }
     else if (type == STEP) {
         if (debug_mode()) {
@@ -119,7 +137,7 @@ void debug_hook(debug_hook_type type, memory* mem) {
             printf("\n");
         }
         if (is_breakpoint(mem->pc) || debugger_state == STEPPING || debugger_state == STOPPED) {
-            debugger_wait();
+            debugger_wait(mem);
         }
     }
 }
