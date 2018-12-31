@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <err.h>
+#include <string.h>
 
 #include "debugger.h"
 #include "mem.h"
@@ -22,6 +23,25 @@ void set_breakpoint(uint16_t address) {
         breakpoints = new_address_tree();
     }
     insert_to_address_tree(breakpoints, address);
+}
+
+void set_breakpoints_for_rom(char* filename) {
+    // Read breakpoints if file exists
+    char bpfilename[strlen(filename) + 13];
+    strncpy(bpfilename, filename, strlen(filename));
+    strncat(bpfilename, ".breakpoints", 12);
+
+    FILE* bpfp = fopen(bpfilename, "r");
+
+    if (bpfp != NULL) {
+        printf("Breakpoints file %s found, loading\n", bpfilename);
+        char buf[10];
+        while (fgets(buf, 10, bpfp) != NULL) {
+            uint16_t address = strtol(buf, NULL, 16);
+            printf("Setting breakpoint at 0x%04X\n", address);
+            set_breakpoint(address);
+        }
+    }
 }
 
 bool is_breakpoint(uint16_t address) {

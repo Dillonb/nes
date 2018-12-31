@@ -18,10 +18,9 @@ int main(int argc, char** argv) {
     memory mem = get_blank_memory(r);
 
     set_debug();
+
     set_breakpoint_on_interrupt();
-    set_breakpoint(0x8181);
-    set_breakpoint(0x8057);
-    //set_breakpoint(0x90dc);
+    set_breakpoints_for_rom(argv[1]);
 
     while (true) {
         system_step(&mem);
