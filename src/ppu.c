@@ -22,9 +22,8 @@ ppu_memory get_ppu_mem() {
     ppu_mem.mask       = 0b00000000;
     ppu_mem.status     = 0b10100000;
     ppu_mem.oamAddress = 0b00000000;
-    ppu_mem.oamData    = 0b00000000;
     ppu_mem.scroll     = 0b00000000;
-    ppu_mem.address    = 0x0000;
+    ppu_mem.address    = 0b0000000000000000;
     ppu_mem.data       = 0b00000000;
     ppu_mem.dma        = 0b00000000;
 
@@ -116,7 +115,6 @@ void ppu_step(ppu_memory* ppu_mem) {
 
 byte read_status_sideeffects(ppu_memory* ppu_mem) {
     printf("WARNING: returning status register with sideeffects\n");
-    //debugger_wait();
     byte oldval = ppu_mem->status;
     clear_vblank(ppu_mem);
     return oldval;
@@ -132,6 +130,10 @@ byte read_ppu_register(ppu_memory* ppu_mem, byte register_num) {
         default:
             errx(EXIT_FAILURE, "Tried to read invalid PPU register %x - only 2, 4, and 7 are capable of being read from", register_num);
     }
+}
+
+void write_oam_byte(ppu_memory* ppu_mem, byte value) {
+    ppu_mem->oamData[ppu_mem->oamAddress++] = value;
 }
 
 void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {

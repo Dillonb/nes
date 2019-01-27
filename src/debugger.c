@@ -7,6 +7,7 @@
 #include "mem.h"
 #include "set.h"
 #include "opcode_names.h"
+#include "cpu.h"
 
 bool debug = false;
 bool breakpoints_muted = false;
@@ -199,7 +200,7 @@ void debug_hook(debug_hook_type type, memory* mem) {
     }
     else if (type == STEP) {
         if (debug_mode()) {
-            printf("\n\n%05d $%04x: Executing instruction ", cpu_steps++, mem->pc);
+            printf("\n\n%05d %10ld $%04x: Executing instruction ", cpu_steps++, get_total_cpu_cycles(), mem->pc);
             print_disassembly(mem, mem->pc);
             printf("\n");
         }

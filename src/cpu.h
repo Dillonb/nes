@@ -14,3 +14,6 @@ int cpu_step(memory* mem);
 const char* opcode_to_name_full(byte opcode);
 const char* opcode_to_name_short(byte opcode);
 void trigger_nmi();
+void stall_cpu(int cycles);
+void trigger_oam_dma(memory* mem, uint16_t address);
+long get_total_cpu_cycles();

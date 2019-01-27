@@ -5,6 +5,8 @@
 #include "util.h"
 #include "mem.h"
 #include "ppu.h"
+#include "cpu.h"
+#include "debugger.h"
 
 byte read_cartridge_space_address(rom* r, uint16_t address) {
     // http://wiki.nesdev.com/w/index.php/Mapper
@@ -61,7 +63,9 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         write_ppu_register(&mem->ppu_mem, register_num, value);
     }
     else if (address == 0x4014) {
-        errx(EXIT_FAILURE, "Write to OAM DMA register detected, but this is not implemented yet.");
+        uint16_t address = (uint16_t)value << 8;
+        printf("Triggered OAM DMA at 0x%04X\n", address);
+        trigger_oam_dma(mem, address);
     }
     else if (address < 0x4018) {
         printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);

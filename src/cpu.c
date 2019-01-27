@@ -12,6 +12,17 @@ const char* docs_prefix = "https://www.masswerk.at/6502/6502_instruction_set.htm
 
 #define NMI_PC_LOCATION 0xFFFA
 
+long total_cycles = 0;
+int stall_cycles = 0;
+
+void stall_cpu(int cycles) {
+    stall_cycles += cycles;
+}
+
+long get_total_cpu_cycles() {
+    return total_cycles;
+}
+
 byte read_byte_and_inc_pc(memory* mem) {
     byte data = read_byte(mem, mem->pc);
     mem->pc++;
@@ -788,14 +799,29 @@ void trigger_nmi() {
     interrupt = nmi;
 }
 
-int cpu_step(memory* mem) {
-    if (interrupt != NONE) {
-        int cycles = interrupt_cpu_step(mem);
-        interrupt = NONE;
-        return cycles;
+void trigger_oam_dma(memory* mem, uint16_t address) {
+    for (int i = 0; i < 0xFF; i++) {
+        write_oam_byte(&mem->ppu_mem, read_byte(mem, address + i));
     }
-    else {
-        return normal_cpu_step(mem);
+
+    if (total_cycles % 2 == 1) {
+        stall_cpu(1);
     }
+
+    stall_cpu(513);
 }
 
+int cpu_step(memory* mem) {
+    int cycles;
+    if (interrupt != NONE) {
+        cycles = interrupt_cpu_step(mem);
+        interrupt = NONE;
+    }
+    else {
+        cycles = normal_cpu_step(mem);
+    }
+    cycles += stall_cycles;
+    total_cycles += cycles;
+    stall_cycles = 0;
+    return cycles;
+}
