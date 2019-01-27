@@ -71,16 +71,13 @@ void print_byte_binary(byte value) {
     }
 }
 
-void dump_ppuctrl(ppu_memory* ppu_mem) {
+void dump_byte(byte b) {
 
     for(int i = 7; i >= 0; i--) {
-        if (i == 3) {
-            printf(" ");
-        }
-        printf("%d", (ppu_mem->control & mask_flag(i)) > 0);
+        printf("%d", (b & mask_flag(i)) > 0);
     }
 
-    printf(" -- 0x%02X\n", ppu_mem->control);
+    printf(" -- 0x%02X\n", b);
 }
 
 void print_status(memory* mem) {
@@ -95,10 +92,16 @@ void print_status(memory* mem) {
     printf("    : %d%d%d", get_p_negative(mem), get_p_overflow(mem), get_p_break(mem));
     printf("%d%d%d%d", get_p_decimal(mem), get_p_interrupt(mem), get_p_zero(mem), get_p_carry(mem));
     printf(" -- 0x%02X\n\n", mem->p);
-    printf("PPUCTRL: VPHB SINN\n");
-    printf("         ");
-    dump_ppuctrl(ppu_mem);
+    printf("PPUCTRL  : VPHBSINN\n");
+    printf("           ");
+    dump_byte(ppu_mem->control);
 
+    printf("PPUSTATUS: VSO.....\n");
+    printf("           ");
+    dump_byte(ppu_mem->status);
+
+
+    printf("\nStack:\n");
     for (byte i = mem->sp; i < 0xFF; i++) {
         //return read_byte(mem, 0x100 | mem->sp);
         uint16_t addr = (uint16_t)(i + 1) | 0x100;
