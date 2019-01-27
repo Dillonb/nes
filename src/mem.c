@@ -60,6 +60,9 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         printf("Writing 0x%02x to PPU register %d\n", value, register_num);
         write_ppu_register(&mem->ppu_mem, register_num, value);
     }
+    else if (address == 0x4014) {
+        errx(EXIT_FAILURE, "Write to OAM DMA register detected, but this is not implemented yet.");
+    }
     else if (address < 0x4018) {
         printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
     }
