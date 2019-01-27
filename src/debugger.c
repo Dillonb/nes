@@ -9,6 +9,7 @@
 #include "opcode_names.h"
 
 bool debug = false;
+bool breakpoints_muted = false;
 int cpu_steps = 0;
 address_tree* breakpoints = NULL;
 
@@ -152,6 +153,10 @@ void process_debugger_command(memory* mem, char command) {
         case 'c':
             debugger_state = RUNNING;
             return;
+        case 'm':
+            debugger_state = RUNNING;
+            breakpoints_muted = true;
+            return;
         case 'r':
             debugger_read_byte(mem);
             debugger_state = STEPPING;
@@ -164,8 +169,11 @@ void process_debugger_command(memory* mem, char command) {
 }
 
 void debugger_wait(memory* mem) {
+    if (breakpoints_muted) {
+        return;
+    }
     debugger_state = STOPPED;
-    printf("s: step, c: continue, q: quit, r: read byte >");
+    printf("s: step, c: continue, m: mute all breakpoints and continue, q: quit, r: read byte >");
     while (debugger_state == STOPPED) {
         process_debugger_command(mem, getchar());
     }
