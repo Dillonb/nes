@@ -95,14 +95,6 @@ bool is_negative(byte value) {
 // 01-34567
 // NV-BDIZC
 
-byte mask_flag(int index) {
-    if (index > 7) {
-        errx(EXIT_FAILURE, "Attempted to mask a flag > 7: %d. WTF?", index);
-    }
-
-    return 0b10000000 >> (7 - index);
-}
-
 void set_p_flag(memory* mem, int index) {
     mem->p |= mask_flag(index);
 }

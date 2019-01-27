@@ -60,8 +60,6 @@ void load_rom_into_memory(memory* mem, rom* r);
 
 #define SAME_PAGE(addr1, addr2) (addr1 & 0xFF00) == (addr2 & 0xFF00)
 
-byte mask_flag(int index);
-
 bool is_negative(byte value);
 
 int get_p_negative(memory* mem);
