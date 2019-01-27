@@ -68,6 +68,10 @@ uint16_t absolute_y_address(memory* mem, int* cycles) {
     return addr;
 }
 
+uint16_t zeropage_x_address(memory* mem) {
+    return ((uint16_t)read_byte_and_inc_pc(mem) + (uint16_t)mem->x) & 0xFF;
+}
+
 // TODO: handle pages crossed cases
 byte read_value(memory* mem, int* cycles, addressing_mode mode) {
     switch (mode) {
@@ -91,6 +95,10 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
 
         case Zeropage: {
             return read_byte(mem, read_byte_and_inc_pc(mem));
+        }
+
+        case Zeropage_X: {
+            return read_byte(mem, zeropage_x_address(mem));
         }
 
         default:
@@ -216,6 +224,12 @@ int normal_cpu_step(memory* mem) {
         case STA_Zeropage: {
             cycles = 3;
             write_byte(mem, read_byte_and_inc_pc(mem), mem->a);
+            break;
+        }
+
+        case STA_Zeropage_X: {
+            cycles = 4;
+            write_byte(mem, zeropage_x_address(mem), mem->a);
             break;
         }
 
