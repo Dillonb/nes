@@ -69,7 +69,7 @@ bool rendering_enabled(ppu_memory* ppu_mem) {
     return (ppu_mem->mask & 0b00011000) > 0; // Enable sprites OR enable background flags enabled
 }
 
-bool is_visible(ppu_memory* ppu_mem) {
+bool is_line_visible(ppu_memory* ppu_mem) {
     // Pre-render scanline
     if (ppu_mem->scan_line == 0) {
         return false;
@@ -82,6 +82,23 @@ bool is_visible(ppu_memory* ppu_mem) {
     return true;
 }
 
+bool is_cycle_visible(ppu_memory* ppu_mem) {
+    if (ppu_mem->cycle == 0) {
+        return false;
+    }
+
+    if (ppu_mem->cycle > 256) {
+        return false;
+    }
+
+    return true;
+}
+
+bool is_visible(ppu_memory* ppu_mem) {
+    return is_line_visible(ppu_mem) && is_cycle_visible(ppu_mem);
+}
+
+
 void set_vblank(ppu_memory* ppu_mem) {
     ppu_mem->status |= 0b10000000; // Set VBlank flag on PPUSTATUS
     if (vblank_nmi(ppu_mem)) {
@@ -93,6 +110,10 @@ void clear_vblank(ppu_memory* ppu_mem) {
     ppu_mem->status &= 0b01111111; // Clear VBlank flag on PPUSTATUS
 }
 
+void render_pixel(ppu_memory* ppu_mem) {
+
+}
+
 void ppu_step(ppu_memory* ppu_mem) {
     ppu_mem->cycle++;
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
@@ -102,6 +123,14 @@ void ppu_step(ppu_memory* ppu_mem) {
             ppu_mem->frame++;
             ppu_mem->scan_line = 0;
         }
+    }
+
+    if (rendering_enabled(ppu_mem)) {
+        if (is_visible(ppu_mem)) {
+            render_pixel(ppu_mem);
+        }
+
+        // TODO fetches and stuff that only happen when rendering enabled
     }
 
     if (ppu_mem->cycle == 0) {
