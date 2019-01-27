@@ -156,11 +156,9 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
         case 3:
             ppu_mem->oamAddress = value;
             return;
-            /*
         case 4:
-            ppu_mem->oamData = value;
+            write_oam_byte(ppu_mem, value);
             return;
-        */
         case 5:
             if (value == 0x00) {
                 printf("IGNORING WRITE TO SCROLL!\n");
