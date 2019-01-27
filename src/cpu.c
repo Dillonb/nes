@@ -339,6 +339,13 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case LDY_Zeropage: {
+            mem->y = read_value(mem, &cycles, Zeropage);
+            set_p_zn_on(mem, mem->y);
+            cycles = 3;
+            break;
+        }
+
         case LDY_Zeropage_X: {
             mem->y = read_value(mem, &cycles, Zeropage_X);
             set_p_zn_on(mem, mem->y);
@@ -367,6 +374,13 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case LDA_Absolute_Y: {
+            mem->a = read_value(mem, &cycles, Absolute_Y);
+            set_p_zn_on(mem, mem->a);
+            cycles = 4;
+            break;
+        }
+
         case LDA_Indirect_Y: {
             cycles = 5;
             mem->a = read_value(mem, &cycles, Indirect_Y);
@@ -377,6 +391,13 @@ int normal_cpu_step(memory* mem) {
         case LDA_Zeropage: {
             cycles = 3;
             mem->a = read_value(mem, &cycles, Zeropage);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case LDA_Zeropage_X: {
+            cycles = 3;
+            mem->a = read_value(mem, &cycles, Zeropage_X);
             set_p_zn_on(mem, mem->a);
             break;
         }
@@ -414,6 +435,12 @@ int normal_cpu_step(memory* mem) {
         case BCC: {
             cycles = 2;
             branch_on_condition(mem, &cycles, get_p_carry(mem) == false);
+            break;
+        }
+
+        case BMI: {
+            cycles = 2;
+            branch_on_condition(mem, &cycles, get_p_negative(mem) == true);
             break;
         }
 
@@ -536,6 +563,15 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case DEC_Zeropage_X: {
+            cycles = 6;
+            byte addr = zeropage_x_address(mem);
+            byte value = read_byte(mem, addr);
+            value--;
+            write_byte(mem, addr, value);
+            set_p_zn_on(mem, value);
+            break;
+        }
 
         case BIT_Absolute: {
             cycles = 4;
@@ -572,6 +608,13 @@ int normal_cpu_step(memory* mem) {
         case AND_Zeropage: {
             cycles = 3;
             mem->a &= read_value(mem, &cycles, Zeropage);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case AND_Zeropage_X: {
+            cycles = 4;
+            mem->a &= read_value(mem, &cycles, Zeropage_X);
             set_p_zn_on(mem, mem->a);
             break;
         }
@@ -617,9 +660,20 @@ int normal_cpu_step(memory* mem) {
         }
 
         case LSR_Accumulator: {
+            cycles = 2;
             set_p_carry_to(mem, mem->a & 1);
             mem->a >>= 1;
             set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case LSR_Zeropage: {
+            cycles = 5;
+            byte addr = read_byte_and_inc_pc(mem);
+            byte value = read_byte(mem, addr);
+            set_p_carry_to(mem, value & 1);
+            value >>= 1;
+            write_byte(mem, addr, value);
             break;
         }
 
@@ -652,6 +706,12 @@ int normal_cpu_step(memory* mem) {
         case SEC: {
             set_p_carry(mem);
             cycles = 2;
+            break;
+        }
+
+        case SBC_Zeropage: {
+            cycles = 3;
+            sbc(mem, read_value(mem, &cycles, Zeropage));
             break;
         }
 
