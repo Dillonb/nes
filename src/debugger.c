@@ -101,6 +101,10 @@ void print_status(memory* mem) {
     printf("           ");
     dump_byte(ppu_mem->status);
 
+    printf("PPUMASK  : BGRsbMmG\n");
+    printf("           ");
+    dump_byte(ppu_mem->mask);
+
 
     printf("\nStack:\n");
     for (byte i = mem->sp; i < 0xFF; i++) {

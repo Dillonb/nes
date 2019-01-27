@@ -36,7 +36,7 @@ ppu_memory get_ppu_mem() {
 
 // TODO implement me for real.
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
-    printf("Writing 0x%02X to 0x%04X WARNING, currently this has no effect.\n", value, address);
+    errx(EXIT_FAILURE, "Writing 0x%02X to UNKNOWN PPU VRAM ADDRESS 0x%04X", value, address);
 }
 
 bool get_control_flag(ppu_memory* mem, int index) {
@@ -64,6 +64,10 @@ int get_addr_increment(ppu_memory* mem) {
 #define NUM_LINES 262
 // 0 - 340
 #define CYCLES_PER_LINE 341
+
+bool rendering_enabled(ppu_memory* ppu_mem) {
+    return (ppu_mem->mask & 0b00011000) > 0; // Enable sprites OR enable background flags enabled
+}
 
 bool is_visible(ppu_memory* ppu_mem) {
     // Pre-render scanline
