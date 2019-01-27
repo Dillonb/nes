@@ -150,9 +150,11 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
         /*
         case 2:
             return;
+        */
         case 3:
             ppu_mem->oamAddress = value;
             return;
+            /*
         case 4:
             ppu_mem->oamData = value;
             return;
