@@ -72,7 +72,6 @@ void print_byte_binary(byte value) {
 }
 
 void dump_byte(byte b) {
-
     for(int i = 7; i >= 0; i--) {
         printf("%d", (b & mask_flag(i)) > 0);
     }
