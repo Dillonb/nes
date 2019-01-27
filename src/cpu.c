@@ -304,6 +304,13 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case LDX_Zeropage: {
+            mem->x = read_value(mem, &cycles, Zeropage);
+            set_p_zn_on(mem, mem->x);
+            cycles = 3;
+            break;
+        }
+
         case LDY_Immediate: {
             mem->y = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->y);
@@ -313,6 +320,13 @@ int normal_cpu_step(memory* mem) {
 
         case LDY_Absolute: {
             mem->y = read_value(mem, &cycles, Absolute);
+            set_p_zn_on(mem, mem->y);
+            cycles = 4;
+            break;
+        }
+
+        case LDY_Zeropage_X: {
+            mem->y = read_value(mem, &cycles, Zeropage_X);
             set_p_zn_on(mem, mem->y);
             cycles = 4;
             break;
@@ -612,6 +626,15 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case ROR_Zeropage: {
+            cycles = 5;
+            bool oldc = get_p_carry(mem);
+            byte value = read_value(mem, &cycles, Zeropage);
+            set_p_carry_to(mem, value & 1);
+            value = (value >> 1) | ((byte)oldc << 7);
+            break;
+        }
+
         case SEC: {
             set_p_carry(mem);
             cycles = 2;
@@ -631,6 +654,13 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case EOR_Immediate: {
+            cycles = 2;
+            mem->a ^= read_value(mem, &cycles, Immediate);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
         case CLC: {
             clear_p_carry(mem);
             cycles = 2;
@@ -645,9 +675,26 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case ASL_Zeropage: {
+            cycles = 5;
+            byte addr = read_byte_and_inc_pc(mem);
+            byte value = read_byte(mem, addr);
+            set_p_carry_to(mem, (value >> 7) & 1);
+            value <<= 1;
+            set_p_zn_on(mem, value);
+            write_byte(mem, addr, value);
+            break;
+        }
+
         case ADC_Zeropage: {
             cycles = 3;
             adc(mem, read_value(mem, &cycles, Zeropage));
+            break;
+        }
+
+        case ADC_Immediate: {
+            cycles = 2;
+            adc(mem, read_value(mem, &cycles, Immediate));
             break;
         }
 
