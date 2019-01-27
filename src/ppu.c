@@ -26,6 +26,15 @@ ppu_memory get_ppu_mem() {
     return ppu_mem;
 }
 
+bool get_control_flag(ppu_memory* mem, int index) {
+    return (mem->control & mask_flag(index)) > 0;
+}
+
+bool vblank_nmi(ppu_memory* mem) {
+    return get_control_flag(mem, 7);
+}
+
+
 // 0 - 261
 // 0: Pre-render
 // 1-240: Visible
@@ -49,7 +58,9 @@ bool is_visible(ppu_memory* ppu_mem) {
 }
 
 void set_vblank(ppu_memory* ppu_mem) {
-    trigger_nmi();
+    if (vblank_nmi(ppu_mem)) {
+        trigger_nmi();
+    }
 }
 
 void clear_vblank(ppu_memory* ppu_mem) {
@@ -111,6 +122,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
     switch (register_num) {
         case 0:
             ppu_mem->control = value;
+            printf("NMI on VBlank is now: %d\n", vblank_nmi(ppu_mem));
             return;
         case 1:
             ppu_mem->mask = value;

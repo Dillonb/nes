@@ -71,7 +71,21 @@ void print_byte_binary(byte value) {
     }
 }
 
+void dump_ppuctrl(ppu_memory* ppu_mem) {
+
+    for(int i = 7; i >= 0; i--) {
+        if (i == 3) {
+            printf(" ");
+        }
+        printf("%d", (ppu_mem->control & mask_flag(i)) > 0);
+    }
+
+    printf(" -- 0x%02X\n", ppu_mem->control);
+}
+
 void print_status(memory* mem) {
+    ppu_memory* ppu_mem = &mem->ppu_mem;
+
     printf("pc  : 0x%04X\n", mem->pc);
     printf("a   : 0x%02X\n", mem->a);
     printf("x   : 0x%02X\n", mem->x);
@@ -80,13 +94,34 @@ void print_status(memory* mem) {
     printf("p   : NVBDIZC\n"); 
     printf("    : %d%d%d", get_p_negative(mem), get_p_overflow(mem), get_p_break(mem));
     printf("%d%d%d%d", get_p_decimal(mem), get_p_interrupt(mem), get_p_zero(mem), get_p_carry(mem));
-    printf(" -- 0x%02X\n", mem->p);
+    printf(" -- 0x%02X\n\n", mem->p);
+    printf("PPUCTRL: VPHB SINN\n");
+    printf("         ");
+    dump_ppuctrl(ppu_mem);
 
     for (byte i = mem->sp; i < 0xFF; i++) {
         //return read_byte(mem, 0x100 | mem->sp);
         uint16_t addr = (uint16_t)(i + 1) | 0x100;
         printf("0x%02X: 0x%02X\n", (i + 1), read_byte(mem, addr));
 
+    }
+}
+
+void dump_address_device(uint16_t addr) {
+    if (addr < 0x2000) {
+        printf("RAM");
+    }
+    else if (addr < 0x4000) {
+        printf("PPU");
+    }
+    else if (addr < 0x4018) {
+        printf("APU & I/O");
+    }
+    else if (addr < 0x4020) {
+        printf("APU I/O normally disabled");
+    }
+    else if (addr <= 0xFFFF) {
+        printf("Cartridge ROM");
     }
 }
 
@@ -100,7 +135,10 @@ void debugger_read_byte(memory* mem) {
             break;
         }
         address = strtol(buf, NULL, 16);
-        printf("0x%04X: 0x%02X", address, read_byte(mem, address));
+
+        printf("0x%04X (", address);
+        dump_address_device(address);
+        printf("): 0x%02X", read_byte(mem, address));
     }
 }
 
