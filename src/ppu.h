@@ -15,6 +15,9 @@ typedef struct ppu_memory_t {
     uint16_t address;
     byte data;
     byte dma;
+    byte pattern_tables[0x2000];
+    byte name_tables[0x1000];
+    byte palette_ram[0x20];
 } ppu_memory;
 
 ppu_memory get_ppu_mem();

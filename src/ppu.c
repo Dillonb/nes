@@ -35,11 +35,15 @@ ppu_memory get_ppu_mem() {
 }
 
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
-    if (address < 0x4000 && address > 0x3F00) {
-        // Palette RAM indexes
-        
+    printf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
+    // Palette RAM indexes
+    if (address < 0x4000 && address >= 0x3F00) {
+        uint16_t index = (address - 0x3F00) % 32;
+        ppu_mem->palette_ram[index] = value;
     }
-    errx(EXIT_FAILURE, "Writing 0x%02X to UNKNOWN PPU VRAM ADDRESS 0x%04X", value, address);
+    else {
+        errx(EXIT_FAILURE, "Writing 0x%02X to UNKNOWN PPU VRAM ADDRESS 0x%04X", value, address);
+    }
 }
 
 bool get_control_flag(ppu_memory* mem, int index) {
