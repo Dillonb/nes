@@ -4,6 +4,8 @@
 #include "ppu.h"
 #include "cpu.h"
 
+#define VBLANK_LINE 241
+
 
 ppu_memory get_ppu_mem() {
     ppu_memory ppu_mem;
@@ -71,7 +73,7 @@ void ppu_step(ppu_memory* ppu_mem) {
         if (ppu_mem->scan_line == 0) {
             clear_vblank(ppu_mem);
         }
-        else if (ppu_mem->scan_line == 241) {
+        else if (ppu_mem->scan_line == VBLANK_LINE) {
             set_vblank(ppu_mem);
         }
     }
