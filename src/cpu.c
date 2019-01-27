@@ -227,6 +227,12 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case STY_Zeropage: {
+            cycles = 3;
+            write_byte(mem, read_byte_and_inc_pc(mem), mem->y);
+            break;
+        }
+
         case TXS: {
             mem->sp = mem->x;
             cycles = 2;
