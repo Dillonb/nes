@@ -12,7 +12,7 @@ typedef struct ppu_memory_t {
     byte oamAddress;
     byte oamData;
     byte scroll;
-    byte address;
+    uint16_t address;
     byte data;
     byte dma;
 } ppu_memory;

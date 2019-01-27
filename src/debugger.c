@@ -102,7 +102,6 @@ void print_status(memory* mem) {
 
     printf("\nStack:\n");
     for (byte i = mem->sp; i < 0xFF; i++) {
-        //return read_byte(mem, 0x100 | mem->sp);
         uint16_t addr = (uint16_t)(i + 1) | 0x100;
         printf("0x%02X: 0x%02X\n", (i + 1), read_byte(mem, addr));
 
