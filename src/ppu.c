@@ -18,14 +18,14 @@ high_or_low address_byte = HIGH;
 
 ppu_memory get_ppu_mem() {
     ppu_memory ppu_mem;
-    ppu_mem.control    = 0b00000000;
-    ppu_mem.mask       = 0b00000000;
-    ppu_mem.status     = 0b10100000;
-    ppu_mem.oamAddress = 0b00000000;
-    ppu_mem.scroll     = 0b00000000;
-    ppu_mem.address    = 0b0000000000000000;
-    ppu_mem.data       = 0b00000000;
-    ppu_mem.dma        = 0b00000000;
+    ppu_mem.control     = 0b00000000;
+    ppu_mem.mask        = 0b00000000;
+    ppu_mem.status      = 0b10100000;
+    ppu_mem.oam_address = 0b00000000;
+    ppu_mem.scroll      = 0b00000000;
+    ppu_mem.address     = 0b0000000000000000;
+    ppu_mem.data        = 0b00000000;
+    ppu_mem.dma         = 0b00000000;
 
     ppu_mem.frame = 0;
     ppu_mem.scan_line = 0;
@@ -34,8 +34,11 @@ ppu_memory get_ppu_mem() {
     return ppu_mem;
 }
 
-// TODO implement me for real.
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
+    if (address < 0x4000 && address > 0x3F00) {
+        // Palette RAM indexes
+        
+    }
     errx(EXIT_FAILURE, "Writing 0x%02X to UNKNOWN PPU VRAM ADDRESS 0x%04X", value, address);
 }
 
@@ -166,7 +169,7 @@ byte read_ppu_register(ppu_memory* ppu_mem, byte register_num) {
 }
 
 void write_oam_byte(ppu_memory* ppu_mem, byte value) {
-    ppu_mem->oamData[ppu_mem->oamAddress++] = value;
+    ppu_mem->oam_data[ppu_mem->oam_address++] = value;
 }
 
 void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
@@ -187,7 +190,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
             return;
         */
         case 3:
-            ppu_mem->oamAddress = value;
+            ppu_mem->oam_address = value;
             return;
         case 4:
             write_oam_byte(ppu_mem, value);

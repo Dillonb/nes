@@ -9,8 +9,8 @@ typedef struct ppu_memory_t {
     byte control;
     byte mask;
     byte status;
-    byte oamAddress;
-    byte oamData[0xFF];
+    byte oam_address;
+    byte oam_data[0xFF];
     byte scroll;
     uint16_t address;
     byte data;
