@@ -156,10 +156,16 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
         case 4:
             ppu_mem->oamData = value;
             return;
-        case 5:
-            ppu_mem->scroll = value;
-            return;
         */
+        case 5:
+            if (value == 0x00) {
+                printf("IGNORING WRITE TO SCROLL!\n");
+            }
+            else {
+                errx(EXIT_FAILURE, "Nonzero write to scroll! Time to implement this thing\n");
+            }
+            return;
+
         case 6: {
             uint16_t new_address = ppu_mem->address;
             if (address_byte == HIGH) {

@@ -129,6 +129,22 @@ void php(memory* mem) {
     stack_push(mem, mem->p);
 }
 
+void adc(memory* mem, byte value) {
+    byte old_a = mem->a;
+    byte carry = (byte)get_p_carry(mem);
+
+    mem->a = old_a + carry + value;
+
+    if ((uint16_t)old_a + (uint16_t)carry + (uint16_t)value > 0x00FF) {
+        set_p_carry(mem);
+    }
+    else {
+        clear_p_carry(mem);
+    }
+
+    set_p_zn_on(mem, mem->a);
+}
+
 void sbc(memory* mem, byte value) {
     byte old_a = mem->a;
     bool carry = get_p_carry(mem);
@@ -256,6 +272,13 @@ int normal_cpu_step(memory* mem) {
         case TAY: {
             mem->y = mem->a;
             set_p_zn_on(mem, mem->y);
+            cycles = 2;
+            break;
+        }
+
+        case TYA: {
+            mem->a = mem->y;
+            set_p_zn_on(mem, mem->a);
             cycles = 2;
             break;
         }
@@ -518,6 +541,13 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case AND_Zeropage: {
+            cycles = 3;
+            mem->a &= read_value(mem, &cycles, Zeropage);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
         case AND_Absolute_X: {
             cycles = 4;
             mem->a &= read_value(mem, &cycles, Absolute_X);
@@ -612,6 +642,12 @@ int normal_cpu_step(memory* mem) {
             set_p_carry_to(mem, (mem->a >> 7) & 1);
             mem->a <<= 1;
             set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case ADC_Zeropage: {
+            cycles = 3;
+            adc(mem, read_value(mem, &cycles, Zeropage));
             break;
         }
 
