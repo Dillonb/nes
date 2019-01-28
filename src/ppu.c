@@ -36,14 +36,42 @@ ppu_memory get_ppu_mem() {
 
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     printf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
+
+    // Nametables
+    if (address < 0x3F00 && address >= 0x2000) {
+        uint16_t index = (address - 2000) % 0x1000;
+        ppu_mem->name_tables[index] = value;
+    }
     // Palette RAM indexes
-    if (address < 0x4000 && address >= 0x3F00) {
+    else if (address < 0x4000) {
         uint16_t index = (address - 0x3F00) % 32;
         ppu_mem->palette_ram[index] = value;
     }
     else {
-        errx(EXIT_FAILURE, "Writing 0x%02X to UNKNOWN PPU VRAM ADDRESS 0x%04X", value, address);
+        errx(EXIT_FAILURE, "Attempted to write 0x%02X to UNKNOWN PPU VRAM ADDRESS 0x%04X", value, address);
     }
+}
+
+byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
+    byte result;
+
+    if (address < 0x3F00 && address >= 0x2000) {
+        uint16_t index = (address - 2000) % 0x1000;
+        result = ppu_mem->name_tables[index];
+    }
+    // Palette RAM indexes
+    else if (address < 0x4000) {
+        uint16_t index = (address - 0x3F00) % 32;
+        result = ppu_mem->palette_ram[index];
+    }
+    else {
+        errx(EXIT_FAILURE, "Read from UNKNOWN PPU VRAM ADDRESS 0x%04X", address);
+    }
+
+    printf("Read 0x%02X from PPU VRAM address 0x%04X\n", result, address);
+    debugger_wait();
+
+    return result;
 }
 
 bool get_control_flag(ppu_memory* mem, int index) {
@@ -137,13 +165,36 @@ void ppu_step(ppu_memory* ppu_mem) {
             render_pixel(ppu_mem);
         }
 
+        if (ppu_mem->cycle == 0) {
+            // Idle cycle
+        }
+        // fetch
+        else if (ppu_mem->cycle <= 256) {
+            // Fetch tile data for
+        }
+        else if (ppu_mem->cycle <= 320) {
+        }
+
+        int which_fetch = ppu_mem->cycle % 8;
+
+        switch (which_fetch) {
+            case 1:
+                break;
+            case 3:
+                break;
+            case 5:
+                break;
+            case 7:
+                break;
+            case 0:
+                break;
+                
+        }
+
         // TODO fetches and stuff that only happen when rendering enabled
     }
 
-    if (ppu_mem->cycle == 0) {
-        // Idle cycle
-    }
-    else if (ppu_mem->cycle == 1) {
+    if (ppu_mem->cycle == 1) {
         if (ppu_mem->scan_line == 0) {
             clear_vblank(ppu_mem);
         }
