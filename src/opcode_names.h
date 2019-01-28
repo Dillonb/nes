@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util.h"
+#include "cpu.h"
 
 #define ADC_Immediate  0x69
 #define ADC_Zeropage   0x65
@@ -192,6 +193,7 @@
 #define TYA 0x98
 
 byte opcode_sizes[256];
+addressing_mode opcode_addressing_modes[256];
 
 const char* opcode_to_name_full(byte opcode);
 const char* opcode_to_name_short(byte opcode);

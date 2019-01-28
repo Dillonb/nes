@@ -13,13 +13,15 @@ int main(int argc, char** argv) {
         printf("Usage: %s <rom.nes>\n", argv[0]);
         return 2;
     }
+
+    set_debug();
+
     rom* r = read_rom(argv[1]);
 
     memory mem = get_blank_memory(r);
 
-    //set_debug();
 
-    //set_breakpoint_on_interrupt();
+    set_breakpoint_on_interrupt();
     set_breakpoints_for_rom(argv[1]);
 
     while (true) {

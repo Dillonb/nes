@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include <stdlib.h>
 #include <err.h>
 #include <string.h>
@@ -188,12 +189,61 @@ void debugger_wait(memory* mem) {
 
 void print_disassembly(memory* mem, uint16_t addr) {
     byte opcode = read_byte(mem, mem->pc);
-    printf("%s", opcode_to_name_full(opcode));
+    printf("%s", opcode_to_name_short(opcode));
     byte size = opcode_sizes[opcode];
 
-    for (int offset = 1; offset < size; offset++) {
-        printf(" %02X", read_byte(mem, mem->pc + offset));
+    switch (opcode_addressing_modes[opcode]) {
+        case Accumulator:
+            printf(" A");
+            break;
+        case Absolute:
+            printf(" $%04X", read_address(mem, mem->pc + 1));
+            break;
+        case Absolute_X:
+            printf(" $%04X,X", read_address(mem, mem->pc + 1));
+            break;
+        case Absolute_Y:
+            printf(" $%04X,Y", read_address(mem, mem->pc + 1));
+            break;
+        case Immediate:
+            printf(" #%02X", read_byte(mem, mem->pc + 1));
+            break;
+        case Implied: {
+            break; // No args, instruction is 1 byte
+        }
+        case Indirect: {
+            printf(" ($%04X)", read_address(mem, mem->pc + 1));
+        }
+        case Indirect_X: {
+            printf(" ($%02X,X)", read_byte(mem, mem->pc + 1));
+            break;
+        }
+        case Indirect_Y: {
+            printf(" ($%02X),Y", read_byte(mem, mem->pc + 1));
+            break;
+        }
+        case Relative: {
+            printf(" $%02X", read_byte(mem, mem->pc + 1));
+            break;
+        }
+        case Zeropage: {
+            printf(" $%02X", read_byte(mem, mem->pc + 1));
+            break;
+        }
+        case Zeropage_X: {
+            printf(" $%02X,X", read_byte(mem, mem->pc + 1));
+            break;
+        }
+        case Zeropage_Y: {
+            printf(" $%02X,Y", read_byte(mem, mem->pc + 1));
+            break;
+        }
+        default: {
+            errx(EXIT_FAILURE, "Unrecognized addressing mode %d for opcode %02X!", opcode_addressing_modes[opcode], opcode);
+            break;
+        }
     }
+
 }
 
 void debug_hook(debug_hook_type type, memory* mem) {
@@ -205,7 +255,7 @@ void debug_hook(debug_hook_type type, memory* mem) {
     }
     else if (type == STEP) {
         if (debug_mode()) {
-            printf("\n\n%05d %10ld $%04x: Executing instruction ", cpu_steps++, get_total_cpu_cycles(), mem->pc);
+            printf("\n\nSteps: %d\nCycles: %ld\n$%04x: Executing instruction ", cpu_steps++, get_total_cpu_cycles(), mem->pc);
             print_disassembly(mem, mem->pc);
             printf("\n");
         }

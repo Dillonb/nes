@@ -41,17 +41,6 @@ uint16_t read_address_and_inc_pc(memory* mem) {
     return (upper << 8) | lower;
 }
 
-typedef enum addressing_mode_t {
-    Immediate,
-    Zeropage,
-    Zeropage_X,
-    Absolute,
-    Absolute_X,
-    Absolute_Y,
-    Indirect_X,
-    Indirect_Y,
-    Accumulator
-} addressing_mode;
 
 // TODO: handle pages crossed cases
 uint16_t indirect_y_address(memory* mem, int* cycles) {

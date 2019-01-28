@@ -1,5 +1,7 @@
 #include "opcode_names.h"
 
+#include "cpu.h"
+
 const char* opcode_to_name_full(byte opcode) {
     switch (opcode) {
         case ADC_Immediate:
@@ -616,4 +618,23 @@ byte opcode_sizes[] = {
 	2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
 	2, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
 	2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
+};
+
+addressing_mode opcode_addressing_modes[] = {
+    Implied,   Indirect_X, Implied,   Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Accumulator, Immediate,  Absolute,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_X, Zeropage_X, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_X, Absolute_X,
+    Absolute,  Indirect_X, Implied,   Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Accumulator, Immediate,  Absolute,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_X, Zeropage_X, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_X, Absolute_X,
+    Implied,   Indirect_X, Implied,   Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Accumulator, Immediate,  Absolute,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_X, Zeropage_X, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_X, Absolute_X,
+    Implied,   Indirect_X, Implied,   Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Accumulator, Immediate,  Indirect,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_X, Zeropage_X, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_X, Absolute_X,
+    Immediate, Indirect_X, Immediate, Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Implied,     Immediate,  Absolute,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_Y, Zeropage_Y, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_Y, Absolute_Y,
+    Immediate, Indirect_X, Immediate, Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Implied,     Immediate,  Absolute,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_Y, Zeropage_Y, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_Y, Absolute_Y,
+    Immediate, Indirect_X, Immediate, Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Implied,     Immediate,  Absolute,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_X, Zeropage_X, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_X, Absolute_X,
+    Immediate, Indirect_X, Immediate, Indirect_X, Zeropage,   Zeropage,   Zeropage,   Zeropage,   Implied, Immediate,  Implied,     Immediate,  Absolute,   Absolute,   Absolute,   Absolute,
+    Relative,  Indirect_Y, Implied,   Indirect_Y, Zeropage_X, Zeropage_X, Zeropage_X, Zeropage_X, Implied, Absolute_Y, Implied,     Absolute_Y, Absolute_X, Absolute_X, Absolute_X, Absolute_X,
 };
