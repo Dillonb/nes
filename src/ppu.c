@@ -285,13 +285,6 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
             vram_write(ppu_mem, ppu_mem->address, value);
             ppu_mem->address += get_addr_increment(ppu_mem);
             return;
-        /*
-            */
-            /* $4014
-               case 7:
-               ppu_mem->dma = value;
-               return;
-            */
         default:
             errx(EXIT_FAILURE, "Tried to write 0x%02X to invalid or unimplemented PPU register %x", value, register_num);
     }
