@@ -16,7 +16,6 @@ byte read_cartridge_space_address(rom* r, uint16_t address) {
         if (address >= 0x8000) { // Can't be more than 0xFFFF
             uint16_t prg_rom_address = (address - 0x8000) % get_prg_rom_bytes(r); // TODO optimize
             byte result = r->prg_rom[prg_rom_address];
-            //printf("Reading cartridge space address 0x%x from PRG ROM at 0x%x: %02x\n", address, prg_rom_address, result);
 
             return result;
         }
@@ -33,7 +32,7 @@ byte read_byte(memory* mem, uint16_t address) {
         // 8 ppu registers, repeating every 8 bytes from 0x2000 to 0x3FFF
         byte register_num = (address - 2000) % 8;
         byte value = read_ppu_register(&mem->ppu_mem, register_num);
-        printf("Read 0x%02x from PPU register %d\n", value, register_num);
+        dprintf("Read 0x%02x from PPU register %d\n", value, register_num);
         return value;
     }
     else if (address == 0x4016) {
@@ -59,12 +58,12 @@ void write_byte(memory* mem, uint16_t address, byte value) {
     else if (address < 0x4000) { // PPU registers
         // 8 ppu registers, repeating every 8 bytes from 0x2000 to 0x3FFF
         byte register_num = (address - 2000) % 8;
-        printf("Writing 0x%02x to PPU register %d\n", value, register_num);
+        dprintf("Writing 0x%02x to PPU register %d\n", value, register_num);
         write_ppu_register(&mem->ppu_mem, register_num, value);
     }
     else if (address == 0x4014) {
         uint16_t address = (uint16_t)value << 8;
-        printf("Triggered OAM DMA at 0x%04X\n", address);
+        dprintf("Triggered OAM DMA at 0x%04X\n", address);
         trigger_oam_dma(mem, address);
     }
     else if (address < 0x4018) {
@@ -90,7 +89,7 @@ memory get_blank_memory(rom* r) {
     // Read initial value of program counter from the reset vector
     mem.pc = (read_cartridge_space_address(r, 0xFFFD) << 8) | read_cartridge_space_address(r, 0xFFFC);
 
-    printf("Set program counter to 0x%x\n", mem.pc);
+    dprintf("Set program counter to 0x%x\n", mem.pc);
 
     return mem;
 }

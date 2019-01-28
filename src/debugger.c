@@ -14,6 +14,7 @@ bool breakpoints_muted = false;
 int cpu_steps = 0;
 address_tree* breakpoints = NULL;
 
+
 typedef enum debugger_state_value_t {
     RUNNING,
     STOPPED,

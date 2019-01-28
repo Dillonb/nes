@@ -57,9 +57,7 @@ typedef enum addressing_mode_t {
 uint16_t indirect_y_address(memory* mem, int* cycles) {
     byte b = read_byte_and_inc_pc(mem);
     uint16_t address = read_address(mem, b);
-    if (debug_mode()) {
-        printf("Ind Y: b: 0x%02X ind addr: 0x%04x y: 0x%02X\n", b, address, mem->y);
-    }
+    dprintf("Ind Y: b: 0x%02X ind addr: 0x%04x y: 0x%02X\n", b, address, mem->y);
     address += mem->y;
 
     return address;
@@ -122,14 +120,12 @@ void branch_on_condition(memory* mem, int* cycles, bool condition) {
     int8_t offset = read_byte_and_inc_pc(mem);
     if (condition) {
         uint16_t newaddr = mem->pc + offset;
-        if (debug_mode()) {
-            printf("Branch condition hit, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
-        }
+        dprintf("Branch condition hit, branching! offset: %d (0x%x) newaddr: 0x%x\n", offset, offset, newaddr);
         *cycles += SAME_PAGE(mem->pc, newaddr) ? 1 : 2;
         mem->pc = newaddr;
     }
-    else if (debug_mode()) {
-            printf("Did not hit branch condition, not branching!\n");
+    else {
+            dprintf("Did not hit branch condition, not branching!\n");
     }
 }
 
@@ -177,7 +173,7 @@ int interrupt_nmi(memory* mem) {
     stack_push16(mem, mem->pc);
     php(mem);
     mem->pc = read_address(mem, NMI_PC_LOCATION);
-    printf("Read and jumped to address 0x%04x out of 0x%04x for NMI handler\n", mem->pc, NMI_PC_LOCATION);
+    dprintf("Read and jumped to address 0x%04x out of 0x%04x for NMI handler\n", mem->pc, NMI_PC_LOCATION);
     set_p_interrupt(mem);
     return 7;
 }
@@ -795,7 +791,7 @@ int normal_cpu_step(memory* mem) {
 }
 
 void trigger_nmi() {
-    printf("!!! NMI TRIGGERED !!!\n");
+    dprintf("!!! NMI TRIGGERED !!!\n");
     interrupt = nmi;
 }
 

@@ -35,7 +35,7 @@ ppu_memory get_ppu_mem() {
 }
 
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
-    printf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
+    dprintf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
 
     // Nametables
     if (address < 0x3F00 && address >= 0x2000) {
@@ -68,7 +68,7 @@ byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
         errx(EXIT_FAILURE, "Read from UNKNOWN PPU VRAM ADDRESS 0x%04X", address);
     }
 
-    printf("Read 0x%02X from PPU VRAM address 0x%04X\n", result, address);
+    dprintf("Read 0x%02X from PPU VRAM address 0x%04X\n", result, address);
     debugger_wait();
 
     return result;
@@ -205,7 +205,7 @@ void ppu_step(ppu_memory* ppu_mem) {
 }
 
 byte read_status_sideeffects(ppu_memory* ppu_mem) {
-    printf("WARNING: returning status register with sideeffects\n");
+    dprintf("WARNING: returning status register with sideeffects\n");
     byte oldval = ppu_mem->status;
     clear_vblank(ppu_mem);
     return oldval;
@@ -235,7 +235,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
     switch (register_num) {
         case 0:
             ppu_mem->control = value;
-            printf("NMI on VBlank is now: %d\n", vblank_nmi(ppu_mem));
+            dprintf("NMI on VBlank is now: %d\n", vblank_nmi(ppu_mem));
             return;
         case 1:
             ppu_mem->mask = value;
@@ -266,14 +266,14 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
                 new_address &= 0x00FF;
                 new_address |= ((uint16_t)value) << 8;
                 address_byte = LOW;
-                printf("Writing %02X to HIGH byte of PPUADDR. Old value 0x%04X New value 0x%04X\n", value, ppu_mem->address, new_address);
+                dprintf("Writing %02X to HIGH byte of PPUADDR. Old value 0x%04X New value 0x%04X\n", value, ppu_mem->address, new_address);
             }
             else if (address_byte == LOW) {
                 // Mask out old low byte
                 new_address &= 0xFF00;
                 new_address |= value;
                 address_byte = HIGH;
-                printf("Writing %02X to LOW byte of PPUADDR. Old value 0x%04X New value 0x%04X\n", value, ppu_mem->address, new_address);
+                dprintf("Writing %02X to LOW byte of PPUADDR. Old value 0x%04X New value 0x%04X\n", value, ppu_mem->address, new_address);
             }
             if (new_address > 0x3FFF) {
                 errx(EXIT_FAILURE, "Wrote an address larger than 0x3FFF to PPUADDR but mirroring not implemented yet!");

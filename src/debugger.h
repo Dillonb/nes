@@ -16,3 +16,5 @@ void set_breakpoint(uint16_t address);
 void set_breakpoints_for_rom(char* filename);
 void set_breakpoint_on_interrupt();
 void debugger_wait();
+
+#define dprintf(format, ...) if(debug_mode()) { printf(format, ##__VA_ARGS__); }
