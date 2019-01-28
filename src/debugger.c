@@ -187,63 +187,66 @@ void debugger_wait(memory* mem) {
     printf("\n");
 }
 
-void print_disassembly(memory* mem, uint16_t addr) {
+char* disassemble(memory* mem, uint16_t addr) {
+    const int buffer_size = 20;
+    char* disassembly = malloc(buffer_size);
+
     byte opcode = read_byte(mem, mem->pc);
-    printf("%s", opcode_to_name_short(opcode));
     byte size = opcode_sizes[opcode];
+
+    int bytesused = snprintf(disassembly, 10, "%s", opcode_to_name_short(opcode));
 
     switch (opcode_addressing_modes[opcode]) {
         case Accumulator:
-            printf(" A");
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " A");
             break;
         case Absolute:
-            printf(" $%04X", read_address(mem, mem->pc + 1));
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " $%04X", read_address(mem, mem->pc + 1));
             break;
         case Absolute_X:
-            printf(" $%04X,X", read_address(mem, mem->pc + 1));
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " $%04X,X", read_address(mem, mem->pc + 1));
             break;
         case Absolute_Y:
-            printf(" $%04X,Y", read_address(mem, mem->pc + 1));
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " $%04X,Y", read_address(mem, mem->pc + 1));
             break;
         case Immediate:
-            printf(" #%02X", read_byte(mem, mem->pc + 1));
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " #%02X", read_byte(mem, mem->pc + 1));
             break;
-        case Implied: {
+        case Implied:
             break; // No args, instruction is 1 byte
-        }
-        case Indirect: {
-            printf(" ($%04X)", read_address(mem, mem->pc + 1));
-        }
-        case Indirect_X: {
-            printf(" ($%02X,X)", read_byte(mem, mem->pc + 1));
+        case Indirect:
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " ($%04X)", read_address(mem, mem->pc + 1));
             break;
-        }
-        case Indirect_Y: {
-            printf(" ($%02X),Y", read_byte(mem, mem->pc + 1));
+        case Indirect_X:
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " ($%02X,X)", read_byte(mem, mem->pc + 1));
             break;
-        }
-        case Relative: {
-            printf(" $%02X", read_byte(mem, mem->pc + 1));
+        case Indirect_Y:
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " ($%02X),Y", read_byte(mem, mem->pc + 1));
             break;
-        }
-        case Zeropage: {
-            printf(" $%02X", read_byte(mem, mem->pc + 1));
+        case Relative:
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " $%02X", read_byte(mem, mem->pc + 1));
             break;
-        }
-        case Zeropage_X: {
-            printf(" $%02X,X", read_byte(mem, mem->pc + 1));
+        case Zeropage:
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " $%02X", read_byte(mem, mem->pc + 1));
             break;
-        }
-        case Zeropage_Y: {
-            printf(" $%02X,Y", read_byte(mem, mem->pc + 1));
+        case Zeropage_X:
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " $%02X,X", read_byte(mem, mem->pc + 1));
             break;
-        }
-        default: {
+        case Zeropage_Y:
+            snprintf(disassembly + bytesused, buffer_size - bytesused, " $%02X,Y", read_byte(mem, mem->pc + 1));
+            break;
+        default:
             errx(EXIT_FAILURE, "Unrecognized addressing mode %d for opcode %02X!", opcode_addressing_modes[opcode], opcode);
             break;
-        }
     }
 
+    return disassembly;
+}
+
+void print_disassembly(memory* mem, uint16_t addr) {
+    char* disassembly = disassemble(mem, addr);
+    printf("%s", disassembly);
+    free(disassembly);
 }
 
 void debug_hook(debug_hook_type type, memory* mem) {
