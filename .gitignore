@@ -4,6 +4,7 @@ build/Makefile
 build/cmake_install.cmake
 build/nes
 build/prgdump
+build/disassemble
 build/*.nes
 build/*.breakpoints
 build/CTestTestfile.cmake

@@ -50,3 +50,31 @@ add_executable (prgdump prgdump.c
     rom.h
     )
 
+
+add_executable (disassemble disassemble.c
+    rom.c
+    rom.h
+
+    mem.c
+    mem.h
+
+    util.h
+
+    cpu.c
+    cpu.h
+
+    ppu.c
+    ppu.h
+
+    opcode_names.c
+    opcode_names.h
+
+    debugger.c
+    debugger.h
+
+    set.c
+    set.h
+
+    util.c
+    util.h
+    )
