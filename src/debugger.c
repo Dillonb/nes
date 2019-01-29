@@ -32,7 +32,7 @@ void set_breakpoint(uint16_t address) {
 void set_breakpoints_for_rom(char* filename) {
     // Read breakpoints if file exists
     char bpfilename[strlen(filename) + 13];
-    strncpy(bpfilename, filename, strlen(filename));
+    strncpy(bpfilename, filename, strlen(filename) + 1);
     strncat(bpfilename, ".breakpoints", 12);
 
     FILE* bpfp = fopen(bpfilename, "r");
@@ -83,6 +83,19 @@ void dump_byte(byte b) {
     printf(" -- 0x%02X\n", b);
 }
 
+void dump_uint16(uint16_t u) {
+    byte b = (u & 0xFF00) >> 8;
+    for(int i = 7; i >= 0; i--) {
+        printf("%d", (b & mask_flag(i)) > 0);
+    }
+    b = u & 0x00FF;
+    for(int i = 7; i >= 0; i--) {
+        printf("%d", (b & mask_flag(i)) > 0);
+    }
+
+    printf(" -- 0x%04X\n", u);
+}
+
 void print_status(memory* mem) {
     ppu_memory* ppu_mem = &mem->ppu_mem;
 
@@ -106,6 +119,13 @@ void print_status(memory* mem) {
     printf("PPUMASK  : BGRsbMmG\n");
     printf("           ");
     dump_byte(ppu_mem->mask);
+
+    printf("v        : .yyyNNYYYYYXXXXX\n");
+    printf("           ");
+    dump_uint16(ppu_mem->v);
+    printf("t        : .yyyNNYYYYYXXXXX\n");
+    printf("           ");
+    dump_uint16(ppu_mem->v);
 
 
     printf("\nStack:\n");
