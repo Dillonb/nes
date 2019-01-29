@@ -25,6 +25,7 @@ typedef struct ppu_memory_t {
 
     uint16_t v; // Current VRAM address
     uint16_t t; // Temporary VRAM address
+    byte x;     // Fine x scroll (this is only 3 bits)
     high_or_low w; // Keeps track of which byte to write to on 16 bit registers
 } ppu_memory;
 

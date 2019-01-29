@@ -29,6 +29,14 @@ ppu_memory get_ppu_mem() {
     return ppu_mem;
 }
 
+uint16_t get_tile_address(ppu_memory* ppu_mem) {
+    return 0x2000 | (ppu_mem->v & 0x0FFF);
+}
+
+uint16_t get_attribute_address(ppu_memory* ppu_mem) {
+    return 0x23C0 | (ppu_mem->v & 0x0C00) | ((ppu_mem->v >> 4) & 0x38) | ((ppu_mem->v >> 2) & 0x07)
+}
+
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     dprintf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
 
@@ -143,6 +151,13 @@ void clear_vblank(ppu_memory* ppu_mem) {
 void render_pixel(ppu_memory* ppu_mem) {
 
 }
+
+typedef struct tiledata_t {
+    byte nametable;
+    byte attribute_table;
+    byte tile_bitmap_low;
+    byte tile_bitmap_high;
+} tiledata;
 
 void ppu_step(ppu_memory* ppu_mem) {
     ppu_mem->cycle++;
