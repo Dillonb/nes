@@ -2,6 +2,11 @@
 #include <stdint.h>
 #include "util.h"
 
+typedef enum high_or_low_t {
+    HIGH,
+    LOW
+} high_or_low;
+
 typedef struct ppu_memory_t {
     unsigned long long frame;
     uint16_t scan_line;
@@ -12,12 +17,15 @@ typedef struct ppu_memory_t {
     byte oam_address;
     byte oam_data[0xFF];
     byte scroll;
-    uint16_t address;
     byte data;
     byte dma;
     byte pattern_tables[0x2000];
     byte name_tables[0x1000];
     byte palette_ram[0x20];
+
+    uint16_t v; // Current VRAM address
+    uint16_t t; // Temporary VRAM address
+    high_or_low w; // Keeps track of which byte to write to on 16 bit registers
 } ppu_memory;
 
 ppu_memory get_ppu_mem();
