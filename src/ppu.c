@@ -34,7 +34,7 @@ uint16_t get_tile_address(ppu_memory* ppu_mem) {
 }
 
 uint16_t get_attribute_address(ppu_memory* ppu_mem) {
-    return 0x23C0 | (ppu_mem->v & 0x0C00) | ((ppu_mem->v >> 4) & 0x38) | ((ppu_mem->v >> 2) & 0x07)
+    return 0x23C0 | (ppu_mem->v & 0x0C00) | ((ppu_mem->v >> 4) & 0x38) | ((ppu_mem->v >> 2) & 0x07);
 }
 
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
