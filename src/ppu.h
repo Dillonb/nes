@@ -7,6 +7,13 @@ typedef enum high_or_low_t {
     LOW
 } high_or_low;
 
+typedef struct tiledata_t {
+    byte nametable;
+    byte attribute_table;
+    byte tile_bitmap_low;
+    byte tile_bitmap_high;
+} tiledata;
+
 typedef struct ppu_memory_t {
     unsigned long long frame;
     uint16_t scan_line;
@@ -27,6 +34,8 @@ typedef struct ppu_memory_t {
     uint16_t t; // Temporary VRAM address
     byte x;     // Fine x scroll (this is only 3 bits)
     high_or_low w; // Keeps track of which byte to write to on 16 bit registers
+
+    tiledata tile;
 } ppu_memory;
 
 ppu_memory get_ppu_mem();

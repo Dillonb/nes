@@ -29,6 +29,37 @@ ppu_memory get_ppu_mem() {
     return ppu_mem;
 }
 
+void increment_x(ppu_memory* ppu_mem) {
+    if ((ppu_mem->v & 0x001F) == 31) {
+        ppu_mem->v &= ~0x001F;
+        ppu_mem->v ^= 0x0400;
+    }
+    else {
+        ppu_mem->v += 1;
+    }
+}
+
+void increment_y(ppu_memory* ppu_mem) {
+    if ((ppu_mem->v & 0x7000) != 0x7000) {
+        ppu_mem->v += 0x1000;
+    }
+    else {
+        ppu_mem->v &= ~0x7000;
+        int y = (ppu_mem->v & 0x03E0) >> 5;
+        if (y == 29) {
+            y = 0;
+            ppu_mem->v ^= 0x0800;
+        }
+        else if (y == 31) {
+            y = 0;
+        }
+        else {
+            y += 1;
+            ppu_mem->v = (ppu_mem->v & ~0x03E0) | (y << 5);
+        }
+    }
+}
+
 uint16_t get_tile_address(ppu_memory* ppu_mem) {
     return 0x2000 | (ppu_mem->v & 0x0FFF);
 }
@@ -152,13 +183,6 @@ void render_pixel(ppu_memory* ppu_mem) {
 
 }
 
-typedef struct tiledata_t {
-    byte nametable;
-    byte attribute_table;
-    byte tile_bitmap_low;
-    byte tile_bitmap_high;
-} tiledata;
-
 void ppu_step(ppu_memory* ppu_mem) {
     ppu_mem->cycle++;
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
@@ -180,25 +204,24 @@ void ppu_step(ppu_memory* ppu_mem) {
         }
         // fetch
         else if (ppu_mem->cycle <= 256) {
-            // Fetch tile data for
+            // Each of these fetches takes 2 cycles on a real CPU, and we need to do 4 of them. All 4 will have been completed on the 8th cycle.
+            // TODO: do I need to load them in real time or is it ok to grab them all at once every 8 cycles?
+            // Just in case I need to do this, to make it easier, they're loaded in the same order they would be in real time, below.
+            if (ppu_mem->cycle % 8 == 0) {
+                // Nametable byte
+                ppu_mem->tile.nametable = vram_read(ppu_mem, get_tile_address(ppu_mem));
+                // Attribute table byte
+                ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
+                // Tile bitmap low byte
+                // Tile bitmap high byte
+
+                // Once done, move to the next tile if we're in a visible line
+                if (is_line_visible(ppu_mem)) {
+                    increment_x(ppu_mem);
+                }
+            }
         }
         else if (ppu_mem->cycle <= 320) {
-        }
-
-        int which_fetch = ppu_mem->cycle % 8;
-
-        switch (which_fetch) {
-            case 1:
-                break;
-            case 3:
-                break;
-            case 5:
-                break;
-            case 7:
-                break;
-            case 0:
-                break;
-                
         }
 
         // TODO fetches and stuff that only happen when rendering enabled
