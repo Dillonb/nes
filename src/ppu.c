@@ -22,6 +22,11 @@ ppu_memory get_ppu_mem() {
     ppu_mem.data        = 0b00000000;
     ppu_mem.dma         = 0b00000000;
 
+    ppu_mem.tile.attribute_table  = 0;
+    ppu_mem.tile.nametable        = 0;
+    ppu_mem.tile.tile_bitmap_high = 0;
+    ppu_mem.tile.tile_bitmap_low  = 0;
+
     ppu_mem.frame = 0;
     ppu_mem.scan_line = 0;
     ppu_mem.cycle = 0;
@@ -103,7 +108,6 @@ byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
     }
 
     dprintf("Read 0x%02X from PPU VRAM address 0x%04X\n", result, address);
-    debugger_wait();
 
     return result;
 }
@@ -215,6 +219,8 @@ void ppu_step(ppu_memory* ppu_mem) {
                 // Tile bitmap low byte
                 // Tile bitmap high byte
 
+                printf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
+
                 // Once done, move to the next tile if we're in a visible line
                 if (is_line_visible(ppu_mem)) {
                     increment_x(ppu_mem);
@@ -222,6 +228,9 @@ void ppu_step(ppu_memory* ppu_mem) {
             }
         }
         else if (ppu_mem->cycle <= 320) {
+            if (ppu_mem->cycle == 256 && is_line_visible(ppu_mem)) {
+                increment_y(ppu_mem);
+            }
         }
 
         // TODO fetches and stuff that only happen when rendering enabled
