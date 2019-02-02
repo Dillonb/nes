@@ -7,6 +7,7 @@
 #include "cpu.h"
 #include "debugger.h"
 #include "render.h"
+#include "palette.h"
 
 #define VBLANK_LINE 241
 
@@ -230,39 +231,12 @@ byte get_color(int x, int y, tiledata tile) {
     return colorbyte;
 }
 
-color get_real_color(byte colorbyte) {
-    // TODO actually implement palletes
-    // For now, we use grayscale
-
-    byte rawcolor = colorbyte & 0b11; // Bottom 2 bits are the raw tile bitmap
-
-    byte v; // All 3 will always be the same since we're doing grayscale
-
-    color c;
-
-    switch (rawcolor) {
-        case 0b00:
-            v = 0xFF;
-            break;
-        case 0b01:
-            v = 0xAA;
-            break;
-        case 0b10:
-            v = 0x55;
-            break;
-        case 0b11:
-            v = 0x00;
-            break;
-        default:
-            errx(EXIT_FAILURE, "WAT");
+color get_real_color(ppu_memory* ppu_mem, byte colorbyte) {
+    byte palette_entry = vram_read(ppu_mem, (uint16_t) colorbyte + 0x3F00);
+    if (palette_entry >= 64) {
+        errx(EXIT_FAILURE, "Error: palette entry out of range. Maybe time to mod 64 it? or there's something else going on");
     }
-
-    c.a = 0xFF;
-    c.r = v;
-    c.g = v;
-    c.b = v;
-
-    return c;
+    return rgb_palette[palette_entry];
 }
 
 void render_pixel(ppu_memory* ppu_mem) {
@@ -272,7 +246,7 @@ void render_pixel(ppu_memory* ppu_mem) {
     //printf("Rendering pixel at %dx%d\n", x,y);
 
     byte colorbyte = get_color(x, y, ppu_mem->tile);
-    color real_color = get_real_color(colorbyte);
+    color real_color = get_real_color(ppu_mem, colorbyte);
 
     ppu_mem->screen[x][y] = real_color;
 }

@@ -49,6 +49,8 @@ add_executable (nes nes.c
 
     render.c
     render.h
+
+    palette.h
     )
 
 target_link_libraries(nes PRIVATE SDL2::SDL2)
