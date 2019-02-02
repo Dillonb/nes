@@ -37,6 +37,16 @@ void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     }
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT:
+                errx(EXIT_FAILURE, "User requested quit");
+            default:
+                break;
+        }
+    }
+
 
     for (int y = 0; y < 240; y++) {
         for (int x = 0; x < 256; x++) {
