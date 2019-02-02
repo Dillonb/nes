@@ -328,8 +328,9 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
         case 6: {
             if (ppu_mem->w == HIGH) {
                 // Mask out old high byte
+                byte highvalue = value & 0b00111111; // Highest value allowed = 0x3F in high byte
                 ppu_mem->t &= 0x00FF;
-                ppu_mem->t |= ((uint16_t)value) << 8;
+                ppu_mem->t |= ((uint16_t)highvalue) << 8;
                 ppu_mem->w = LOW;
             }
             else if (ppu_mem->w == LOW) {
@@ -340,7 +341,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
                 ppu_mem->w = HIGH;
             }
             if (ppu_mem->t > 0x3FFF) {
-                errx(EXIT_FAILURE, "Wrote an address larger than 0x3FFF to PPUADDR but mirroring not implemented yet!");
+                errx(EXIT_FAILURE, "Somehow managed to write an address higher than 0x3FFF to PPUADDR? WTF?");
             }
             return;
         }
