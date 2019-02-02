@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "util.h"
+#include "rom.h"
 
 typedef enum high_or_low_t {
     HIGH,
@@ -15,6 +16,7 @@ typedef struct tiledata_t {
 } tiledata;
 
 typedef struct ppu_memory_t {
+    rom* r;
     unsigned long long frame;
     uint16_t scan_line;
     uint16_t cycle;
@@ -26,7 +28,6 @@ typedef struct ppu_memory_t {
     byte scroll;
     byte data;
     byte dma;
-    byte pattern_tables[0x2000];
     byte name_tables[0x1000];
     byte palette_ram[0x20];
 
@@ -38,7 +39,7 @@ typedef struct ppu_memory_t {
     tiledata tile;
 } ppu_memory;
 
-ppu_memory get_ppu_mem();
+ppu_memory get_ppu_mem(rom* r);
 void ppu_step(ppu_memory* ppu_mem);
 byte read_ppu_register(ppu_memory* ppu_mem, byte register_num);
 void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value);

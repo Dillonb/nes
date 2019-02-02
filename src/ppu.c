@@ -9,8 +9,11 @@
 
 #define VBLANK_LINE 241
 
-ppu_memory get_ppu_mem() {
+ppu_memory get_ppu_mem(rom* r) {
     ppu_memory ppu_mem;
+
+    ppu_mem.r = r;
+
     ppu_mem.control     = 0b00000000;
     ppu_mem.mask        = 0b00000000;
     ppu_mem.status      = 0b10100000;
@@ -65,7 +68,7 @@ void increment_y(ppu_memory* ppu_mem) {
     }
 }
 
-uint16_t get_tile_address(ppu_memory* ppu_mem) {
+uint16_t get_nametable_address(ppu_memory* ppu_mem) {
     return 0x2000 | (ppu_mem->v & 0x0FFF);
 }
 
@@ -76,6 +79,10 @@ uint16_t get_attribute_address(ppu_memory* ppu_mem) {
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     dprintf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
 
+    // Pattern tables
+    if (address < 0x2000) {
+        errx(EXIT_FAILURE, "Pattern tables written to! NROM can't do this (CHR ROM), does this ROM use a different mapper?");
+    }
     // Nametables
     if (address < 0x3F00 && address >= 0x2000) {
         uint16_t index = (address - 2000) % 0x1000;
@@ -94,7 +101,18 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
 byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
     byte result;
 
-    if (address < 0x3F00 && address >= 0x2000) {
+    // Pattern tables
+    if (address < 0x2000) {
+        // NROM
+        if (ppu_mem->r->mapper == 0) {
+            result = ppu_mem->r->chr_rom[address];
+        }
+        else {
+            errx(EXIT_FAILURE, "Mapper 0x%02X not implemented in PPU!", ppu_mem->r->mapper);
+        }
+    }
+    // Nametables
+    else if (address < 0x3F00) {
         uint16_t index = (address - 2000) % 0x1000;
         result = ppu_mem->name_tables[index];
     }
@@ -126,6 +144,10 @@ bool get_addr_increment_flag(ppu_memory* mem) {
 
 int get_addr_increment(ppu_memory* mem) {
     return get_addr_increment_flag(mem) ? 32 : 1;
+}
+
+uint16_t get_background_table_base_address(ppu_memory* mem) {
+    return get_control_flag(mem, 4) * 0x1000;
 }
 
 
@@ -213,11 +235,18 @@ void ppu_step(ppu_memory* ppu_mem) {
             // Just in case I need to do this, to make it easier, they're loaded in the same order they would be in real time, below.
             if (ppu_mem->cycle % 8 == 0) {
                 // Nametable byte
-                ppu_mem->tile.nametable = vram_read(ppu_mem, get_tile_address(ppu_mem));
+                ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
                 // Attribute table byte
                 ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
-                // Tile bitmap low byte
-                // Tile bitmap high byte
+                // Tile bitmap
+                // TODO fine scrolling
+                uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * 16;
+                // Low byte
+                ppu_mem->tile.tile_bitmap_low = vram_read(ppu_mem, tile_bitmap_address);
+                // High byte
+                // The high byte is not stored next to the low byte.
+                // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
+                ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + 8);
 
                 printf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
@@ -232,8 +261,6 @@ void ppu_step(ppu_memory* ppu_mem) {
                 increment_y(ppu_mem);
             }
         }
-
-        // TODO fetches and stuff that only happen when rendering enabled
     }
 
     if (ppu_mem->cycle == 1) {

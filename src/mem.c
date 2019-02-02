@@ -84,7 +84,7 @@ memory get_blank_memory(rom* r) {
     mem.sp = 0xFD;
     mem.p = 0x34;
     mem.r = r;
-    mem.ppu_mem = get_ppu_mem();
+    mem.ppu_mem = get_ppu_mem(r);
 
     // Read initial value of program counter from the reset vector
     mem.pc = (read_cartridge_space_address(r, 0xFFFD) << 8) | read_cartridge_space_address(r, 0xFFFC);
