@@ -325,12 +325,26 @@ void ppu_step(ppu_memory* ppu_mem) {
                     increment_x(ppu_mem);
                 }
             }
-        }
-        else if (ppu_mem->cycle <= 320) {
             if (ppu_mem->cycle == 256 && is_line_visible(ppu_mem)) {
                 increment_y(ppu_mem);
             }
         }
+        else if (is_line_visible(ppu_mem) && ppu_mem->cycle == 257) {
+            // Copy X stuff from t to v
+            uint16_t masked = ppu_mem->t & 0b0000010000011111;
+            ppu_mem->v &= 0b1111101111100000;
+            ppu_mem->v |= masked;
+        }
+        else if (ppu_mem->cycle <= 320) {
+        }
+    }
+
+    // Pre render
+    if (ppu_mem->scan_line == 261 && ppu_mem->cycle >= 280 && ppu_mem->cycle <= 304) {
+            // Copy Y stuff from t to v
+            uint16_t masked = ppu_mem->t & 0b111101111100000;
+            ppu_mem->v &= 0b000010000011111;
+            ppu_mem->v |= masked;
     }
 
     if (ppu_mem->cycle == 1) {
