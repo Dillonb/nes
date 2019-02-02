@@ -14,15 +14,15 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    set_debug();
+    //set_debug();
 
     rom* r = read_rom(argv[1]);
 
     memory mem = get_blank_memory(r);
 
 
-    set_breakpoint_on_interrupt();
-    set_breakpoints_for_rom(argv[1]);
+    //set_breakpoint_on_interrupt();
+    //set_breakpoints_for_rom(argv[1]);
 
     while (true) {
         system_step(&mem);

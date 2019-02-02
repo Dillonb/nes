@@ -257,6 +257,7 @@ color get_real_color(byte colorbyte) {
             errx(EXIT_FAILURE, "WAT");
     }
 
+    c.a = 0xFF;
     c.r = v;
     c.g = v;
     c.b = v;

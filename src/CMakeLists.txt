@@ -1,5 +1,7 @@
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
+find_package(SDL2 REQUIRED)
+
 # For testing
 add_library(libnes
     util.c
@@ -10,7 +12,7 @@ add_library(libnes
     set.c
     debugger.c
     opcode_names.c
-    render.c
+    noop_render.c
     )
 
 
@@ -48,6 +50,9 @@ add_executable (nes nes.c
     render.c
     render.h
     )
+
+target_link_libraries(nes PRIVATE SDL2::SDL2)
+
 
 add_executable (prgdump prgdump.c
     rom.c

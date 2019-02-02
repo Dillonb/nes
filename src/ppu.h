@@ -16,6 +16,7 @@ typedef struct tiledata_t {
 } tiledata;
 
 typedef struct color_t {
+    byte a;
     byte r;
     byte g;
     byte b;
