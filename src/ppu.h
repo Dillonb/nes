@@ -15,6 +15,12 @@ typedef struct tiledata_t {
     byte tile_bitmap_high;
 } tiledata;
 
+typedef struct color_t {
+    byte r;
+    byte g;
+    byte b;
+} color;
+
 typedef struct ppu_memory_t {
     rom* r;
     unsigned long long frame;
@@ -37,6 +43,9 @@ typedef struct ppu_memory_t {
     high_or_low w; // Keeps track of which byte to write to on 16 bit registers
 
     tiledata tile;
+
+    color screen[256][240];
+
 } ppu_memory;
 
 ppu_memory get_ppu_mem(rom* r);

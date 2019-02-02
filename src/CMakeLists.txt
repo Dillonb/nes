@@ -10,6 +10,7 @@ add_library(libnes
     set.c
     debugger.c
     opcode_names.c
+    render.c
     )
 
 
@@ -43,6 +44,9 @@ add_executable (nes nes.c
 
     opcode_names.c
     opcode_names.h
+
+    render.c
+    render.h
     )
 
 add_executable (prgdump prgdump.c
@@ -77,4 +81,7 @@ add_executable (disassemble disassemble.c
 
     util.c
     util.h
+
+    noop_render.c
+    render.h
     )

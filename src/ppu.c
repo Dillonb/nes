@@ -6,6 +6,7 @@
 #include "ppu.h"
 #include "cpu.h"
 #include "debugger.h"
+#include "render.h"
 
 #define VBLANK_LINE 241
 
@@ -205,8 +206,74 @@ void clear_vblank(ppu_memory* ppu_mem) {
     ppu_mem->status &= 0b01111111; // Clear VBlank flag on PPUSTATUS
 }
 
-void render_pixel(ppu_memory* ppu_mem) {
+byte get_color(int x, int y, tiledata tile) {
+    byte colorbyte = tile.attribute_table;
+    // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the pallette to get the _real_ color.
+    // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
 
+    // TODO probably don't have to do this on every pixel, only on a new tile.
+    bool bottom  = y % 32 < 16;
+    bool right = x % 32 < 16;
+    
+    byte bitmap_bit = 7 - (x % 8); // TODO fine scrolling
+
+    // bottom right, bottom left, top right, top left
+    // BRBLTRTL
+    colorbyte >>= bottom * 4; // If we're in the bottom quadrants, need to shift over by 4, otherwise we're good.
+    colorbyte >>= right * 2; // If we're in the right quadrant, need to shift over by 2, otherwise we're good
+    colorbyte = (colorbyte & 0b00000011) << 2; // Make space for the LSB from the tile data
+
+    byte high = (tile.tile_bitmap_high & (0b1 << bitmap_bit)) >> (bitmap_bit - 1); // TODO fine scrolling
+    byte low  = (tile.tile_bitmap_low  & (0b1 << bitmap_bit)) >> bitmap_bit;  // TODO fine scrolling
+    colorbyte |= high | low;
+
+    return colorbyte;
+}
+
+color get_real_color(byte colorbyte) {
+    // TODO actually implement palletes
+    // For now, we use grayscale
+
+    byte rawcolor = colorbyte & 0b11; // Bottom 2 bits are the raw tile bitmap
+
+    byte v; // All 3 will always be the same since we're doing grayscale
+
+    color c;
+
+    switch (rawcolor) {
+        case 0b00:
+            v = 0xFF;
+            break;
+        case 0b01:
+            v = 0xAA;
+            break;
+        case 0b10:
+            v = 0x55;
+            break;
+        case 0b11:
+            v = 0x00;
+            break;
+        default:
+            errx(EXIT_FAILURE, "WAT");
+    }
+
+    c.r = v;
+    c.g = v;
+    c.b = v;
+
+    return c;
+}
+
+void render_pixel(ppu_memory* ppu_mem) {
+    int x = ppu_mem->cycle - 1; // Cycle 0 isn't visible.
+    int y = ppu_mem->scan_line - 1; // Line 1 isn't visible, either.
+
+    //printf("Rendering pixel at %dx%d\n", x,y);
+
+    byte colorbyte = get_color(x, y, ppu_mem->tile);
+    color real_color = get_real_color(colorbyte);
+
+    ppu_mem->screen[x][y] = real_color;
 }
 
 void ppu_step(ppu_memory* ppu_mem) {
@@ -217,6 +284,8 @@ void ppu_step(ppu_memory* ppu_mem) {
         if (ppu_mem->scan_line >= NUM_LINES) {
             ppu_mem->frame++;
             ppu_mem->scan_line = 0;
+            printf("Rendering frame %llu\n", ppu_mem->frame);
+            render_screen(ppu_mem->screen);
         }
     }
 
@@ -238,6 +307,7 @@ void ppu_step(ppu_memory* ppu_mem) {
                 ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
                 // Attribute table byte
                 ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
+                dprintf("Read 0x%02X for ATTRIBUTE TABLE\n", ppu_mem->tile.attribute_table);
                 // Tile bitmap
                 // TODO fine scrolling
                 uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * 16;
@@ -248,7 +318,7 @@ void ppu_step(ppu_memory* ppu_mem) {
                 // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
                 ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + 8);
 
-                printf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
+                dprintf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
                 // Once done, move to the next tile if we're in a visible line
                 if (is_line_visible(ppu_mem)) {
@@ -305,6 +375,8 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
     switch (register_num) {
         case 0:
             ppu_mem->control = value;
+            ppu_mem->t &= 0b0111001111111111; // Mask out two bits to copy data into
+            ppu_mem->t |= (uint16_t)(value & 0b00000011) << 8;
             dprintf("NMI on VBlank is now: %d\n", vblank_nmi(ppu_mem));
             return;
         case 1:
