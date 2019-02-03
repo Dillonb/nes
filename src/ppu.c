@@ -65,13 +65,13 @@ void increment_y(ppu_memory* ppu_mem) {
         }
         else {
             y += 1;
-            ppu_mem->v = (ppu_mem->v & ~0x03E0) | (y << 5);
+            ppu_mem->v = (uint16_t) ((ppu_mem->v & ~0x03E0) | (y << 5));
         }
     }
 }
 
 uint16_t get_nametable_address(ppu_memory* ppu_mem) {
-    return 0x2000 | (ppu_mem->v & 0x0FFF);
+    return (uint16_t) (0x2000 | (ppu_mem->v & 0x0FFF));
 }
 
 uint16_t get_attribute_address(ppu_memory* ppu_mem) {
@@ -282,14 +282,14 @@ void fetch_step(ppu_memory* ppu_mem) {
 
 void x_t_to_v(ppu_memory* ppu_mem) {
     // Copy X stuff from t to v
-    uint16_t masked = ppu_mem->t & 0b0000010000011111;
+    uint16_t masked = ppu_mem->t & (uint16_t)0b0000010000011111;
     ppu_mem->v &= 0b1111101111100000;
     ppu_mem->v |= masked;
 }
 
 void y_t_to_v(ppu_memory* ppu_mem) {
     // Copy Y stuff from t to v
-    uint16_t masked = ppu_mem->t & 0b111101111100000;
+    uint16_t masked = ppu_mem->t & (uint16_t)0b111101111100000;
     ppu_mem->v &= 0b000010000011111;
     ppu_mem->v |= masked;
 }
@@ -307,43 +307,54 @@ void ppu_step(ppu_memory* ppu_mem) {
         }
     }
 
-    if (rendering_enabled(ppu_mem)) {
-        if (is_visible(ppu_mem)) {
-            render_pixel(ppu_mem);
-        }
+    // Visible
+    if (ppu_mem->scan_line < 240) {
+        if (rendering_enabled(ppu_mem)) {
+            if (is_visible(ppu_mem)) {
+                render_pixel(ppu_mem);
+            }
 
-        if (ppu_mem->cycle == 0) {
-            // Idle cycle
-        }
-        // fetch
-        else if (ppu_mem->cycle <= 256) {
-            fetch_step(ppu_mem);
-            if (ppu_mem->cycle == 256 && is_line_visible(ppu_mem)) {
-                increment_y(ppu_mem);
+            if ((ppu_mem->cycle > 0 && ppu_mem->cycle < 257) || (ppu_mem->cycle > 320 && ppu_mem->cycle < 336)) {
+                fetch_step(ppu_mem);
+                if (ppu_mem->cycle == 256) {
+                    increment_y(ppu_mem);
+                }
+            }
+            else if (ppu_mem->cycle == 257) {
+                x_t_to_v(ppu_mem);
             }
         }
-        else if (is_line_visible(ppu_mem) && ppu_mem->cycle == 257) {
-            x_t_to_v(ppu_mem);
-        }
-        else if (ppu_mem->cycle < 321) {
-        }
-        else if (ppu_mem->cycle < 337) {
-            fetch_step(ppu_mem);
-        }
     }
-
-    // Pre render
-    if (ppu_mem->scan_line == 261 && ppu_mem->cycle >= 280 && ppu_mem->cycle <= 304) {
-        y_t_to_v(ppu_mem);
-    }
-
-    if (ppu_mem->cycle == 1) {
-        if (ppu_mem->scan_line == 0) {
-            clear_vblank(ppu_mem);
-        }
-        else if (ppu_mem->scan_line == VBLANK_LINE) {
+    // VBlank
+    else if (ppu_mem->scan_line < 261) {
+        if (ppu_mem->scan_line == VBLANK_LINE && ppu_mem->cycle == 1) {
             set_vblank(ppu_mem);
         }
+    }
+    // Pre-render
+    else if (ppu_mem->scan_line == 261) {
+        if (rendering_enabled(ppu_mem)) {
+            if ((ppu_mem->cycle> 0 && ppu_mem->cycle < 257) || (ppu_mem->cycle > 320 && ppu_mem->cycle < 336)) {
+                fetch_step(ppu_mem);
+                if (ppu_mem->cycle == 256) {
+                    increment_y(ppu_mem);
+                }
+            }
+            else if (ppu_mem->cycle >= 280 && ppu_mem->cycle <= 304) {
+                y_t_to_v(ppu_mem);
+            }
+            else if (ppu_mem->cycle == 257) {
+                x_t_to_v(ppu_mem);
+            }
+        }
+    }
+    else {
+        errx(EXIT_FAILURE, "Somehow ended up on invalid scanline %d. WTF?", ppu_mem->scan_line);
+    }
+
+    // VBlank stuff. Has to happen at the end.
+    if (ppu_mem->cycle == 1 && ppu_mem->scan_line == 0) {
+        clear_vblank(ppu_mem);
     }
 }
 
