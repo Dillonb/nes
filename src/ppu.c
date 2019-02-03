@@ -251,6 +251,35 @@ void render_pixel(ppu_memory* ppu_mem) {
     ppu_mem->screen[x][y] = real_color;
 }
 
+void fetch_step(ppu_memory* ppu_mem) {
+    // Each of these fetches takes 2 cycles on a real CPU, and we need to do 4 of them. All 4 will have been completed on the 8th cycle.
+    // TODO: do I need to load them in real time or is it ok to grab them all at once every 8 cycles?
+    // Just in case I need to do this, to make it easier, they're loaded in the same order they would be in real time, below.
+    if (ppu_mem->cycle % 8 == 0) {
+        // Nametable byte
+        ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
+        // Attribute table byte
+        ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
+        dprintf("Read 0x%02X for ATTRIBUTE TABLE\n", ppu_mem->tile.attribute_table);
+        // Tile bitmap
+        // TODO fine scrolling
+        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * 16;
+        // Low byte
+        ppu_mem->tile.tile_bitmap_low = vram_read(ppu_mem, tile_bitmap_address);
+        // High byte
+        // The high byte is not stored next to the low byte.
+        // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
+        ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + 8);
+
+        dprintf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
+
+        // Once done, move to the next tile if we're in a visible line
+        if (is_line_visible(ppu_mem)) {
+            increment_x(ppu_mem);
+        }
+    }
+}
+
 void ppu_step(ppu_memory* ppu_mem) {
     ppu_mem->cycle++;
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
@@ -274,32 +303,7 @@ void ppu_step(ppu_memory* ppu_mem) {
         }
         // fetch
         else if (ppu_mem->cycle <= 256) {
-            // Each of these fetches takes 2 cycles on a real CPU, and we need to do 4 of them. All 4 will have been completed on the 8th cycle.
-            // TODO: do I need to load them in real time or is it ok to grab them all at once every 8 cycles?
-            // Just in case I need to do this, to make it easier, they're loaded in the same order they would be in real time, below.
-            if (ppu_mem->cycle % 8 == 0) {
-                // Nametable byte
-                ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
-                // Attribute table byte
-                ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
-                dprintf("Read 0x%02X for ATTRIBUTE TABLE\n", ppu_mem->tile.attribute_table);
-                // Tile bitmap
-                // TODO fine scrolling
-                uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * 16;
-                // Low byte
-                ppu_mem->tile.tile_bitmap_low = vram_read(ppu_mem, tile_bitmap_address);
-                // High byte
-                // The high byte is not stored next to the low byte.
-                // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
-                ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + 8);
-
-                dprintf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
-
-                // Once done, move to the next tile if we're in a visible line
-                if (is_line_visible(ppu_mem)) {
-                    increment_x(ppu_mem);
-                }
-            }
+            fetch_step(ppu_mem);
             if (ppu_mem->cycle == 256 && is_line_visible(ppu_mem)) {
                 increment_y(ppu_mem);
             }
@@ -310,7 +314,10 @@ void ppu_step(ppu_memory* ppu_mem) {
             ppu_mem->v &= 0b1111101111100000;
             ppu_mem->v |= masked;
         }
-        else if (ppu_mem->cycle <= 320) {
+        else if (ppu_mem->cycle < 321) {
+        }
+        else if (ppu_mem->cycle < 337) {
+            fetch_step(ppu_mem);
         }
     }
 
