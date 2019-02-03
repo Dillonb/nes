@@ -280,6 +280,20 @@ void fetch_step(ppu_memory* ppu_mem) {
     }
 }
 
+void x_t_to_v(ppu_memory* ppu_mem) {
+    // Copy X stuff from t to v
+    uint16_t masked = ppu_mem->t & 0b0000010000011111;
+    ppu_mem->v &= 0b1111101111100000;
+    ppu_mem->v |= masked;
+}
+
+void y_t_to_v(ppu_memory* ppu_mem) {
+    // Copy Y stuff from t to v
+    uint16_t masked = ppu_mem->t & 0b111101111100000;
+    ppu_mem->v &= 0b000010000011111;
+    ppu_mem->v |= masked;
+}
+
 void ppu_step(ppu_memory* ppu_mem) {
     ppu_mem->cycle++;
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
@@ -309,10 +323,7 @@ void ppu_step(ppu_memory* ppu_mem) {
             }
         }
         else if (is_line_visible(ppu_mem) && ppu_mem->cycle == 257) {
-            // Copy X stuff from t to v
-            uint16_t masked = ppu_mem->t & 0b0000010000011111;
-            ppu_mem->v &= 0b1111101111100000;
-            ppu_mem->v |= masked;
+            x_t_to_v(ppu_mem);
         }
         else if (ppu_mem->cycle < 321) {
         }
@@ -323,10 +334,7 @@ void ppu_step(ppu_memory* ppu_mem) {
 
     // Pre render
     if (ppu_mem->scan_line == 261 && ppu_mem->cycle >= 280 && ppu_mem->cycle <= 304) {
-            // Copy Y stuff from t to v
-            uint16_t masked = ppu_mem->t & 0b111101111100000;
-            ppu_mem->v &= 0b000010000011111;
-            ppu_mem->v |= masked;
+        y_t_to_v(ppu_mem);
     }
 
     if (ppu_mem->cycle == 1) {
