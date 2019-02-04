@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 #include "util.h"
 #include "rom.h"
 
@@ -21,6 +22,13 @@ typedef struct color_t {
     byte g;
     byte b;
 } color;
+
+typedef struct sprite_t {
+    byte x_coord;
+    bool priority;
+    byte index;
+    uint32_t pattern;
+} sprite;
 
 typedef struct ppu_memory_t {
     rom* r;
@@ -46,6 +54,9 @@ typedef struct ppu_memory_t {
     tiledata tile;
 
     color screen[256][240];
+
+    sprite sprites[8];
+    byte num_sprites;
 
 } ppu_memory;
 

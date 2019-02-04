@@ -10,6 +10,7 @@
 #include "palette.h"
 
 #define VBLANK_LINE 241
+#define MAX_SPRITES_PER_LINE 8
 
 ppu_memory get_ppu_mem(rom* r) {
     ppu_memory ppu_mem;
@@ -35,6 +36,8 @@ ppu_memory get_ppu_mem(rom* r) {
     ppu_mem.frame = 0;
     ppu_mem.scan_line = 0;
     ppu_mem.cycle = 0;
+
+    ppu_mem.num_sprites = 0;
 
     return ppu_mem;
 }
@@ -140,6 +143,14 @@ bool vblank_nmi(ppu_memory* mem) {
     return get_control_flag(mem, 7);
 }
 
+bool get_sprite_size_flag(ppu_memory* ppu_mem) {
+    return get_control_flag(ppu_mem, 5);
+}
+
+bool get_sprite_pattern_table_flag(ppu_memory* ppu_mem) {
+    return get_control_flag(ppu_mem, 3);
+}
+
 bool get_addr_increment_flag(ppu_memory* mem) {
     return get_control_flag(mem, 2);
 }
@@ -148,10 +159,17 @@ int get_addr_increment(ppu_memory* mem) {
     return get_addr_increment_flag(mem) ? 32 : 1;
 }
 
-uint16_t get_background_table_base_address(ppu_memory* mem) {
-    return get_control_flag(mem, 4) * 0x1000;
+int get_sprite_height(ppu_memory* ppu_mem) {
+    return ((int)get_sprite_size_flag(ppu_mem) + 1) * 8;
 }
 
+uint16_t get_background_table_base_address(ppu_memory* ppu_mem) {
+    return get_control_flag(ppu_mem, 4) * (uint16_t)0x1000;
+}
+
+uint16_t get_sprite_pattern_table_address(ppu_memory* ppu_mem) {
+    return get_sprite_pattern_table_flag(ppu_mem) * (uint16_t)1000;
+}
 
 // 0 - 261
 // 0: Pre-render
@@ -263,13 +281,13 @@ void fetch_step(ppu_memory* ppu_mem) {
         dprintf("Read 0x%02X for ATTRIBUTE TABLE\n", ppu_mem->tile.attribute_table);
         // Tile bitmap
         // TODO fine scrolling
-        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * 16;
+        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * (uint16_t)16;
         // Low byte
         ppu_mem->tile.tile_bitmap_low = vram_read(ppu_mem, tile_bitmap_address);
         // High byte
         // The high byte is not stored next to the low byte.
         // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
-        ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + 8);
+        ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + (uint16_t)8);
 
         dprintf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
@@ -292,6 +310,65 @@ void y_t_to_v(ppu_memory* ppu_mem) {
     uint16_t masked = ppu_mem->t & (uint16_t)0b111101111100000;
     ppu_mem->v &= 0b000010000011111;
     ppu_mem->v |= masked;
+}
+
+uint32_t get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int offset) {
+    bool sprites_8x8 = get_sprite_size_flag(ppu_mem);
+    bool flip_vertically   = (attr & 0b10000000) > 0;
+    bool flip_horizontally = (attr & 0b01000000) > 0;
+
+    uint16_t addr;
+
+    if (sprites_8x8) {
+        if (flip_vertically) {
+            printf("WARNING: Not rendering vertically flipped sprite!");
+            return 0;
+        }
+        addr = get_sprite_pattern_table_address(ppu_mem) + (uint16_t)((tile * 16) + offset);
+    }
+    else {
+        printf("8x16 sprite detected, closing my eyes and hoping it goes away...\n");
+        return 0;
+    }
+
+    byte palette = attr & (byte)0b00000011;
+    byte lowTile = vram_read(ppu_mem, addr);
+    byte highTile = vram_read(ppu_mem, addr + (uint16_t)8); // Same as background, high byte is offset by 8 bytes
+
+    if (flip_horizontally) {
+        printf("WARNING: Not rendering horizontally flipped sprite!");
+        return 0;
+    }
+    else {
+        return palette << 2 | highTile >> 6 | lowTile >> 7;
+    }
+}
+
+void evaluate_sprites(ppu_memory* ppu_mem) {
+    int sprite_height = get_sprite_height(ppu_mem);
+    int num_sprites_found = 0;
+    for (byte i = 0; i < 64; i++) {
+        byte y_coord = ppu_mem->oam_data[i * 4];
+        byte tile    = ppu_mem->oam_data[i * 4 + 1];
+        byte attr    = ppu_mem->oam_data[i * 4 + 2];
+        byte x_coord = ppu_mem->oam_data[i * 4 + 3];
+
+        // How many pixels offset from the current scan line the sprite is
+        uint16_t offset = ppu_mem->scan_line - (int16_t)y_coord;
+        if (offset >= 0 && offset < sprite_height) {
+            printf("VISIBLE SPRITE ON THIS LINE: sprite height: %d x coord: 0x%02X y coord: 0x%02X attr: 0x%02X \n", sprite_height, x_coord, y_coord, attr);
+
+            if (++num_sprites_found > MAX_SPRITES_PER_LINE) {
+                errx(EXIT_FAILURE, "Time to handle sprite overflow!");
+            }
+
+            sprite s;
+            s.pattern = get_sprite_pattern(ppu_mem, tile, attr, offset);
+            s.x_coord = x_coord;
+            s.priority = (attr & 0b00100000) > 0;
+            s.index = i;
+        }
+    }
 }
 
 void ppu_step(ppu_memory* ppu_mem) {
@@ -322,6 +399,11 @@ void ppu_step(ppu_memory* ppu_mem) {
             }
             else if (ppu_mem->cycle == 257) {
                 x_t_to_v(ppu_mem);
+                // This isn't how it works on the actual NES. On the real nes, this sprite evaluation process is
+                // happening at the same time as the rendering up to this point, to a temporary buffer. It's swapped
+                // over at the very end. Since modern computers are fast, we can just do it all at once at the end.
+                // Hopefully this won't cause problems. Do games swap out sprite data during a scan line?
+                evaluate_sprites(ppu_mem);
             }
         }
     }
