@@ -274,8 +274,8 @@ void render_pixel(ppu_memory* ppu_mem) {
         int offset = x - s.x_coord;
         // Does the sprite overlap the pixel we're currently in?
         if (offset >= 0 && offset < 8) {
-            //byte color = (byte)(s.pattern >> ((7 - offset) * 4)) & (byte)0x0F;
-            byte color = s.pattern.palette << 2;
+            // TODO: I think this may be broken
+            byte color = s.pattern.palette & (byte)0b11 << 2;
             int shift = s.pattern.reverse ? offset : 7 - offset;
             color |= (s.pattern.high_byte >> shift) & 1 << 1;
             color |= (s.pattern.low_byte >> shift) & 1;
@@ -362,6 +362,7 @@ sprite_pattern get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int
         }
         // Use bit 0 of the OAM table's tile value for 8x16 sprites
         addr = (tile & (byte)0b00000001) * (uint16_t)0x1000;
+        printf("Using pattern table 0x%04X for sprite\n", addr);
         tile &= 0x0b11111110; // and mask out that bit
         // If we need to, skip to the next byte (8x16 sprites take up two bytes, obviously)
         if (offset > 7) {
@@ -394,17 +395,17 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
         // How many pixels offset from the current scan line the sprite is
         uint16_t offset = ppu_mem->scan_line - (int16_t)y_coord;
         if (offset >= 0 && offset < sprite_height) {
-            //printf("VISIBLE SPRITE ON THIS LINE: sprite height: %d x coord: 0x%02X y coord: 0x%02X attr: 0x%02X \n", sprite_height, x_coord, y_coord, attr);
-
-            if (++num_sprites_found > MAX_SPRITES_PER_LINE) {
-                errx(EXIT_FAILURE, "Time to handle sprite overflow!");
-            }
-
             sprite s;
             s.pattern = get_sprite_pattern(ppu_mem, tile, attr, offset);
             s.x_coord = x_coord;
             s.priority = (attr & 0b00100000) > 0;
             s.index = i;
+
+            ppu_mem->sprites[num_sprites_found] = s;
+
+            if (++num_sprites_found > MAX_SPRITES_PER_LINE) {
+                errx(EXIT_FAILURE, "Time to handle sprite overflow!");
+            }
         }
     }
 
