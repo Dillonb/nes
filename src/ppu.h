@@ -23,11 +23,18 @@ typedef struct color_t {
     byte b;
 } color;
 
+typedef struct sprite_pattern_t {
+    byte high_byte;
+    byte low_byte;
+    byte palette;
+    bool reverse;
+} sprite_pattern;
+
 typedef struct sprite_t {
     byte x_coord;
     bool priority;
     byte index;
-    uint32_t pattern;
+    sprite_pattern pattern;
 } sprite;
 
 typedef struct ppu_memory_t {

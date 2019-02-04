@@ -261,12 +261,42 @@ void render_pixel(ppu_memory* ppu_mem) {
     int x = ppu_mem->cycle - 1; // Cycle 0 isn't visible.
     int y = ppu_mem->scan_line - 1; // Line 1 isn't visible, either.
 
-    //printf("Rendering pixel at %dx%d\n", x,y);
+    // Background
+    byte background_color = get_color(x, y, ppu_mem->tile);
+    color real_background_color = get_real_color(ppu_mem, background_color);
 
-    byte colorbyte = get_color(x, y, ppu_mem->tile);
-    color real_color = get_real_color(ppu_mem, colorbyte);
+    byte sprite_color;
+    color real_sprite_color;
+    bool found_sprite = false;
+    // Sprites
+    for (int i = 0; i < ppu_mem->num_sprites && !found_sprite; i++) {
+        sprite s = ppu_mem->sprites[i];
+        int offset = x - s.x_coord;
+        // Does the sprite overlap the pixel we're currently in?
+        if (offset >= 0 && offset < 8) {
+            //byte color = (byte)(s.pattern >> ((7 - offset) * 4)) & (byte)0x0F;
+            byte color = s.pattern.palette << 2;
+            int shift = s.pattern.reverse ? offset : 7 - offset;
+            color |= (s.pattern.high_byte >> shift) & 1 << 1;
+            color |= (s.pattern.low_byte >> shift) & 1;
 
-    ppu_mem->screen[x][y] = real_color;
+            // Is the pixel of the sprite we want to render non-transparent?
+            if (color % 4 != 0) {
+                printf("Color: %02X\n", color);
+                found_sprite = true;
+                sprite_color = color;
+                real_sprite_color = get_real_color(ppu_mem, sprite_color);
+            }
+        }
+    }
+
+    if (found_sprite) {
+        printf("RENDERING SPRITE PIXEL! %02X%02X%02X%02X\n", real_sprite_color.r, real_sprite_color.g, real_sprite_color.b, real_sprite_color.a);
+        ppu_mem->screen[x][y] = real_sprite_color;
+    }
+    else {
+        ppu_mem->screen[x][y] = real_background_color;
+    }
 }
 
 void fetch_step(ppu_memory* ppu_mem) {
@@ -312,7 +342,7 @@ void y_t_to_v(ppu_memory* ppu_mem) {
     ppu_mem->v |= masked;
 }
 
-uint32_t get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int offset) {
+sprite_pattern get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int offset) {
     bool sprites_8x8 = get_sprite_size_flag(ppu_mem);
     bool flip_vertically   = (attr & 0b10000000) > 0;
     bool flip_horizontally = (attr & 0b01000000) > 0;
@@ -321,32 +351,40 @@ uint32_t get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int offse
 
     if (sprites_8x8) {
         if (flip_vertically) {
-            printf("WARNING: Not rendering vertically flipped sprite!");
-            return 0;
+            offset = 7 - offset;
         }
-        addr = get_sprite_pattern_table_address(ppu_mem) + (uint16_t)((tile * 16) + offset);
+        // Use the value from PPUCTRL for 8x8 sprites
+        addr = get_sprite_pattern_table_address(ppu_mem);
     }
     else {
-        printf("8x16 sprite detected, closing my eyes and hoping it goes away...\n");
-        return 0;
+        if (flip_vertically) {
+            offset = 15 - offset;
+        }
+        // Use bit 0 of the OAM table's tile value for 8x16 sprites
+        addr = (tile & (byte)0b00000001) * (uint16_t)0x1000;
+        tile &= 0x0b11111110; // and mask out that bit
+        // If we need to, skip to the next byte (8x16 sprites take up two bytes, obviously)
+        if (offset > 7) {
+            tile++;
+            offset -= 8;
+        }
     }
 
-    byte palette = attr & (byte)0b00000011;
-    byte lowTile = vram_read(ppu_mem, addr);
-    byte highTile = vram_read(ppu_mem, addr + (uint16_t)8); // Same as background, high byte is offset by 8 bytes
+    addr += (uint16_t)((tile * 16) + offset);
 
-    if (flip_horizontally) {
-        printf("WARNING: Not rendering horizontally flipped sprite!");
-        return 0;
-    }
-    else {
-        return palette << 2 | highTile >> 6 | lowTile >> 7;
-    }
+    sprite_pattern sp;
+
+    sp.palette = attr & (byte)0b00000011;
+    sp.low_byte = vram_read(ppu_mem, addr);
+    sp.high_byte = vram_read(ppu_mem, addr + (uint16_t)8); // Same as background, high byte is offset by 8 bytes
+    sp.reverse = flip_horizontally;
+
+    return sp;
 }
 
 void evaluate_sprites(ppu_memory* ppu_mem) {
     int sprite_height = get_sprite_height(ppu_mem);
-    int num_sprites_found = 0;
+    byte num_sprites_found = 0;
     for (byte i = 0; i < 64; i++) {
         byte y_coord = ppu_mem->oam_data[i * 4];
         byte tile    = ppu_mem->oam_data[i * 4 + 1];
@@ -356,7 +394,7 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
         // How many pixels offset from the current scan line the sprite is
         uint16_t offset = ppu_mem->scan_line - (int16_t)y_coord;
         if (offset >= 0 && offset < sprite_height) {
-            printf("VISIBLE SPRITE ON THIS LINE: sprite height: %d x coord: 0x%02X y coord: 0x%02X attr: 0x%02X \n", sprite_height, x_coord, y_coord, attr);
+            //printf("VISIBLE SPRITE ON THIS LINE: sprite height: %d x coord: 0x%02X y coord: 0x%02X attr: 0x%02X \n", sprite_height, x_coord, y_coord, attr);
 
             if (++num_sprites_found > MAX_SPRITES_PER_LINE) {
                 errx(EXIT_FAILURE, "Time to handle sprite overflow!");
@@ -369,6 +407,8 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
             s.index = i;
         }
     }
+
+    ppu_mem->num_sprites = num_sprites_found;
 }
 
 void ppu_step(ppu_memory* ppu_mem) {
