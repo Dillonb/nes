@@ -193,6 +193,7 @@
 #define TYA 0x98
 
 byte opcode_sizes[256];
+byte opcode_cycles[256];
 addressing_mode opcode_addressing_modes[256];
 
 const char* opcode_to_name_full(byte opcode);

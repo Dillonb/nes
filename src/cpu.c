@@ -186,95 +186,90 @@ void ror(memory* mem, uint16_t address) {
     write_byte(mem, address, value);
 }
 
+void rol(memory* mem, uint16_t address) {
+    bool oldc = (bool) get_p_carry(mem);
+    byte value = read_byte(mem, address);
+    set_p_carry_to(mem, (value >> 7) & 1);
+    value = (value << 1) | oldc;
+    set_p_zn_on(mem, value);
+    write_byte(mem, address, value);
+}
+
 int normal_cpu_step(memory* mem) {
     debug_hook(STEP, mem);
     uint16_t old_pc = mem->pc;
     byte opcode = read_byte_and_inc_pc(mem);
-    int cycles = 0;
+    int cycles = opcode_cycles[opcode];
 
     switch (opcode) {
         case BRK: {
             // Set interrupt flag on status register
             set_p_interrupt(mem);
             mem->pc++; // Skip next byte
-            cycles = 7;
             break;
         }
 
         case SEI: {
             set_p_interrupt(mem);
-            cycles = 2;
             break;
         }
 
         case STA_Absolute: {
             write_byte(mem, read_address_and_inc_pc(mem), mem->a);
-            cycles = 4;
             break;
         }
 
         case STA_Absolute_Y: {
-            cycles = 5;
             write_byte(mem, absolute_y_address(mem, &cycles), mem->a);
             break;
         }
 
         case STA_Absolute_X: {
-            cycles = 5;
             write_byte(mem, absolute_x_address(mem, &cycles), mem->a);
             break;
         }
 
         case STA_Zeropage: {
-            cycles = 3;
             write_byte(mem, read_byte_and_inc_pc(mem), mem->a);
             break;
         }
 
         case STA_Zeropage_X: {
-            cycles = 4;
             write_byte(mem, zeropage_x_address(mem), mem->a);
             break;
         }
 
         case STA_Indirect_Y: {
-            cycles = 6;
             write_byte(mem, indirect_y_address(mem, &cycles), mem->a);
             break;
         }
 
         case STX_Zeropage: {
-            cycles = 3;
             write_byte(mem, read_byte_and_inc_pc(mem), mem->x);
             break;
         }
 
         case STX_Absolute: {
-            cycles = 4;
             write_byte(mem, read_address_and_inc_pc(mem), mem->x);
             break;
         }
 
         case STY_Absolute: {
-            cycles = 4;
             write_byte(mem, read_address_and_inc_pc(mem), mem->y);
             break;
         }
 
         case STY_Zeropage: {
-            cycles = 3;
             write_byte(mem, read_byte_and_inc_pc(mem), mem->y);
             break;
         }
 
         case TXS: {
             mem->sp = mem->x;
-            cycles = 2;
             break;
         }
 
         case TXA: {
-            cycles = 2;
             mem->a = mem->x;
             set_p_zn_on(mem, mem->a);
             break;
@@ -283,124 +278,112 @@ int normal_cpu_step(memory* mem) {
         case TAX: {
             mem->x = mem->a;
             set_p_zn_on(mem, mem->x);
-            cycles = 2;
             break;
         }
 
         case TAY: {
             mem->y = mem->a;
             set_p_zn_on(mem, mem->y);
-            cycles = 2;
             break;
         }
 
         case TYA: {
             mem->a = mem->y;
             set_p_zn_on(mem, mem->a);
-            cycles = 2;
             break;
         }
 
         case LDX_Immediate: {
             mem->x = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->x);
-            cycles = 2;
             break;
         }
 
         case LDX_Absolute: {
             mem->x = read_value(mem, &cycles, Absolute);
             set_p_zn_on(mem, mem->x);
-            cycles = 4;
             break;
         }
 
         case LDX_Absolute_Y: {
             mem->x = read_value(mem, &cycles, Absolute_Y);
             set_p_zn_on(mem, mem->x);
-            cycles = 4;
             break;
         }
 
         case LDX_Zeropage: {
             mem->x = read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->x);
-            cycles = 3;
             break;
         }
 
         case LDY_Immediate: {
             mem->y = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->y);
-            cycles = 2;
             break;
         }
 
         case LDY_Absolute: {
             mem->y = read_value(mem, &cycles, Absolute);
             set_p_zn_on(mem, mem->y);
-            cycles = 4;
             break;
         }
 
         case LDY_Zeropage: {
             mem->y = read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->y);
-            cycles = 3;
             break;
         }
 
         case LDY_Zeropage_X: {
             mem->y = read_value(mem, &cycles, Zeropage_X);
             set_p_zn_on(mem, mem->y);
-            cycles = 4;
+            break;
+        }
+
+        case LDY_Absolute_X: {
+            mem->y = read_value(mem, &cycles, Absolute_X);
+            set_p_zn_on(mem, mem->y);
             break;
         }
 
         case LDA_Immediate: {
             mem->a = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->a);
-            cycles = 2;
             break;
         }
 
         case LDA_Absolute: {
             mem->a = read_value(mem, &cycles, Absolute);
             set_p_zn_on(mem, mem->a);
-            cycles = 4;
             break;
         }
 
         case LDA_Absolute_X: {
             mem->a = read_value(mem, &cycles, Absolute_X);
             set_p_zn_on(mem, mem->a);
-            cycles = 4;
             break;
         }
 
         case LDA_Absolute_Y: {
             mem->a = read_value(mem, &cycles, Absolute_Y);
             set_p_zn_on(mem, mem->a);
-            cycles = 4;
             break;
         }
 
         case LDA_Indirect_Y: {
-            cycles = 5;
             mem->a = read_value(mem, &cycles, Indirect_Y);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case LDA_Zeropage: {
-            cycles = 3;
             mem->a = read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case LDA_Zeropage_X: {
-            cycles = 3;
             mem->a = read_value(mem, &cycles, Zeropage_X);
             set_p_zn_on(mem, mem->a);
             break;
@@ -408,90 +391,75 @@ int normal_cpu_step(memory* mem) {
 
         case CLD: {
             clear_p_decimal(mem);
-            cycles = 2;
             break;
         }
 
         case BPL: {
-            cycles = 2;
             branch_on_condition(mem, &cycles, get_p_negative(mem) == false);
             break;
         }
 
         case BCS: {
-            cycles = 2;
             branch_on_condition(mem, &cycles, get_p_carry(mem) == true);
             break;
         }
 
         case BNE: {
-            cycles = 2;
             branch_on_condition(mem, &cycles, get_p_zero(mem) == false);
             break;
         }
 
         case BEQ: {
-            cycles = 2;
             branch_on_condition(mem, &cycles, get_p_zero(mem) == true);
             break;
         }
 
         case BCC: {
-            cycles = 2;
             branch_on_condition(mem, &cycles, get_p_carry(mem) == false);
             break;
         }
 
         case BMI: {
-            cycles = 2;
             branch_on_condition(mem, &cycles, get_p_negative(mem) == true);
             break;
         }
 
         case CMP_Immediate: {
-            cycles = 2;
             cmp(mem, mem->a, read_value(mem, &cycles, Immediate));
             break;
         }
 
         case CMP_Zeropage: {
-            cycles = 3;
             cmp(mem, mem->a, read_value(mem, &cycles, Zeropage));
             break;
         }
 
         case CMP_Absolute_X: {
-            cycles = 4;
             cmp(mem, mem->a, read_value(mem, &cycles, Absolute_X));
             break;
         }
 
         case CMP_Absolute_Y: {
-            cycles = 4;
             cmp(mem, mem->a, read_value(mem, &cycles, Absolute_Y));
             break;
         }
 
         case CPY_Immediate: {
-            cycles = 2;
             cmp(mem, mem->y, read_value(mem, &cycles, Immediate));
             break;
         }
 
         case CPY_Absolute: {
-            cycles = 4;
             cmp(mem, mem->y, read_value(mem, &cycles, Absolute));
             break;
         }
 
         case CPX_Immediate: {
-            cycles = 2;
             cmp(mem, mem->x, read_value(mem, &cycles, Immediate));
             break;
         }
 
         case JSR: {
-            cycles = 6;
             uint16_t addr = read_address_and_inc_pc(mem);
             stack_push16(mem, mem->pc); // TODO: should this be mem->pc+1?
             mem->pc = addr;
@@ -499,27 +467,23 @@ int normal_cpu_step(memory* mem) {
         }
 
         case RTS: {
-            cycles = 6;
             mem->pc = stack_pop16(mem);
             break;
         }
 
         case RTI: {
-            cycles = 6;
             mem->p = stack_pop(mem);
             mem->pc = stack_pop16(mem);
             break;
         }
 
         case DEY: {
-            cycles = 2;
             mem->y--;
             set_p_zn_on(mem, mem->y);
             break;
         }
 
         case DEX: {
-            cycles = 2;
             mem->x--;
             set_p_zn_on(mem, mem->x);
             break;
@@ -527,20 +491,17 @@ int normal_cpu_step(memory* mem) {
 
         case INY: {
             mem->y++;
-            cycles = 2;
             set_p_zn_on(mem, mem->y);
             break;
         }
 
         case INX: {
             mem->x++;
-            cycles = 2;
             set_p_zn_on(mem, mem->x);
             break;
         }
 
         case INC_Absolute: {
-            cycles = 6;
             uint16_t addr = read_address_and_inc_pc(mem);
             byte value = read_byte(mem, addr);
             value++;
@@ -550,7 +511,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case INC_Zeropage: {
-            cycles = 5;
             byte addr = read_byte_and_inc_pc(mem);
             byte value = read_byte(mem, addr);
             value++;
@@ -560,7 +520,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case DEC_Absolute: {
-            cycles = 3; // TODO Masswerk page says this is 3 cycles, but shouldn't it be 6 like INC_Absolute? Keeping it at 3 for now, verify later.
             uint16_t addr = read_address_and_inc_pc(mem);
             byte value = read_byte(mem, addr);
             value--;
@@ -570,7 +529,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case DEC_Zeropage: {
-            cycles = 5;
             byte addr = read_byte_and_inc_pc(mem);
             byte value = read_byte(mem, addr);
             value--;
@@ -580,7 +538,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case DEC_Zeropage_X: {
-            cycles = 6;
             byte addr = zeropage_x_address(mem);
             byte value = read_byte(mem, addr);
             value--;
@@ -590,7 +547,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case BIT_Absolute: {
-            cycles = 4;
             byte operand = read_value(mem, &cycles, Absolute);
             bool new_negative = (mask_flag(P_NEGATIVE) & operand) > 0;
             bool new_overflow = (mask_flag(P_OVERFLOW) & operand) > 0;
@@ -601,55 +557,47 @@ int normal_cpu_step(memory* mem) {
         }
 
         case ORA_Immediate: {
-            cycles = 2;
             mem->a |= read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case ORA_Zeropage: {
-            cycles = 3;
             mem->a |= read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case AND_Immediate: {
-            cycles = 2;
             mem->a &= read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case AND_Zeropage: {
-            cycles = 3;
             mem->a &= read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case AND_Zeropage_X: {
-            cycles = 4;
             mem->a &= read_value(mem, &cycles, Zeropage_X);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case AND_Absolute_X: {
-            cycles = 4;
             mem->a &= read_value(mem, &cycles, Absolute_X);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case JMP_Absolute: {
-            cycles = 3;
             mem->pc = read_address_and_inc_pc(mem);
             break;
         }
 
         case JMP_Indirect: {
-            cycles = 5;
             mem->pc = read_address_and_inc_pc(mem);
             // Jump to address read from first address
             mem->pc = read_address_and_inc_pc(mem);
@@ -658,25 +606,21 @@ int normal_cpu_step(memory* mem) {
 
         case PHP: {
             php(mem);
-            cycles = 3;
             break;
         }
 
         case PHA: {
             stack_push(mem, mem->a);
-            cycles = 3;
             break;
         }
 
         case PLA: {
             mem->a = stack_pop(mem);
             set_p_zn_on(mem, mem->a);
-            cycles = 4;
             break;
         }
 
         case LSR_Accumulator: {
-            cycles = 2;
             set_p_carry_to(mem, mem->a & 1);
             mem->a >>= 1;
             set_p_zn_on(mem, mem->a);
@@ -684,7 +628,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case LSR_Zeropage: {
-            cycles = 5;
             byte addr = read_byte_and_inc_pc(mem);
             byte value = read_byte(mem, addr);
             set_p_carry_to(mem, value & 1);
@@ -701,22 +644,25 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case ROL_Absolute_X: {
+            uint16_t address = absolute_x_address(mem, &cycles);
+            rol(mem, address);
+            break;
+        }
+
         case ROR_Absolute_X: {
-            cycles = 7;
             uint16_t address = absolute_x_address(mem, &cycles);
             ror(mem, address);
             break;
         }
 
         case ROR_Zeropage: {
-            cycles = 5;
             uint16_t address = read_byte_and_inc_pc(mem);
             ror(mem, address);
             break;
         }
 
         case ROR_accumulator: {
-            cycles = 2;
             bool oldc = get_p_carry(mem);
             set_p_carry_to(mem, mem->a & 1);
             mem->a = ((mem->a >> 1) & (byte)0b01111111) | ((byte)oldc << 7);
@@ -724,44 +670,43 @@ int normal_cpu_step(memory* mem) {
 
         case SEC: {
             set_p_carry(mem);
-            cycles = 2;
             break;
         }
 
         case SBC_Zeropage: {
-            cycles = 3;
             sbc(mem, read_value(mem, &cycles, Zeropage));
             break;
         }
 
         case SBC_Absolute_Y: {
-            cycles = 4;
             sbc(mem, read_value(mem, &cycles, Absolute_Y));
             break;
         }
 
         case EOR_Zeropage: {
-            cycles = 3;
             mem->a ^= read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case EOR_Immediate: {
-            cycles = 2;
             mem->a ^= read_value(mem, &cycles, Immediate);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        case EOR_Absolute_X: {
+            mem->a ^= read_value(mem, &cycles, Absolute_X);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
         case CLC: {
             clear_p_carry(mem);
-            cycles = 2;
             break;
         }
 
         case ASL_Accumulator: {
-            cycles = 2;
             set_p_carry_to(mem, (mem->a >> 7) & 1);
             mem->a <<= 1;
             set_p_zn_on(mem, mem->a);
@@ -769,7 +714,6 @@ int normal_cpu_step(memory* mem) {
         }
 
         case ASL_Zeropage: {
-            cycles = 5;
             byte addr = read_byte_and_inc_pc(mem);
             byte value = read_byte(mem, addr);
             set_p_carry_to(mem, (value >> 7) & 1);
@@ -780,19 +724,16 @@ int normal_cpu_step(memory* mem) {
         }
 
         case ADC_Zeropage: {
-            cycles = 3;
             adc(mem, read_value(mem, &cycles, Zeropage));
             break;
         }
 
         case ADC_Immediate: {
-            cycles = 2;
             adc(mem, read_value(mem, &cycles, Immediate));
             break;
         }
 
         case NOP: {
-            cycles = 1;
             break;
         }
 
