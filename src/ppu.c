@@ -326,15 +326,13 @@ void render_pixel(ppu_memory* ppu_mem) {
         }
     }
 
-    /*
     if (found_sprite) {
         printf("RENDERING SPRITE PIXEL! %02X%02X%02X%02X\n", real_sprite_color.r, real_sprite_color.g, real_sprite_color.b, real_sprite_color.a);
         ppu_mem->screen[x][y] = real_sprite_color;
     }
     else {
-     */
         ppu_mem->screen[x][y] = real_background_color;
-    //}
+    }
 
     dprintf("Pixel %d,%d is 0x%02X0x%02X0x%02X\n", x, y, real_background_color.r, real_background_color.g, real_background_color.b);
 }
@@ -383,20 +381,13 @@ void y_t_to_v(ppu_memory* ppu_mem) {
 }
 
 sprite_pattern get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int offset) {
-    bool sprites_8x8 = get_sprite_size_flag(ppu_mem);
+    bool sprites_8x16 = get_sprite_size_flag(ppu_mem);
     bool flip_vertically   = (attr & 0b10000000) > 0;
     bool flip_horizontally = (attr & 0b01000000) > 0;
 
     uint16_t addr;
 
-    if (sprites_8x8) {
-        if (flip_vertically) {
-            offset = 7 - offset;
-        }
-        // Use the value from PPUCTRL for 8x8 sprites
-        addr = get_sprite_pattern_table_address(ppu_mem);
-    }
-    else {
+    if (sprites_8x16) {
         if (flip_vertically) {
             offset = 15 - offset;
         }
@@ -409,6 +400,13 @@ sprite_pattern get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int
             tile++;
             offset -= 8;
         }
+    }
+    else {
+        if (flip_vertically) {
+            offset = 7 - offset;
+        }
+        // Use the value from PPUCTRL for 8x8 sprites
+        addr = get_sprite_pattern_table_address(ppu_mem);
     }
 
     addr += (uint16_t)((tile * 16) + offset);
