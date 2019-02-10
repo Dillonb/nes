@@ -45,7 +45,7 @@ void clear_flag(memory* mem, int index);
 int get_flag(memory* mem, int index);
 
 
-memory get_blank_memory();
+memory get_blank_memory(rom* r);
 
 void load_rom_into_memory(memory* mem, rom* r);
 
