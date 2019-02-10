@@ -81,6 +81,14 @@ uint16_t get_attribute_address(ppu_memory* ppu_mem) {
     return 0x23C0 | (ppu_mem->v & 0x0C00) | ((ppu_mem->v >> 4) & 0x38) | ((ppu_mem->v >> 2) & 0x07);
 }
 
+uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
+    //ppu_mem->r->nametable_mirroring_mode;
+    if (addr >= 0x3000 && addr <= 0x3eff) {
+        errx(EXIT_FAILURE, "Need to implement mirroring!");
+    }
+    return (addr - (uint16_t)0x2000) % (uint16_t)0x800;
+}
+
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     dprintf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
 
@@ -90,7 +98,7 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     }
     // Nametables
     if (address < 0x3F00 && address >= 0x2000) {
-        uint16_t index = (address - 2000) % 0x1000;
+        uint16_t index = mirror_nametable_address(address, ppu_mem);
         ppu_mem->name_tables[index] = value;
     }
     // Palette RAM indexes
@@ -118,7 +126,7 @@ byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
     }
     // Nametables
     else if (address < 0x3F00) {
-        uint16_t index = (address - 2000) % 0x1000;
+        uint16_t index = mirror_nametable_address(address, ppu_mem);
         result = ppu_mem->name_tables[index];
     }
     // Palette RAM indexes

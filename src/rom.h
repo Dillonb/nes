@@ -18,12 +18,18 @@ typedef struct ines_header_t {
     byte zero[5]; // All zeros
 } ines_header;
 
+typedef enum nametable_mirroring_t {
+    HORIZONTAL,
+    VERTICAL
+} nametable_mirroring;
+
 typedef struct rom_t {
   ines_header* header;
   byte* trainer; // 512 bytes, or NULL.
   byte* prg_rom;
   byte* chr_rom;
   byte mapper;
+  nametable_mirroring nametable_mirroring_mode;
 } rom;
 
 size_t get_prg_rom_bytes(rom* r);

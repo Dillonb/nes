@@ -50,7 +50,7 @@ typedef struct ppu_memory_t {
     byte scroll;
     byte data;
     byte dma;
-    byte name_tables[0x1000];
+    byte name_tables[0x800];
     byte palette_ram[0x20];
 
     uint16_t v; // Current VRAM address

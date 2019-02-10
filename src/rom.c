@@ -7,6 +7,8 @@
 
 const unsigned char magic_string[4] = {0x4E, 0x45, 0x53, 0x1A}; // ASCII: NES<EOF>
 
+nametable_mirroring get_nametable_mirroring_mode(rom *pRom);
+
 /*
  * For extracting information out of the header
  */
@@ -65,6 +67,14 @@ void read_chr_rom(FILE* fp, rom* r) {
     printf("Read %lu bytes of CHR ROM\n", chr_rom_bytes);
 }
 
+nametable_mirroring get_nametable_mirroring_mode(rom* r) {
+    if ((r->header->flags_6 & 0b00000001) > 0) {
+        return VERTICAL;
+    }
+    else {
+        return HORIZONTAL;
+    }
+}
 
 rom* read_rom(char* filename) {
 
@@ -85,6 +95,7 @@ rom* read_rom(char* filename) {
     read_chr_rom(fp, r);
 
     r->mapper = get_mapper_number(r);
+    r->nametable_mirroring_mode = get_nametable_mirroring_mode(r);
 
     printf("Rom has mapper %d\n", r->mapper);
 
