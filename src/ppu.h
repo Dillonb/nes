@@ -65,6 +65,8 @@ typedef struct ppu_memory_t {
     sprite sprites[8];
     byte num_sprites;
 
+    // For reading from 0x2007
+    byte fake_buffer;
 } ppu_memory;
 
 ppu_memory get_ppu_mem(rom* r);

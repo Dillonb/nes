@@ -549,8 +549,21 @@ byte read_ppu_register(ppu_memory* ppu_mem, byte register_num) {
         case 2:
             return read_status_sideeffects(ppu_mem);
         case 4:
-        case 7:
             errx(EXIT_FAILURE, "PPU register %x read is not yet implemented.", register_num);
+        case 7: {
+            byte value = vram_read(ppu_mem, ppu_mem->v);
+            if (ppu_mem->v < 0x3F00) {
+                byte return_value = ppu_mem->fake_buffer;
+                ppu_mem->fake_buffer = value;
+                value = return_value;
+            }
+            else {
+                errx(EXIT_FAILURE, "Read addresses >= 0x3F00 out of 0x2007 not implemented yet!");
+            }
+            ppu_mem->v += get_addr_increment(ppu_mem);
+
+            return value;
+        }
         default:
             errx(EXIT_FAILURE, "Tried to read invalid PPU register %x - only 2, 4, and 7 are capable of being read from", register_num);
     }
