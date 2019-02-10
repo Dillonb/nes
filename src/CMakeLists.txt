@@ -53,7 +53,7 @@ add_executable (nes nes.c
     palette.h
     )
 
-target_link_libraries(nes PRIVATE SDL2::SDL2)
+target_link_libraries(nes SDL2)
 
 
 add_executable (prgdump prgdump.c
