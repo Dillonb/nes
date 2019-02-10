@@ -266,9 +266,9 @@ byte get_color(int x, int y, tiledata tile) {
     colorbyte >>= right * 2; // If we're in the right quadrant, need to shift over by 2, otherwise we're good
     colorbyte = (colorbyte & 0b00000011) << 2; // Make space for the LSB from the tile data
 
-    byte high = (tile.tile_bitmap_high & (0b1 << bitmap_bit)) >> (bitmap_bit - 1); // TODO fine scrolling
-    byte low  = (tile.tile_bitmap_low  & (0b1 << bitmap_bit)) >> bitmap_bit;  // TODO fine scrolling
-    colorbyte |= high | low;
+    byte high = (tile.tile_bitmap_high & (0b1 << bitmap_bit)) >> bitmap_bit; // TODO fine scrolling
+    byte low  = (tile.tile_bitmap_low  & (0b1 << bitmap_bit)) >> bitmap_bit; // TODO fine scrolling
+    colorbyte |= (high << 1) | low;
 
     return colorbyte;
 }
