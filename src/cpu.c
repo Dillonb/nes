@@ -452,6 +452,18 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case CMP_Absolute_X: {
+            cycles = 4;
+            cmp(mem, mem->a, read_value(mem, &cycles, Absolute_X));
+            break;
+        }
+
+        case CMP_Absolute_Y: {
+            cycles = 4;
+            cmp(mem, mem->a, read_value(mem, &cycles, Absolute_Y));
+            break;
+        }
+
         case CPY_Immediate: {
             cycles = 2;
             cmp(mem, mem->y, read_value(mem, &cycles, Immediate));
@@ -684,19 +696,30 @@ int normal_cpu_step(memory* mem) {
         case ROR_Absolute_X: {
             cycles = 7;
             bool oldc = get_p_carry(mem);
-            byte value = read_value(mem, &cycles, Absolute_X);
+            uint16_t address = absolute_x_address(mem, &cycles);
+            byte value = read_byte(mem, address);
             set_p_carry_to(mem, value & 1);
             value = (value >> 1) | ((byte)oldc << 7);
+            write_byte(mem, address, value);
             break;
         }
 
         case ROR_Zeropage: {
             cycles = 5;
             bool oldc = get_p_carry(mem);
-            byte value = read_value(mem, &cycles, Zeropage);
+            uint16_t address = read_byte_and_inc_pc(mem);
+            byte value = read_byte(mem, address);
             set_p_carry_to(mem, value & 1);
             value = (value >> 1) | ((byte)oldc << 7);
+            write_byte(mem, address, value);
             break;
+        }
+
+        case ROR_accumulator: {
+            cycles = 2;
+            bool oldc = get_p_carry(mem);
+            set_p_carry_to(mem, mem->a & 1);
+            mem->a = (mem->a >> 1) | ((byte)oldc << 7);
         }
 
         case SEC: {
@@ -765,6 +788,11 @@ int normal_cpu_step(memory* mem) {
         case ADC_Immediate: {
             cycles = 2;
             adc(mem, read_value(mem, &cycles, Immediate));
+            break;
+        }
+
+        case NOP: {
+            cycles = 1;
             break;
         }
 
