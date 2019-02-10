@@ -33,7 +33,6 @@ void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     if (!initialized) {
         initialize();
     }
-    //texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, SCREEN_WIDTH * SCREEN_SCALE, SCREEN_HEIGHT * SCREEN_SCALE);
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {

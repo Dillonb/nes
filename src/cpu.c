@@ -813,7 +813,7 @@ void trigger_nmi() {
 }
 
 void trigger_oam_dma(memory* mem, uint16_t address) {
-    for (int i = 0; i < 0xFF; i++) {
+    for (uint16_t i = 0; i < 0xFF; i++) {
         write_oam_byte(&mem->ppu_mem, read_byte(mem, address + i));
     }
 
