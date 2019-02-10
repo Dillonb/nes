@@ -5,8 +5,9 @@ build/cmake_install.cmake
 build/nes
 build/prgdump
 build/disassemble
-build/*.nes
-build/*.breakpoints
+**/*.nes
+**/*.asm
+build/*.breakpoints*
 build/CTestTestfile.cmake
 build/bin
 build/DartConfiguration.tcl
@@ -17,3 +18,5 @@ build/Testing
 *.h~
 \#*
 .\#*
+.idea
+cmake-build-debug
