@@ -66,6 +66,9 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         dprintf("Triggered OAM DMA at 0x%04X\n", address);
         trigger_oam_dma(mem, address);
     }
+    else if (address == 0x4016) {
+        printf("Wrote 0x%02X to 0x%04X\n", value, address);
+    }
     else if (address < 0x4018) {
         printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
     }

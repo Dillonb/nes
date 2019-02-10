@@ -63,6 +63,9 @@ void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     SDL_RenderPresent(renderer);
 }
 
+bool get_button(button btn, player p) {
+    return false;
+}
 
 // Not called from anywhere yet
 void cleanup() {
