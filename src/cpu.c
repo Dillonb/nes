@@ -683,6 +683,11 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case SBC_Immediate: {
+            sbc(mem, read_value(mem, &cycles, Immediate));
+            break;
+        }
+
         case EOR_Zeropage: {
             mem->a ^= read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->a);
