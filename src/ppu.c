@@ -72,13 +72,29 @@ void increment_y(ppu_memory* ppu_mem) {
         }
     }
 }
+uint16_t get_coarse_x(ppu_memory* ppu_mem) {
+    return ppu_mem->v & (uint16_t)0b11111;
+}
+
+uint16_t get_coarse_y(ppu_memory* ppu_mem) {
+    return (ppu_mem->v >> 5) & (uint16_t)0b11111;
+}
+
+byte get_fine_x(ppu_memory* ppu_mem) {
+    return ppu_mem->x;
+}
+
+uint16_t get_fine_y(ppu_memory* ppu_mem) {
+    return ppu_mem->v >> 12 & (uint16_t)0b111;
+}
+
 
 uint16_t get_nametable_address(ppu_memory* ppu_mem) {
     return (uint16_t) (0x2000 | (ppu_mem->v & 0x0FFF));
 }
 
 uint16_t get_attribute_address(ppu_memory* ppu_mem) {
-    return 0x23C0 | (ppu_mem->v & 0x0C00) | ((ppu_mem->v >> 4) & 0x38) | ((ppu_mem->v >> 2) & 0x07);
+    return (uint16_t) (0x23C0 | (ppu_mem->v & 0x0C00) | ((ppu_mem->v >> 4) & 0x38) | ((ppu_mem->v >> 2) & 0x07));
 }
 
 uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
@@ -235,8 +251,9 @@ void clear_vblank(ppu_memory* ppu_mem) {
 
 byte get_color(int x, int y, tiledata tile) {
     byte colorbyte = tile.attribute_table;
-    // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the pallette to get the _real_ color.
-    // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
+    // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
+    // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on
+    // which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
 
     // TODO probably don't have to do this on every pixel, only on a new tile.
     bool bottom  = y % 32 < 16;
@@ -277,6 +294,10 @@ void render_pixel(ppu_memory* ppu_mem) {
     int x = get_screen_x(ppu_mem);
     int y = get_screen_y(ppu_mem);
 
+    if (x < 0 || y < 0) {
+        errx(EXIT_FAILURE, "Attempted to render invalid x,y %d,%d", x, y);
+    }
+
     // Background
     byte background_color = get_color(x, y, ppu_mem->tile);
     color real_background_color = get_real_color(ppu_mem, background_color);
@@ -315,6 +336,8 @@ void render_pixel(ppu_memory* ppu_mem) {
      */
         ppu_mem->screen[x][y] = real_background_color;
     //}
+
+    dprintf("Pixel %d,%d is 0x%02X0x%02X0x%02X\n", x, y, real_background_color.r, real_background_color.g, real_background_color.b);
 }
 
 void fetch_step(ppu_memory* ppu_mem) {
@@ -322,14 +345,14 @@ void fetch_step(ppu_memory* ppu_mem) {
     // TODO: do I need to load them in real time or is it ok to grab them all at once every 8 cycles?
     // Just in case I need to do this, to make it easier, they're loaded in the same order they would be in real time, below.
     if (ppu_mem->cycle % 8 == 0) {
+        printf("Fetching at screen pos %d,%d, VRAM pos %d~%d,%d~%d\n", get_screen_x(ppu_mem), get_screen_y(ppu_mem), get_coarse_x(ppu_mem), get_fine_x(ppu_mem), get_coarse_y(ppu_mem), get_fine_y(ppu_mem));
         // Nametable byte
         ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
         // Attribute table byte
         ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
         dprintf("Read 0x%02X for ATTRIBUTE TABLE\n", ppu_mem->tile.attribute_table);
         // Tile bitmap
-        // TODO fine scrolling
-        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * (uint16_t)16;
+        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * (uint16_t)16 + get_fine_y(ppu_mem);
         // Low byte
         ppu_mem->tile.tile_bitmap_low = vram_read(ppu_mem, tile_bitmap_address);
         // High byte
@@ -337,7 +360,7 @@ void fetch_step(ppu_memory* ppu_mem) {
         // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
         ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + (uint16_t)8);
 
-        dprintf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
+        printf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
         // Once done, move to the next tile if we're in a visible line
         if (is_line_visible(ppu_mem)) {
