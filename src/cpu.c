@@ -178,6 +178,14 @@ int interrupt_cpu_step(memory* mem) {
     errx(EXIT_FAILURE, "Interrupt type not implemented");
 }
 
+void ror(memory* mem, uint16_t address) {
+    bool oldc = (bool) get_p_carry(mem);
+    byte value = read_byte(mem, address);
+    set_p_carry_to(mem, (bool) (value & 1));
+    value = (byte) (((value >> 1) & 0b01111111) | ((byte)oldc << 7));
+    write_byte(mem, address, value);
+}
+
 int normal_cpu_step(memory* mem) {
     debug_hook(STEP, mem);
     uint16_t old_pc = mem->pc;
@@ -695,23 +703,15 @@ int normal_cpu_step(memory* mem) {
 
         case ROR_Absolute_X: {
             cycles = 7;
-            bool oldc = get_p_carry(mem);
             uint16_t address = absolute_x_address(mem, &cycles);
-            byte value = read_byte(mem, address);
-            set_p_carry_to(mem, value & 1);
-            value = (value >> 1) | ((byte)oldc << 7);
-            write_byte(mem, address, value);
+            ror(mem, address);
             break;
         }
 
         case ROR_Zeropage: {
             cycles = 5;
-            bool oldc = get_p_carry(mem);
             uint16_t address = read_byte_and_inc_pc(mem);
-            byte value = read_byte(mem, address);
-            set_p_carry_to(mem, value & 1);
-            value = (value >> 1) | ((byte)oldc << 7);
-            write_byte(mem, address, value);
+            ror(mem, address);
             break;
         }
 
@@ -719,7 +719,7 @@ int normal_cpu_step(memory* mem) {
             cycles = 2;
             bool oldc = get_p_carry(mem);
             set_p_carry_to(mem, mem->a & 1);
-            mem->a = (mem->a >> 1) | ((byte)oldc << 7);
+            mem->a = ((mem->a >> 1) & (byte)0b01111111) | ((byte)oldc << 7);
         }
 
         case SEC: {
