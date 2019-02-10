@@ -249,6 +249,17 @@ void clear_vblank(ppu_memory* ppu_mem) {
     ppu_mem->status &= 0b01111111; // Clear VBlank flag on PPUSTATUS
 }
 
+void set_sprite_overflow(ppu_memory* ppu_mem) {
+    ppu_mem->status |= 0b00100000; // Set sprite overflow flag on PPUSTATUS
+    if (vblank_nmi(ppu_mem)) {
+        trigger_nmi();
+    }
+}
+
+void clear_sprite_overflow(ppu_memory* ppu_mem) {
+    ppu_mem->status &= 0b11011111; // Clear sprite overflow flag on PPUSTATUS
+}
+
 byte get_color(int x, int y, tiledata tile) {
     byte colorbyte = tile.attribute_table;
     // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
@@ -439,12 +450,17 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
             s.priority = (attr & 0b00100000) > 0;
             s.index = i;
 
-            ppu_mem->sprites[num_sprites_found] = s;
-
-            if (++num_sprites_found > MAX_SPRITES_PER_LINE) {
-                errx(EXIT_FAILURE, "Time to handle sprite overflow!");
+            if (num_sprites_found < MAX_SPRITES_PER_LINE) {
+                ppu_mem->sprites[num_sprites_found] = s;
             }
+
+            num_sprites_found++;
         }
+    }
+
+    if (num_sprites_found > MAX_SPRITES_PER_LINE) {
+        num_sprites_found = MAX_SPRITES_PER_LINE;
+        set_sprite_overflow(ppu_mem);
     }
 
     ppu_mem->num_sprites = num_sprites_found;
@@ -513,9 +529,10 @@ void ppu_step(ppu_memory* ppu_mem) {
         errx(EXIT_FAILURE, "Somehow ended up on invalid scanline %d. WTF?", ppu_mem->scan_line);
     }
 
-    // VBlank stuff. Has to happen at the end.
+    // Reset stuff for the end of the line
     if (ppu_mem->cycle == 1 && ppu_mem->scan_line == 0) {
         clear_vblank(ppu_mem);
+        clear_sprite_overflow(ppu_mem);
     }
 }
 
