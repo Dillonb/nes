@@ -256,9 +256,8 @@ byte get_color(int x, int y, tiledata tile) {
     // which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
 
     // TODO probably don't have to do this on every pixel, only on a new tile.
-    bool bottom  = y % 32 < 16;
-    bool right = x % 32 < 16;
-    
+    bool bottom  = y % 32 >= 16;
+    bool right = x % 32 >= 16;
     byte bitmap_bit = 7 - (x % 8); // TODO fine scrolling
 
     // bottom right, bottom left, top right, top left
