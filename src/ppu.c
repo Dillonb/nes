@@ -257,9 +257,17 @@ color get_real_color(ppu_memory* ppu_mem, byte colorbyte) {
     return rgb_palette[palette_entry];
 }
 
+int get_screen_x(ppu_memory* ppu_mem) {
+    return ppu_mem->cycle - 1; // Cycle 0 isn't visible.
+}
+
+int get_screen_y(ppu_memory* ppu_mem) {
+    return ppu_mem->scan_line - 1; // Line 1 isn't visible, either.
+}
+
 void render_pixel(ppu_memory* ppu_mem) {
-    int x = ppu_mem->cycle - 1; // Cycle 0 isn't visible.
-    int y = ppu_mem->scan_line - 1; // Line 1 isn't visible, either.
+    int x = get_screen_x(ppu_mem);
+    int y = get_screen_y(ppu_mem);
 
     // Background
     byte background_color = get_color(x, y, ppu_mem->tile);
@@ -282,7 +290,7 @@ void render_pixel(ppu_memory* ppu_mem) {
 
             // Is the pixel of the sprite we want to render non-transparent?
             if (color % 4 != 0) {
-                printf("Color: %02X\n", color);
+                dprintf("Color: %02X\n", color);
                 found_sprite = true;
                 sprite_color = color;
                 real_sprite_color = get_real_color(ppu_mem, sprite_color);
@@ -290,13 +298,15 @@ void render_pixel(ppu_memory* ppu_mem) {
         }
     }
 
+    /*
     if (found_sprite) {
         printf("RENDERING SPRITE PIXEL! %02X%02X%02X%02X\n", real_sprite_color.r, real_sprite_color.g, real_sprite_color.b, real_sprite_color.a);
         ppu_mem->screen[x][y] = real_sprite_color;
     }
     else {
+     */
         ppu_mem->screen[x][y] = real_background_color;
-    }
+    //}
 }
 
 void fetch_step(ppu_memory* ppu_mem) {
@@ -362,7 +372,7 @@ sprite_pattern get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int
         }
         // Use bit 0 of the OAM table's tile value for 8x16 sprites
         addr = (tile & (byte)0b00000001) * (uint16_t)0x1000;
-        printf("Using pattern table 0x%04X for sprite\n", addr);
+        dprintf("Using pattern table 0x%04X for sprite\n", addr);
         tile &= 0x0b11111110; // and mask out that bit
         // If we need to, skip to the next byte (8x16 sprites take up two bytes, obviously)
         if (offset > 7) {
@@ -526,19 +536,28 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
         case 4:
             write_oam_byte(ppu_mem, value);
             return;
-        case 5:
-            if (value == 0x00) {
-                printf("IGNORING WRITE TO SCROLL!\n");
+        case 5: {
+            if (ppu_mem->w == HIGH) {
+                ppu_mem->t &= 0b1111111111100000; // Mask out last 5 bits (coarse X)
+                ppu_mem->t |= (value >> 3); // First 5 bits of the written value to go coarse X in t
+                ppu_mem->x = value & (byte)0b111; // Last 3 bits go to fine X scrolling register
+                ppu_mem->w = LOW;
             }
-            else {
-                errx(EXIT_FAILURE, "Nonzero write to scroll! Time to implement this thing\n");
+            else if (ppu_mem->w == LOW) {
+                uint16_t fine_y = value & (byte)0b111;
+                uint16_t coarse_y = (value & (byte)0b11111000) >> 3;
+
+                ppu_mem->t &= 0b000110000011111; // Mask out fine and coarse Y
+                ppu_mem->t |= fine_y << 12; // Insert fine y
+                ppu_mem->t |= coarse_y << 5; // Insert coarse y
+                ppu_mem->w = HIGH;
             }
             return;
-
+        }
         case 6: {
             if (ppu_mem->w == HIGH) {
                 // Mask out old high byte
-                byte highvalue = value & 0b00111111; // Highest value allowed = 0x3F in high byte
+                byte highvalue = value & (byte)0b00111111; // Highest value allowed = 0x3F in high byte
                 ppu_mem->t &= 0x00FF;
                 ppu_mem->t |= ((uint16_t)highvalue) << 8;
                 ppu_mem->w = LOW;
