@@ -311,9 +311,9 @@ void render_pixel(ppu_memory* ppu_mem) {
         // Does the sprite overlap the pixel we're currently in?
         if (offset >= 0 && offset < 8) {
             // TODO: I think this may be broken
-            byte color = s.pattern.palette & (byte)0b11 << 2;
+            byte color = (s.pattern.palette & (byte)0b11) << 2;
             int shift = s.pattern.reverse ? offset : 7 - offset;
-            color |= (s.pattern.high_byte >> shift) & 1 << 1;
+            color |= ((s.pattern.high_byte >> shift) & 1) << 1;
             color |= (s.pattern.low_byte >> shift) & 1;
 
             // Is the pixel of the sprite we want to render non-transparent?
