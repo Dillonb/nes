@@ -338,7 +338,7 @@ void render_pixel(ppu_memory* ppu_mem) {
     }
 
     if (found_sprite) {
-        printf("RENDERING SPRITE PIXEL! %02X%02X%02X%02X\n", real_sprite_color.r, real_sprite_color.g, real_sprite_color.b, real_sprite_color.a);
+        dprintf("RENDERING SPRITE PIXEL! %02X%02X%02X%02X\n", real_sprite_color.r, real_sprite_color.g, real_sprite_color.b, real_sprite_color.a);
         ppu_mem->screen[x][y] = real_sprite_color;
     }
     else {
@@ -353,7 +353,7 @@ void fetch_step(ppu_memory* ppu_mem) {
     // TODO: do I need to load them in real time or is it ok to grab them all at once every 8 cycles?
     // Just in case I need to do this, to make it easier, they're loaded in the same order they would be in real time, below.
     if (ppu_mem->cycle % 8 == 0) {
-        printf("Fetching at screen pos %d,%d, VRAM pos %d~%d,%d~%d\n", get_screen_x(ppu_mem), get_screen_y(ppu_mem), get_coarse_x(ppu_mem), get_fine_x(ppu_mem), get_coarse_y(ppu_mem), get_fine_y(ppu_mem));
+        dprintf("Fetching at screen pos %d,%d, VRAM pos %d~%d,%d~%d\n", get_screen_x(ppu_mem), get_screen_y(ppu_mem), get_coarse_x(ppu_mem), get_fine_x(ppu_mem), get_coarse_y(ppu_mem), get_fine_y(ppu_mem));
         // Nametable byte
         ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
         // Attribute table byte
@@ -368,7 +368,7 @@ void fetch_step(ppu_memory* ppu_mem) {
         // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
         ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + (uint16_t)8);
 
-        printf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
+        dprintf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
         // Once done, move to the next tile if we're in a visible line
         if (is_line_visible(ppu_mem)) {
