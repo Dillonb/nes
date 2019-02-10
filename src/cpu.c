@@ -293,6 +293,12 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case TSX: {
+            mem->x = mem->sp;
+            set_p_zn_on(mem, mem->x);
+            break;
+        }
+
         case LDX_Immediate: {
             mem->x = read_value(mem, &cycles, Immediate);
             set_p_zn_on(mem, mem->x);
@@ -394,6 +400,11 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case CLI: {
+            clear_p_interrupt(mem);
+            break;
+        }
+
         case BPL: {
             branch_on_condition(mem, &cycles, get_p_negative(mem) == false);
             break;
@@ -431,6 +442,11 @@ int normal_cpu_step(memory* mem) {
 
         case CMP_Zeropage: {
             cmp(mem, mem->a, read_value(mem, &cycles, Zeropage));
+            break;
+        }
+
+        case CMP_Absolute: {
+            cmp(mem, mem->a, read_value(mem, &cycles, Absolute));
             break;
         }
 
@@ -562,6 +578,12 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case ORA_Absolute: {
+            mem->a |= read_value(mem, &cycles, Absolute);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
         case ORA_Zeropage: {
             mem->a |= read_value(mem, &cycles, Zeropage);
             set_p_zn_on(mem, mem->a);
@@ -666,6 +688,7 @@ int normal_cpu_step(memory* mem) {
             bool oldc = get_p_carry(mem);
             set_p_carry_to(mem, mem->a & 1);
             mem->a = ((mem->a >> 1) & (byte)0b01111111) | ((byte)oldc << 7);
+            break;
         }
 
         case SEC: {
@@ -735,6 +758,11 @@ int normal_cpu_step(memory* mem) {
 
         case ADC_Immediate: {
             adc(mem, read_value(mem, &cycles, Immediate));
+            break;
+        }
+
+        case PLP: {
+            mem->p = stack_pop(mem);
             break;
         }
 
