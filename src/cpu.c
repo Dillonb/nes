@@ -357,8 +357,18 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        case SED: {
+            set_p_decimal(mem);
+            break;
+        }
+
         case CLI: {
             clear_p_interrupt(mem);
+            break;
+        }
+
+        case CLV: {
+            clear_p_overflow(mem);
             break;
         }
 
@@ -389,6 +399,16 @@ int normal_cpu_step(memory* mem) {
 
         case BMI: {
             branch_on_condition(mem, &cycles, get_p_negative(mem) == true);
+            break;
+        }
+
+        case BVS: {
+            branch_on_condition(mem, &cycles, get_p_overflow(mem) == true);
+            break;
+        }
+
+        case BVC: {
+            branch_on_condition(mem, &cycles, get_p_overflow(mem) == false);
             break;
         }
 
@@ -505,8 +525,9 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case BIT_Absolute: {
-            byte operand = read_value(mem, &cycles, Absolute);
+        case BIT_Absolute:
+        case BIT_Zeropage: {
+            byte operand = value_for_opcode(mem, opcode, &cycles);
             bool new_negative = (mask_flag(P_NEGATIVE) & operand) > 0;
             bool new_overflow = (mask_flag(P_OVERFLOW) & operand) > 0;
             set_p_negative_to(mem, new_negative);
