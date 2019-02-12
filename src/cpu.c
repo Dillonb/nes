@@ -736,6 +736,7 @@ int normal_cpu_step(memory* mem) {
         case PLP: {
             mem->p = stack_pop(mem);
             mem->p &= 0b11101111;
+            mem->p |= 0b00100000;
             break;
         }
 
