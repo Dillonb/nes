@@ -30,6 +30,7 @@ void test_load_rom(void) {
     r = read_rom("nestest.nes");
     mem = get_blank_memory(r);
     mem.pc = 0xC000; // nestest: automated tests start at a different address
+    mem.p  = 0x24; // nestest: the irrelevant bits are set differently in the log.
 }
 
 int num_steps = 8991;
