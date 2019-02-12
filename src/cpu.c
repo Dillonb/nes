@@ -169,7 +169,9 @@ void cmp(memory* mem, byte reg, byte value) {
 }
 
 void php(memory* mem) {
-    stack_push(mem, mem->p);
+    byte temp_p = mem->p;
+    temp_p |= 0b00110000;
+    stack_push(mem, temp_p);
 }
 
 void adc(memory* mem, byte value) {
@@ -733,6 +735,7 @@ int normal_cpu_step(memory* mem) {
 
         case PLP: {
             mem->p = stack_pop(mem);
+            mem->p &= 0b11101111;
             break;
         }
 
