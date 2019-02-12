@@ -486,17 +486,11 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case INC_Absolute: {
-            uint16_t addr = read_address_and_inc_pc(mem);
-            byte value = read_byte(mem, addr);
-            value++;
-            write_byte(mem, addr, value);
-            set_p_zn_on(mem, value);
-            break;
-        }
-
-        case INC_Zeropage: {
-            byte addr = read_byte_and_inc_pc(mem);
+        case INC_Absolute:
+        case INC_Absolute_X:
+        case INC_Zeropage:
+        case INC_Zeropage_X: {
+            uint16_t addr = address_for_opcode(mem, opcode, &cycles);
             byte value = read_byte(mem, addr);
             value++;
             write_byte(mem, addr, value);
@@ -687,20 +681,15 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case EOR_Zeropage: {
-            mem->a ^= read_value(mem, &cycles, Zeropage);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case EOR_Immediate: {
-            mem->a ^= read_value(mem, &cycles, Immediate);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case EOR_Absolute_X: {
-            mem->a ^= read_value(mem, &cycles, Absolute_X);
+        case EOR_Zeropage:
+        case EOR_Immediate:
+        case EOR_Absolute:
+        case EOR_Absolute_X:
+        case EOR_Absolute_Y:
+        case EOR_Indirect_X:
+        case EOR_Indirect_Y:
+        case EOR_Zeropage_X: {
+            mem->a ^= value_for_opcode(mem, opcode, &cycles);
             set_p_zn_on(mem, mem->a);
             break;
         }
