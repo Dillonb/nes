@@ -104,6 +104,45 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
     }
 }
 
+uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
+    addressing_mode mode = opcode_addressing_modes[opcode];
+    switch (mode) {
+        case Immediate:
+            errx(EXIT_FAILURE, "The Immediate addressing mode is not supported in address_for_opcode() !");
+
+        case Absolute: {
+            return read_address_and_inc_pc(mem);
+        }
+
+        case Absolute_X: {
+            return absolute_x_address(mem, cycles);
+        }
+
+        case Absolute_Y: {
+            return absolute_y_address(mem, cycles);
+        }
+
+        case Indirect_Y: {
+            return indirect_y_address(mem, cycles);
+        }
+
+        case Zeropage: {
+            return read_byte_and_inc_pc(mem);
+        }
+
+        case Zeropage_X: {
+            return zeropage_x_address(mem);
+        }
+
+        default:
+            errx(EXIT_FAILURE, "Addressing mode not implemented.");
+    }
+}
+
+byte value_for_opcode(memory* mem, byte opcode, int* cycles) {
+    return read_value(mem, cycles, opcode_addressing_modes[opcode]);
+}
+
 void branch_on_condition(memory* mem, int* cycles, bool condition) {
     // Read as a signed byte
     int8_t offset = read_byte_and_inc_pc(mem);
@@ -214,33 +253,14 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case STA_Absolute: {
-            write_byte(mem, read_address_and_inc_pc(mem), mem->a);
-            break;
-        }
-
-        case STA_Absolute_Y: {
-            write_byte(mem, absolute_y_address(mem, &cycles), mem->a);
-            break;
-        }
-
-        case STA_Absolute_X: {
-            write_byte(mem, absolute_x_address(mem, &cycles), mem->a);
-            break;
-        }
-
-        case STA_Zeropage: {
-            write_byte(mem, read_byte_and_inc_pc(mem), mem->a);
-            break;
-        }
-
-        case STA_Zeropage_X: {
-            write_byte(mem, zeropage_x_address(mem), mem->a);
-            break;
-        }
-
+        case STA_Zeropage:
+        case STA_Zeropage_X:
+        case STA_Absolute:
+        case STA_Absolute_X:
+        case STA_Absolute_Y:
+        case STA_Indirect_X:
         case STA_Indirect_Y: {
-            write_byte(mem, indirect_y_address(mem, &cycles), mem->a);
+            write_byte(mem, address_for_opcode(mem, opcode, &cycles), mem->a);
             break;
         }
 
@@ -299,98 +319,35 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case LDX_Immediate: {
-            mem->x = read_value(mem, &cycles, Immediate);
-            set_p_zn_on(mem, mem->x);
-            break;
-        }
-
-        case LDX_Absolute: {
-            mem->x = read_value(mem, &cycles, Absolute);
-            set_p_zn_on(mem, mem->x);
-            break;
-        }
-
+        case LDX_Immediate:
+        case LDX_Zeropage:
+        case LDX_Zeropage_Y:
+        case LDX_Absolute:
         case LDX_Absolute_Y: {
-            mem->x = read_value(mem, &cycles, Absolute_Y);
+            mem->x = value_for_opcode(mem, opcode, &cycles);
             set_p_zn_on(mem, mem->x);
             break;
         }
 
-        case LDX_Zeropage: {
-            mem->x = read_value(mem, &cycles, Zeropage);
-            set_p_zn_on(mem, mem->x);
-            break;
-        }
-
-        case LDY_Immediate: {
-            mem->y = read_value(mem, &cycles, Immediate);
-            set_p_zn_on(mem, mem->y);
-            break;
-        }
-
-        case LDY_Absolute: {
-            mem->y = read_value(mem, &cycles, Absolute);
-            set_p_zn_on(mem, mem->y);
-            break;
-        }
-
-        case LDY_Zeropage: {
-            mem->y = read_value(mem, &cycles, Zeropage);
-            set_p_zn_on(mem, mem->y);
-            break;
-        }
-
-        case LDY_Zeropage_X: {
-            mem->y = read_value(mem, &cycles, Zeropage_X);
-            set_p_zn_on(mem, mem->y);
-            break;
-        }
-
+        case LDY_Immediate:
+        case LDY_Zeropage:
+        case LDY_Zeropage_X:
+        case LDY_Absolute:
         case LDY_Absolute_X: {
-            mem->y = read_value(mem, &cycles, Absolute_X);
+            mem->y = value_for_opcode(mem, opcode, &cycles);
             set_p_zn_on(mem, mem->y);
             break;
         }
 
-        case LDA_Immediate: {
-            mem->a = read_value(mem, &cycles, Immediate);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case LDA_Absolute: {
-            mem->a = read_value(mem, &cycles, Absolute);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case LDA_Absolute_X: {
-            mem->a = read_value(mem, &cycles, Absolute_X);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case LDA_Absolute_Y: {
-            mem->a = read_value(mem, &cycles, Absolute_Y);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
+        case LDA_Immediate:
+        case LDA_Zeropage:
+        case LDA_Zeropage_X:
+        case LDA_Absolute:
+        case LDA_Absolute_X:
+        case LDA_Absolute_Y:
+        case LDA_Indirect_X:
         case LDA_Indirect_Y: {
-            mem->a = read_value(mem, &cycles, Indirect_Y);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case LDA_Zeropage: {
-            mem->a = read_value(mem, &cycles, Zeropage);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case LDA_Zeropage_X: {
-            mem->a = read_value(mem, &cycles, Zeropage_X);
+            mem->a = value_for_opcode(mem, opcode, &cycles);
             set_p_zn_on(mem, mem->a);
             break;
         }
@@ -435,43 +392,29 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case CMP_Immediate: {
-            cmp(mem, mem->a, read_value(mem, &cycles, Immediate));
+        case CMP_Immediate:
+        case CMP_Zeropage:
+        case CMP_Zeropage_X:
+        case CMP_Absolute:
+        case CMP_Absolute_X:
+        case CMP_Absolute_Y:
+        case CMP_Indirect_X:
+        case CMP_Indirect_Y: {
+            cmp(mem, mem->a, value_for_opcode(mem, opcode, &cycles));
             break;
         }
 
-        case CMP_Zeropage: {
-            cmp(mem, mem->a, read_value(mem, &cycles, Zeropage));
-            break;
-        }
-
-        case CMP_Absolute: {
-            cmp(mem, mem->a, read_value(mem, &cycles, Absolute));
-            break;
-        }
-
-        case CMP_Absolute_X: {
-            cmp(mem, mem->a, read_value(mem, &cycles, Absolute_X));
-            break;
-        }
-
-        case CMP_Absolute_Y: {
-            cmp(mem, mem->a, read_value(mem, &cycles, Absolute_Y));
-            break;
-        }
-
-        case CPY_Immediate: {
-            cmp(mem, mem->y, read_value(mem, &cycles, Immediate));
-            break;
-        }
-
+        case CPY_Immediate:
+        case CPY_Zeropage:
         case CPY_Absolute: {
-            cmp(mem, mem->y, read_value(mem, &cycles, Absolute));
+            cmp(mem, mem->y, value_for_opcode(mem, opcode, &cycles));
             break;
         }
 
-        case CPX_Immediate: {
-            cmp(mem, mem->x, read_value(mem, &cycles, Immediate));
+        case CPX_Immediate:
+        case CPX_Zeropage:
+        case CPX_Absolute: {
+            cmp(mem, mem->x, value_for_opcode(mem, opcode, &cycles));
             break;
         }
 
@@ -668,6 +611,12 @@ int normal_cpu_step(memory* mem) {
 
         case ROL_Absolute_X: {
             uint16_t address = absolute_x_address(mem, &cycles);
+            rol(mem, address);
+            break;
+        }
+
+        case ROL_Zeropage: {
+            uint16_t address = read_byte_and_inc_pc(mem);
             rol(mem, address);
             break;
         }
