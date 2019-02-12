@@ -3,4 +3,4 @@ set -e
 cd build
 cmake ..
 make
-make test
+make CTEST_OUTPUT_ON_FAILURE=1 test

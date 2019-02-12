@@ -105,13 +105,33 @@ void print_step_info(nestest_step stepdata) {
     if (stepdata.address != mem.pc) {
         printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
     }
+
+    if (stepdata.a != mem.a) {
+        printf("FAIL: Accumulator should be 0x%02X - but is 0x%02X\n", stepdata.a, mem.a);
+    }
+
+    if (stepdata.x != mem.x) {
+        printf("FAIL: X should be 0x%02X - but is 0x%02X\n", stepdata.x, mem.x);
+    }
+
+    if (stepdata.y != mem.y) {
+        printf("FAIL: Y should be 0x%02X - but is 0x%02X\n", stepdata.y, mem.y);
+    }
+
+    if (stepdata.p != mem.p) {
+        printf("FAIL: P should be 0x%02X - but is 0x%02X\n", stepdata.p, mem.p);
+    }
 }
 
 void test_run_rom(void) {
     for (int step = 0; step < num_steps; step++) {
         nestest_step stepdata = steps[step];
         print_step_info(stepdata);
-        TEST_ASSERT_EQUAL_UINT8(stepdata.address, mem.pc);
+        TEST_ASSERT_EQUAL_UINT16(stepdata.address, mem.pc);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.a, mem.a);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.x, mem.x);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.y, mem.y);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.p, mem.p);
         cpu_step(&mem);
     }
 }
