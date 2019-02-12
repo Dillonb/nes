@@ -105,7 +105,7 @@ void print_byte(byte b) {
     }
 }
 
-void print_step_info(nestest_step stepdata) {
+void print_step_info(int index, nestest_step stepdata) {
     if (stepdata.address != mem.pc) {
         printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
     }
@@ -129,7 +129,7 @@ void print_step_info(nestest_step stepdata) {
     }
     else {
         char *disassembly = disassemble(&mem, mem.pc);
-        printf("$%04X %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X \n", mem.pc, disassembly, mem.a, mem.x,
+        printf("%04d $%04X %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X \n", index, mem.pc, disassembly, mem.a, mem.x,
                mem.y, mem.p, mem.sp);
         free(disassembly);
     }
@@ -138,7 +138,7 @@ void print_step_info(nestest_step stepdata) {
 void test_run_rom(void) {
     for (int step = 0; step < num_steps; step++) {
         nestest_step stepdata = steps[step];
-        print_step_info(stepdata);
+        print_step_info(step, stepdata);
         TEST_ASSERT_EQUAL_UINT16(stepdata.address, mem.pc);
         TEST_ASSERT_EQUAL_UINT8(stepdata.a, mem.a);
         TEST_ASSERT_EQUAL_UINT8(stepdata.x, mem.x);
