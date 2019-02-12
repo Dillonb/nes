@@ -121,7 +121,7 @@ void branch_on_condition(memory* mem, int* cycles, bool condition) {
 void cmp(memory* mem, byte reg, byte value) {
     byte result = reg - value;
     set_p_zn_on(mem, result);
-    if (result >= 0) {
+    if (reg >= value) {
         set_p_carry(mem);
     }
     else {
