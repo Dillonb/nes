@@ -188,6 +188,10 @@ void adc(memory* mem, byte value) {
     }
 
     set_p_zn_on(mem, mem->a);
+    bool old_a_and_value_same_signs = (((old_a^value)&0x80) == 0);
+    bool old_a_and_new_a_different_signs =  (((old_a^mem->a)&0x80) != 0);
+    set_p_overflow_to(mem, old_a_and_value_same_signs && old_a_and_new_a_different_signs);
+
 }
 
 void sbc(memory* mem, byte value) {
