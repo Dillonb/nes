@@ -442,7 +442,7 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
         byte x_coord = ppu_mem->oam_data[i * 4 + 3];
 
         // How many pixels offset from the current scan line the sprite is
-        uint16_t offset = ppu_mem->scan_line - (int16_t)y_coord;
+        int16_t offset = (int16_t)ppu_mem->scan_line - (int16_t)y_coord;
         if (offset >= 0 && offset < sprite_height) {
             sprite s;
             s.pattern = get_sprite_pattern(ppu_mem, tile, attr, offset);
