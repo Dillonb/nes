@@ -100,27 +100,26 @@ void test_load_steps(void) {
 }
 
 void print_step_info(nestest_step stepdata) {
-    char* disassembly = disassemble(&mem, mem.pc);
-    printf("$%04X %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X \n", mem.pc, disassembly, mem.a, mem.x, mem.y, mem.p, mem.sp);
-    free(disassembly);
     if (stepdata.address != mem.pc) {
         printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
     }
-
-    if (stepdata.a != mem.a) {
+    else if (stepdata.a != mem.a) {
         printf("FAIL: Accumulator should be 0x%02X - but is 0x%02X\n", stepdata.a, mem.a);
     }
-
-    if (stepdata.x != mem.x) {
+    else if (stepdata.x != mem.x) {
         printf("FAIL: X should be 0x%02X - but is 0x%02X\n", stepdata.x, mem.x);
     }
-
-    if (stepdata.y != mem.y) {
+    else if (stepdata.y != mem.y) {
         printf("FAIL: Y should be 0x%02X - but is 0x%02X\n", stepdata.y, mem.y);
     }
-
-    if (stepdata.p != mem.p) {
+    else if (stepdata.p != mem.p) {
         printf("FAIL: P should be 0x%02X - but is 0x%02X\n", stepdata.p, mem.p);
+    }
+    else {
+        char *disassembly = disassemble(&mem, mem.pc);
+        printf("$%04X %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X \n", mem.pc, disassembly, mem.a, mem.x,
+               mem.y, mem.p, mem.sp);
+        free(disassembly);
     }
 }
 
