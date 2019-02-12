@@ -113,7 +113,7 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
         printf("Pattern tables written to! NROM can't do this (CHR ROM), does this ROM use a different mapper?\n");
     }
     // Nametables
-    if (address < 0x3F00 && address >= 0x2000) {
+    else if (address < 0x3F00) {
         uint16_t index = mirror_nametable_address(address, ppu_mem);
         ppu_mem->name_tables[index] = value;
     }
