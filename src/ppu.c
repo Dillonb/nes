@@ -110,7 +110,7 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
 
     // Pattern tables
     if (address < 0x2000) {
-        errx(EXIT_FAILURE, "Pattern tables written to! NROM can't do this (CHR ROM), does this ROM use a different mapper?");
+        printf("Pattern tables written to! NROM can't do this (CHR ROM), does this ROM use a different mapper?\n");
     }
     // Nametables
     if (address < 0x3F00 && address >= 0x2000) {
