@@ -99,6 +99,12 @@ void test_load_steps(void) {
     }
 }
 
+void print_byte(byte b) {
+    for(int i = 7; i >= 0; i--) {
+        printf("%d", (b & mask_flag(i)) > 0);
+    }
+}
+
 void print_step_info(nestest_step stepdata) {
     if (stepdata.address != mem.pc) {
         printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
@@ -114,6 +120,12 @@ void print_step_info(nestest_step stepdata) {
     }
     else if (stepdata.p != mem.p) {
         printf("FAIL: P should be 0x%02X - but is 0x%02X\n", stepdata.p, mem.p);
+        printf("In binary: NV-BDIZC\n");
+        printf("Expected:  ");
+        print_byte(stepdata.p);
+        printf("\nActual:    ");
+        print_byte(mem.p);
+        printf("\n");
     }
     else {
         char *disassembly = disassemble(&mem, mem.pc);
