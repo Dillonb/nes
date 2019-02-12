@@ -149,7 +149,7 @@ void dump_address_device(uint16_t addr) {
     else if (addr < 0x4020) {
         printf("APU I/O normally disabled");
     }
-    else if (addr <= 0xFFFF) {
+    else { // <= 0xFFFF (max value for uint16_t)
         printf("Cartridge ROM");
     }
 }
