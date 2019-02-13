@@ -650,13 +650,15 @@ int normal_cpu_step(memory* mem) {
         case ROR_Zeropage_X: {
             uint16_t address = address_for_opcode(mem, opcode, &cycles);
             ror(mem, address);
+            set_p_zn_on(mem, read_byte(mem, address));
             break;
         }
 
         case ROR_Accumulator: {
-            bool oldc = get_p_carry(mem);
-            set_p_carry_to(mem, mem->a & 1);
-            mem->a = ((mem->a >> 1) & (byte)0b01111111) | ((byte)oldc << 7);
+            bool oldc = (bool) get_p_carry(mem);
+            set_p_carry_to(mem, (bool) (mem->a & 1));
+            mem->a = (byte) (((mem->a >> 1) & 0b01111111) | ((byte)oldc << 7));
+            set_p_zn_on(mem, mem->a);
             break;
         }
 
