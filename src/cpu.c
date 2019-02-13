@@ -524,26 +524,11 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case DEC_Absolute: {
-            uint16_t addr = read_address_and_inc_pc(mem);
-            byte value = read_byte(mem, addr);
-            value--;
-            write_byte(mem, addr, value);
-            set_p_zn_on(mem, value);
-            break;
-        }
-
-        case DEC_Zeropage: {
-            byte addr = read_byte_and_inc_pc(mem);
-            byte value = read_byte(mem, addr);
-            value--;
-            write_byte(mem, addr, value);
-            set_p_zn_on(mem, value);
-            break;
-        }
-
+        case DEC_Absolute:
+        case DEC_Absolute_X:
+        case DEC_Zeropage:
         case DEC_Zeropage_X: {
-            byte addr = zeropage_x_address(mem);
+            uint16_t addr = address_for_opcode(mem, opcode, &cycles);
             byte value = read_byte(mem, addr);
             value--;
             write_byte(mem, addr, value);
