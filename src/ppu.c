@@ -160,7 +160,7 @@ byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
 }
 
 bool get_control_flag(ppu_memory* mem, int index) {
-    return (mem->control & mask_flag(index)) > 0;
+    return (mem->control & mask_flag(index)) != 0;
 }
 
 bool vblank_nmi(ppu_memory* mem) {

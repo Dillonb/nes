@@ -77,7 +77,7 @@ void print_byte_binary(byte value) {
 
 void dump_byte(byte b) {
     for(int i = 7; i >= 0; i--) {
-        printf("%d", (b & mask_flag(i)) > 0);
+        printf("%d", (b & mask_flag(i)) != 0);
     }
 
     printf(" -- 0x%02X\n", b);
@@ -86,11 +86,11 @@ void dump_byte(byte b) {
 void dump_uint16(uint16_t u) {
     byte b = (u & 0xFF00) >> 8;
     for(int i = 7; i >= 0; i--) {
-        printf("%d", (b & mask_flag(i)) > 0);
+        printf("%d", (b & mask_flag(i)) != 0);
     }
     b = u & 0x00FF;
     for(int i = 7; i >= 0; i--) {
-        printf("%d", (b & mask_flag(i)) > 0);
+        printf("%d", (b & mask_flag(i)) != 0);
     }
 
     printf(" -- 0x%04X\n", u);

@@ -62,7 +62,7 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         write_ppu_register(&mem->ppu_mem, register_num, value);
     }
     else if (address == 0x4014) {
-        uint16_t address = (uint16_t)value << 8;
+        address = (uint16_t)value << 8;
         dprintf("Triggered OAM DMA at 0x%04X\n", address);
         trigger_oam_dma(mem, address);
     }
@@ -111,7 +111,7 @@ void clear_p_flag(memory* mem, int index) {
     mem->p &= ~mask_flag(index);
 }
 int get_p_flag(memory* mem, int index) {
-    return (mem->p & mask_flag(index)) > 0;
+    return (mem->p & mask_flag(index)) != 0;
 }
 void set_p_flag_to(memory* mem, int index, bool value) {
     if (value) {
