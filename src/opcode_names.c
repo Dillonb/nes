@@ -260,8 +260,8 @@ const char* opcode_to_name_full(byte opcode) {
         case ROL_Absolute_X:
             return "ROL_Absolute_X";
 
-        case ROR_accumulator:
-            return "ROR_accumulator";
+        case ROR_Accumulator:
+            return "ROR_Accumulator";
         case ROR_Zeropage:
             return "ROR_Zeropage";
         case ROR_Zeropage_X:
@@ -533,7 +533,7 @@ const char* opcode_to_name_short(byte opcode) {
         case ROL_Absolute_X:
             return "ROL";
 
-        case ROR_accumulator:
+        case ROR_Accumulator:
         case ROR_Zeropage:
         case ROR_Zeropage_X:
         case ROR_Absolute:

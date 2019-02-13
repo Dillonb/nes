@@ -145,7 +145,7 @@
 #define ROL_Absolute    0x2E
 #define ROL_Absolute_X  0x3E
 
-#define ROR_accumulator 0x6A
+#define ROR_Accumulator 0x6A
 #define ROR_Zeropage    0x66
 #define ROR_Zeropage_X  0x76
 #define ROR_Absolute    0x6E

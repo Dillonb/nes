@@ -644,19 +644,16 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case ROR_Absolute_X: {
-            uint16_t address = absolute_x_address(mem, &cycles);
+        case ROR_Absolute:
+        case ROR_Absolute_X:
+        case ROR_Zeropage:
+        case ROR_Zeropage_X: {
+            uint16_t address = address_for_opcode(mem, opcode, &cycles);
             ror(mem, address);
             break;
         }
 
-        case ROR_Zeropage: {
-            uint16_t address = read_byte_and_inc_pc(mem);
-            ror(mem, address);
-            break;
-        }
-
-        case ROR_accumulator: {
+        case ROR_Accumulator: {
             bool oldc = get_p_carry(mem);
             set_p_carry_to(mem, mem->a & 1);
             mem->a = ((mem->a >> 1) & (byte)0b01111111) | ((byte)oldc << 7);
