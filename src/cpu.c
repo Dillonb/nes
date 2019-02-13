@@ -140,6 +140,9 @@ uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
             return absolute_y_address(mem, cycles);
         }
 
+        case Indirect:
+            return read_address(mem, read_address_and_inc_pc(mem));
+
         case Indirect_X:
             return indirect_x_address(mem, cycles);
 
@@ -585,15 +588,9 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case JMP_Absolute: {
-            mem->pc = read_address_and_inc_pc(mem);
-            break;
-        }
-
+        case JMP_Absolute:
         case JMP_Indirect: {
-            mem->pc = read_address_and_inc_pc(mem);
-            // Jump to address read from first address
-            mem->pc = read_address_and_inc_pc(mem);
+            mem->pc = address_for_opcode(mem, opcode, &cycles);
             break;
         }
 
