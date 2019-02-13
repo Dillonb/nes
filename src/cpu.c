@@ -446,18 +446,20 @@ int normal_cpu_step(memory* mem) {
 
         case JSR: {
             uint16_t addr = read_address_and_inc_pc(mem);
-            stack_push16(mem, mem->pc); // TODO: should this be mem->pc+1?
+            stack_push16(mem, mem->pc - 1);
             mem->pc = addr;
             break;
         }
 
         case RTS: {
-            mem->pc = stack_pop16(mem);
+            mem->pc = stack_pop16(mem) + 1;
             break;
         }
 
         case RTI: {
             mem->p = stack_pop(mem);
+            mem->p &= 0b11101111;
+            mem->p |= 0b00100000;
             mem->pc = stack_pop16(mem);
             break;
         }
