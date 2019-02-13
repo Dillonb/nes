@@ -168,7 +168,7 @@ uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
         }
 
         case Zeropage_Y: {
-            return zeropage_x_address(mem);
+            return zeropage_y_address(mem);
         }
 
         default:
