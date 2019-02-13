@@ -30,15 +30,30 @@ byte read_byte_and_inc_pc(memory* mem) {
 }
 
 uint16_t read_address(memory* mem, uint16_t address) {
-    byte lower = read_byte(mem, address);
-    byte upper = read_byte(mem, address + 1);
-    return (upper << 8) | lower;
+    uint16_t addr_upper = address & (uint16_t)0xFF00;
+    byte     addr_lower = (byte)(address & 0x00FF) + (byte)1;
+
+    uint16_t lower_byte_address = address;
+    uint16_t upper_byte_address = addr_upper | addr_lower;
+
+    byte lower = read_byte(mem, lower_byte_address);
+    byte upper = read_byte(mem, upper_byte_address);
+
+    return ((uint16_t)upper << 8) | lower;
 }
 
 uint16_t read_address_and_inc_pc(memory* mem) {
     byte lower = read_byte_and_inc_pc(mem);
     byte upper = read_byte_and_inc_pc(mem);
     return (upper << 8) | lower;
+}
+
+// TODO: handle pages crossed cases
+uint16_t indirect_x_address(memory* mem, int* cycles) {
+    byte b = read_byte_and_inc_pc(mem);
+    byte temp_addr = b + mem->x;
+    uint16_t addr = read_address(mem, temp_addr);
+    return addr;
 }
 
 
@@ -87,6 +102,9 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
             return read_byte(mem, absolute_y_address(mem, cycles));
         }
 
+        case Indirect_X:
+            return read_byte(mem, indirect_x_address(mem, cycles));
+
         case Indirect_Y: {
             return read_byte(mem, indirect_y_address(mem, cycles));
         }
@@ -100,7 +118,7 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
         }
 
         default:
-            errx(EXIT_FAILURE, "Addressing mode not implemented.");
+            errx(EXIT_FAILURE, "read_value: Addressing mode not implemented.");
     }
 }
 
@@ -122,6 +140,9 @@ uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
             return absolute_y_address(mem, cycles);
         }
 
+        case Indirect_X:
+            return indirect_x_address(mem, cycles);
+
         case Indirect_Y: {
             return indirect_y_address(mem, cycles);
         }
@@ -135,7 +156,7 @@ uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
         }
 
         default:
-            errx(EXIT_FAILURE, "Addressing mode not implemented.");
+            errx(EXIT_FAILURE, "address_for_opcode: Addressing mode not implemented.");
     }
 }
 
