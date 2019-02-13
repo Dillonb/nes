@@ -559,44 +559,28 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case ORA_Immediate: {
-            mem->a |= read_value(mem, &cycles, Immediate);
+        case ORA_Immediate:
+        case ORA_Absolute:
+        case ORA_Absolute_X:
+        case ORA_Absolute_Y:
+        case ORA_Indirect_X:
+        case ORA_Indirect_Y:
+        case ORA_Zeropage:
+        case ORA_Zeropage_X: {
+            mem->a |= value_for_opcode(mem, opcode, &cycles);
             set_p_zn_on(mem, mem->a);
             break;
         }
 
-        case ORA_Absolute: {
-            mem->a |= read_value(mem, &cycles, Absolute);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case ORA_Zeropage: {
-            mem->a |= read_value(mem, &cycles, Zeropage);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case AND_Immediate: {
-            mem->a &= read_value(mem, &cycles, Immediate);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case AND_Zeropage: {
-            mem->a &= read_value(mem, &cycles, Zeropage);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
+        case AND_Immediate:
+        case AND_Absolute:
+        case AND_Absolute_X:
+        case AND_Absolute_Y:
+        case AND_Indirect_X:
+        case AND_Indirect_Y:
+        case AND_Zeropage:
         case AND_Zeropage_X: {
-            mem->a &= read_value(mem, &cycles, Zeropage_X);
-            set_p_zn_on(mem, mem->a);
-            break;
-        }
-
-        case AND_Absolute_X: {
-            mem->a &= read_value(mem, &cycles, Absolute_X);
+            mem->a &= value_for_opcode(mem, opcode, &cycles);
             set_p_zn_on(mem, mem->a);
             break;
         }
@@ -630,17 +614,22 @@ int normal_cpu_step(memory* mem) {
         }
 
         case LSR_Accumulator: {
-            set_p_carry_to(mem, mem->a & 1);
+            set_p_carry_to(mem, (bool) (mem->a & 1));
             mem->a >>= 1;
+            mem->a &= 0b01111111;
             set_p_zn_on(mem, mem->a);
             break;
         }
 
-        case LSR_Zeropage: {
-            byte addr = read_byte_and_inc_pc(mem);
+        case LSR_Absolute:
+        case LSR_Absolute_X:
+        case LSR_Zeropage:
+        case LSR_Zeropage_X: {
+            uint16_t addr = address_for_opcode(mem, opcode, &cycles);
             byte value = read_byte(mem, addr);
-            set_p_carry_to(mem, value & 1);
+            set_p_carry_to(mem, (bool) (value & 1));
             value >>= 1;
+            set_p_zn_on(mem, value);
             write_byte(mem, addr, value);
             break;
         }
@@ -653,14 +642,11 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case ROL_Absolute_X: {
-            uint16_t address = absolute_x_address(mem, &cycles);
-            rol(mem, address);
-            break;
-        }
-
-        case ROL_Zeropage: {
-            uint16_t address = read_byte_and_inc_pc(mem);
+        case ROL_Absolute:
+        case ROL_Absolute_X:
+        case ROL_Zeropage:
+        case ROL_Zeropage_X: {
+            uint16_t address = address_for_opcode(mem, opcode, &cycles);
             rol(mem, address);
             break;
         }
@@ -688,18 +674,15 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case SBC_Zeropage: {
-            sbc(mem, read_value(mem, &cycles, Zeropage));
-            break;
-        }
-
-        case SBC_Absolute_Y: {
-            sbc(mem, read_value(mem, &cycles, Absolute_Y));
-            break;
-        }
-
-        case SBC_Immediate: {
-            sbc(mem, read_value(mem, &cycles, Immediate));
+        case SBC_Immediate:
+        case SBC_Absolute:
+        case SBC_Absolute_X:
+        case SBC_Absolute_Y:
+        case SBC_Indirect_X:
+        case SBC_Indirect_Y:
+        case SBC_Zeropage:
+        case SBC_Zeropage_X: {
+            sbc(mem, value_for_opcode(mem, opcode, &cycles));
             break;
         }
 
@@ -728,8 +711,11 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case ASL_Zeropage: {
-            byte addr = read_byte_and_inc_pc(mem);
+        case ASL_Absolute:
+        case ASL_Absolute_X:
+        case ASL_Zeropage:
+        case ASL_Zeropage_X: {
+            uint16_t addr = address_for_opcode(mem, opcode, &cycles);
             byte value = read_byte(mem, addr);
             set_p_carry_to(mem, (value >> 7) & 1);
             value <<= 1;
@@ -738,13 +724,15 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case ADC_Zeropage: {
-            adc(mem, read_value(mem, &cycles, Zeropage));
-            break;
-        }
-
-        case ADC_Immediate: {
-            adc(mem, read_value(mem, &cycles, Immediate));
+        case ADC_Immediate:
+        case ADC_Absolute:
+        case ADC_Absolute_X:
+        case ADC_Absolute_Y:
+        case ADC_Indirect_X:
+        case ADC_Indirect_Y:
+        case ADC_Zeropage:
+        case ADC_Zeropage_X: {
+            adc(mem, value_for_opcode(mem, opcode, &cycles));
             break;
         }
 
