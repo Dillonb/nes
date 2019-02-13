@@ -167,6 +167,10 @@ uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
             return zeropage_x_address(mem);
         }
 
+        case Zeropage_Y: {
+            return zeropage_x_address(mem);
+        }
+
         default:
             errx(EXIT_FAILURE, "address_for_opcode: Addressing mode not implemented.");
     }
@@ -303,13 +307,10 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case STX_Zeropage: {
-            write_byte(mem, read_byte_and_inc_pc(mem), mem->x);
-            break;
-        }
-
-        case STX_Absolute: {
-            write_byte(mem, read_address_and_inc_pc(mem), mem->x);
+        case STX_Absolute:
+        case STX_Zeropage:
+        case STX_Zeropage_Y: {
+            write_byte(mem, address_for_opcode(mem, opcode, &cycles), mem->x);
             break;
         }
 
