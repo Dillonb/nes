@@ -105,6 +105,16 @@ uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
     return (addr - (uint16_t)0x2000) % (uint16_t)0x800;
 }
 
+uint16_t mirror_palette_address(uint16_t address) {
+    address %=32;
+
+    if (address > 16 && address % 4 == 0) {
+        return address - (uint16_t)16;
+    }
+
+    return address;
+}
+
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     dprintf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
 
@@ -119,8 +129,7 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     }
     // Palette RAM indexes
     else if (address < 0x4000) {
-        uint16_t index = (address - 0x3F00) % 32;
-        ppu_mem->palette_ram[index] = value;
+        ppu_mem->palette_ram[mirror_palette_address(address)] = value;
     }
     else {
         errx(EXIT_FAILURE, "Attempted to write 0x%02X to UNKNOWN PPU VRAM ADDRESS 0x%04X", value, address);
@@ -147,8 +156,7 @@ byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
     }
     // Palette RAM indexes
     else if (address < 0x4000) {
-        uint16_t index = (address - 0x3F00) % 32;
-        result = ppu_mem->palette_ram[index];
+        result = ppu_mem->palette_ram[mirror_palette_address(address)];
     }
     else {
         errx(EXIT_FAILURE, "Read from UNKNOWN PPU VRAM ADDRESS 0x%04X", address);
