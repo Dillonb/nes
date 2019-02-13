@@ -77,12 +77,16 @@ uint16_t absolute_x_address(memory* mem, int* cycles) {
 // TODO: handle pages crossed cases
 uint16_t absolute_y_address(memory* mem, int* cycles) {
     uint16_t addr = read_address_and_inc_pc(mem);
-    addr += mem->x;
+    addr += mem->y;
     return addr;
 }
 
 uint16_t zeropage_x_address(memory* mem) {
     return ((uint16_t)read_byte_and_inc_pc(mem) + (uint16_t)mem->x) & 0xFF;
+}
+
+uint16_t zeropage_y_address(memory* mem) {
+    return ((uint16_t)read_byte_and_inc_pc(mem) + (uint16_t)mem->y) & 0xFF;
 }
 
 // TODO: handle pages crossed cases
@@ -102,8 +106,9 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
             return read_byte(mem, absolute_y_address(mem, cycles));
         }
 
-        case Indirect_X:
+        case Indirect_X: {
             return read_byte(mem, indirect_x_address(mem, cycles));
+        }
 
         case Indirect_Y: {
             return read_byte(mem, indirect_y_address(mem, cycles));
@@ -115,6 +120,10 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
 
         case Zeropage_X: {
             return read_byte(mem, zeropage_x_address(mem));
+        }
+
+        case Zeropage_Y: {
+            return read_byte(mem, zeropage_y_address(mem));
         }
 
         default:
@@ -304,13 +313,10 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
-        case STY_Absolute: {
-            write_byte(mem, read_address_and_inc_pc(mem), mem->y);
-            break;
-        }
-
-        case STY_Zeropage: {
-            write_byte(mem, read_byte_and_inc_pc(mem), mem->y);
+        case STY_Absolute:
+        case STY_Zeropage:
+        case STY_Zeropage_X: {
+            write_byte(mem, address_for_opcode(mem, opcode, &cycles), mem->y);
             break;
         }
 
