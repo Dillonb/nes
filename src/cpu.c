@@ -70,7 +70,6 @@ uint16_t indirect_y_address(memory* mem, int* cycles) {
 
 uint16_t absolute_x_address(memory* mem, int* cycles) {
     uint16_t addr = read_address_and_inc_pc(mem);
-    printf("ABS X: %04X + %02X\n", addr, mem->x);
     if (cycles != NULL) {
         *cycles += (0xFF & addr) > (0xFF & addr + mem->x); // If page crossed, add a cycle
     }
