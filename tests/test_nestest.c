@@ -105,20 +105,26 @@ void print_byte(byte b) {
     }
 }
 
+int test_total_cycles = 7; // nestest.log starts at 7
+
 void print_step_info(int index, nestest_step stepdata) {
+    bool success = true;
     if (stepdata.address != mem.pc) {
         printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
     }
-    else if (stepdata.a != mem.a) {
+    if (stepdata.a != mem.a) {
         printf("FAIL: Accumulator should be 0x%02X - but is 0x%02X\n", stepdata.a, mem.a);
     }
-    else if (stepdata.x != mem.x) {
+    if (stepdata.x != mem.x) {
         printf("FAIL: X should be 0x%02X - but is 0x%02X\n", stepdata.x, mem.x);
     }
-    else if (stepdata.y != mem.y) {
+    if (stepdata.y != mem.y) {
         printf("FAIL: Y should be 0x%02X - but is 0x%02X\n", stepdata.y, mem.y);
     }
-    else if (stepdata.p != mem.p) {
+    if (stepdata.cycles != test_total_cycles) {
+        printf("FAIL: Cycles should be %d - but is %d\n", stepdata.cycles, test_total_cycles);
+    }
+    if (stepdata.p != mem.p) {
         printf("FAIL: P should be 0x%02X - but is 0x%02X\n", stepdata.p, mem.p);
         printf("In binary: NV-BDIZC\n");
         printf("Expected:  ");
@@ -127,7 +133,7 @@ void print_step_info(int index, nestest_step stepdata) {
         print_byte(mem.p);
         printf("\n");
     }
-    else {
+    if (!success) {
         char *disassembly = disassemble(&mem, mem.pc);
         printf("%04d $%04X %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X \n", index, mem.pc, disassembly, mem.a, mem.x,
                mem.y, mem.p, mem.sp);
@@ -144,7 +150,8 @@ void test_run_rom(void) {
         TEST_ASSERT_EQUAL_UINT8(stepdata.x, mem.x);
         TEST_ASSERT_EQUAL_UINT8(stepdata.y, mem.y);
         TEST_ASSERT_EQUAL_UINT8(stepdata.p, mem.p);
-        cpu_step(&mem);
+        TEST_ASSERT_EQUAL_INT(stepdata.cycles, test_total_cycles);
+        test_total_cycles += cpu_step(&mem);
     }
 }
 
