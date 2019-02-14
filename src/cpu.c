@@ -48,7 +48,6 @@ uint16_t read_address_and_inc_pc(memory* mem) {
     return (upper << 8) | lower;
 }
 
-// TODO: handle pages crossed cases
 uint16_t indirect_x_address(memory* mem, int* cycles) {
     byte b = read_byte_and_inc_pc(mem);
     byte temp_addr = b + mem->x;
@@ -57,39 +56,45 @@ uint16_t indirect_x_address(memory* mem, int* cycles) {
 }
 
 
-// TODO: handle pages crossed cases
 uint16_t indirect_y_address(memory* mem, int* cycles) {
     byte b = read_byte_and_inc_pc(mem);
-    uint16_t address = read_address(mem, b);
-    dprintf("Ind Y: b: 0x%02X ind addr: 0x%04x y: 0x%02X\n", b, address, mem->y);
-    address += mem->y;
+    uint16_t addr = read_address(mem, b);
+    dprintf("Ind Y: b: 0x%02X ind addr: 0x%04x y: 0x%02X\n", b, addr, mem->y);
+    if (cycles != NULL) {
+        *cycles += (0xFF & addr) > (0xFF & addr + mem->y); // If page crossed, add a cycle
+    }
+    addr += mem->y;
 
-    return address;
+    return addr;
 }
 
-// TODO: handle pages crossed cases
 uint16_t absolute_x_address(memory* mem, int* cycles) {
     uint16_t addr = read_address_and_inc_pc(mem);
+    printf("ABS X: %04X + %02X\n", addr, mem->x);
+    if (cycles != NULL) {
+        *cycles += (0xFF & addr) > (0xFF & addr + mem->x); // If page crossed, add a cycle
+    }
     addr += mem->x;
     return addr;
 }
 
-// TODO: handle pages crossed cases
 uint16_t absolute_y_address(memory* mem, int* cycles) {
     uint16_t addr = read_address_and_inc_pc(mem);
+    if (cycles != NULL) {
+        *cycles += (0xFF & addr) > (0xFF & addr + mem->y); // If page crossed, add a cycle
+    }
     addr += mem->y;
     return addr;
 }
 
 uint16_t zeropage_x_address(memory* mem) {
-    return ((uint16_t)read_byte_and_inc_pc(mem) + (uint16_t)mem->x) & 0xFF;
+    return ((uint16_t)read_byte_and_inc_pc(mem) + (uint16_t)mem->x) & (uint16_t)0xFF;
 }
 
 uint16_t zeropage_y_address(memory* mem) {
-    return ((uint16_t)read_byte_and_inc_pc(mem) + (uint16_t)mem->y) & 0xFF;
+    return ((uint16_t)read_byte_and_inc_pc(mem) + (uint16_t)mem->y) & (uint16_t)0xFF;
 }
 
-// TODO: handle pages crossed cases
 byte read_value(memory* mem, int* cycles, addressing_mode mode) {
     switch (mode) {
         case Immediate:
@@ -303,21 +308,21 @@ int normal_cpu_step(memory* mem) {
         case STA_Absolute_Y:
         case STA_Indirect_X:
         case STA_Indirect_Y: {
-            write_byte(mem, address_for_opcode(mem, opcode, &cycles), mem->a);
+            write_byte(mem, address_for_opcode(mem, opcode, NULL), mem->a);
             break;
         }
 
         case STX_Absolute:
         case STX_Zeropage:
         case STX_Zeropage_Y: {
-            write_byte(mem, address_for_opcode(mem, opcode, &cycles), mem->x);
+            write_byte(mem, address_for_opcode(mem, opcode, NULL), mem->x);
             break;
         }
 
         case STY_Absolute:
         case STY_Zeropage:
         case STY_Zeropage_X: {
-            write_byte(mem, address_for_opcode(mem, opcode, &cycles), mem->y);
+            write_byte(mem, address_for_opcode(mem, opcode, NULL), mem->y);
             break;
         }
 
