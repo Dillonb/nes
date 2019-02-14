@@ -111,18 +111,23 @@ void print_step_info(int index, nestest_step stepdata) {
     bool success = true;
     if (stepdata.address != mem.pc) {
         printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
+        success = false;
     }
     if (stepdata.a != mem.a) {
         printf("FAIL: Accumulator should be 0x%02X - but is 0x%02X\n", stepdata.a, mem.a);
+        success = false;
     }
     if (stepdata.x != mem.x) {
         printf("FAIL: X should be 0x%02X - but is 0x%02X\n", stepdata.x, mem.x);
+        success = false;
     }
     if (stepdata.y != mem.y) {
         printf("FAIL: Y should be 0x%02X - but is 0x%02X\n", stepdata.y, mem.y);
+        success = false;
     }
     if (stepdata.cycles != test_total_cycles) {
         printf("FAIL: Cycles should be %d - but is %d\n", stepdata.cycles, test_total_cycles);
+        success = false;
     }
     if (stepdata.p != mem.p) {
         printf("FAIL: P should be 0x%02X - but is 0x%02X\n", stepdata.p, mem.p);
@@ -132,11 +137,12 @@ void print_step_info(int index, nestest_step stepdata) {
         printf("\nActual:    ");
         print_byte(mem.p);
         printf("\n");
+        success = false;
     }
-    if (!success) {
+    if (success) {
         char *disassembly = disassemble(&mem, mem.pc);
-        printf("%04d $%04X %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X \n", index, mem.pc, disassembly, mem.a, mem.x,
-               mem.y, mem.p, mem.sp);
+        printf("%04d $%04X OPC: 0x%02X | %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X cycles: %d\n", index, mem.pc, read_byte(&mem, mem.pc), disassembly, mem.a, mem.x,
+               mem.y, mem.p, mem.sp, test_total_cycles);
         free(disassembly);
     }
 }
@@ -151,7 +157,9 @@ void test_run_rom(void) {
         TEST_ASSERT_EQUAL_UINT8(stepdata.y, mem.y);
         TEST_ASSERT_EQUAL_UINT8(stepdata.p, mem.p);
         TEST_ASSERT_EQUAL_INT(stepdata.cycles, test_total_cycles);
-        test_total_cycles += cpu_step(&mem);
+        int cycles = cpu_step(&mem);
+        printf("Took %d cycles\n", cycles);
+        test_total_cycles += cycles;
     }
 }
 
