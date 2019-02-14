@@ -788,6 +788,31 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        // LAX: load accumulator and X with memory
+        case 0xA7:
+        case 0xB7:
+        case 0xAF:
+        case 0xBF:
+        case 0xA3:
+        case 0xB3: {
+            byte value = value_for_opcode(mem, opcode, &cycles);
+            mem->a = value;
+            mem->x = value;
+            set_p_zn_on(mem, value);
+            break;
+        }
+
+        // AAX: AND X register with accumulator and store result in memory
+        case 0x87:
+        case 0x97:
+        case 0x83:
+        case 0x8F: {
+            uint16_t addr = address_for_opcode(mem, opcode, NULL);
+            byte value = mem->a & mem->x;
+            write_byte(mem, addr, value);
+            break;
+        }
+
         default: {
             const char* opcode_short = opcode_to_name_short(opcode);
             char docs_link[DOCS_PREFIX_LENGTH + 10];
