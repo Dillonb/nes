@@ -17,18 +17,18 @@ int has_trainer(ines_header* header) {
 }
 
 size_t get_prg_rom_bytes(rom* r) {
-  return BYTES_PER_PRG_ROM_BLOCK * r->header->prg_rom_blocks;
+  return (size_t) BYTES_PER_PRG_ROM_BLOCK * r->header->prg_rom_blocks;
 }
 
 size_t get_chr_rom_bytes(rom* r) {
-  int blocks = BYTES_PER_CHR_ROM_BLOCK;
+  int blocks = r->header->chr_rom_blocks;
 
   // See https://wiki.nesdev.com/w/index.php/INES#iNES_file_format
   if (blocks == 0) {
     blocks = 1;
   }
 
-  return blocks * r->header->chr_rom_blocks;
+  return (size_t) blocks * BYTES_PER_CHR_ROM_BLOCK;
 }
 
 
