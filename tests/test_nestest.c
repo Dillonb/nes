@@ -93,7 +93,7 @@ void test_load_steps(void) {
         fseek(fp, 5, SEEK_CUR);
 
         fgets(buf, 9, fp);
-        temp_step.cycles = (byte)strtol(buf, NULL, 10);
+        temp_step.cycles = (int)strtol(buf, NULL, 10);
 
         steps[step] = temp_step;
     }
