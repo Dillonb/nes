@@ -98,11 +98,48 @@ uint16_t get_attribute_address(ppu_memory* ppu_mem) {
 }
 
 uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
-    //ppu_mem->r->nametable_mirroring_mode;
-    if (addr >= 0x3000 && addr <= 0x3eff) {
-        errx(EXIT_FAILURE, "Need to implement mirroring!");
+    if (addr > 0x2fff) {
+        addr -= 0x1000;
     }
-    return (addr - (uint16_t)0x2000) % (uint16_t)0x800;
+    uint16_t nametable_addr = addr - (uint16_t)0x2000;
+    if (nametable_addr >= 0x1000) {
+        errx(EXIT_FAILURE, "0x%04X is not a nametable address!", addr);
+    }
+    nametable_mirroring mirror_mode = ppu_mem->r->nametable_mirroring_mode;
+
+    if (mirror_mode == HORIZONTAL) {
+        if (nametable_addr < 0x400) {
+            // Nothing!
+        }
+        else if (nametable_addr < 0x800) {
+            // 2nd nametable is a mirror of the first
+            nametable_addr -= 0x400;
+        }
+        else if (nametable_addr < 0xC00) {
+            // third nametable is the 2nd in memory
+            nametable_addr -= 0x400;
+        }
+        else {
+            // fourth nametable is a mirror of the third
+            nametable_addr -= 0x800;
+        }
+    }
+    else if (mirror_mode == VERTICAL) {
+        if (nametable_addr >= 0x800) {
+            // First and second nametables are 0x000-0x800
+            // Third and fourth are mirrors of first and second, respectively
+            nametable_addr -= 0x800;
+        }
+    }
+    else {
+        errx(EXIT_FAILURE, "Need to implement some kind of mirroring! Rev up those debuggers!");
+    }
+
+    if (nametable_addr >= 0x800) {
+        errx(EXIT_FAILURE, "Got a value >= 0x800 after mirroring! Rev up those debuggers!");
+    }
+
+    return nametable_addr % (uint16_t)0x800;
 }
 
 uint16_t mirror_palette_address(uint16_t address) {
@@ -116,6 +153,7 @@ uint16_t mirror_palette_address(uint16_t address) {
 }
 
 void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
+    address %= 0x4000;
     dprintf("Writing 0x%02X to PPU VRAM address 0x%04X\n", value, address);
 
     // Pattern tables
@@ -137,6 +175,7 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
 }
 
 byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
+    address %= 0x4000;
     byte result;
 
     // Pattern tables
