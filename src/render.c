@@ -36,22 +36,33 @@ void initialize() {
 
 void update_key(SDL_Keycode sdlk, bool state) {
     switch (sdlk) {
+        case SDLK_ESCAPE:
+            errx(EXIT_SUCCESS, "User pressed escape");
+
         case SDLK_UP:
+        case SDLK_w:
             player1_buttons[UP] = state;
             break;
+        case SDLK_s:
         case SDLK_DOWN:
             player1_buttons[DOWN] = state;
             break;
+        case SDLK_a:
         case SDLK_LEFT:
             player1_buttons[LEFT] = state;
             break;
+        case SDLK_d:
         case SDLK_RIGHT:
             player1_buttons[RIGHT] = state;
             break;
         case SDLK_z:
+        case SDLK_q:
+        case SDLK_j:
             player1_buttons[A] = state;
             break;
         case SDLK_x:
+        case SDLK_e:
+        case SDLK_k:
             player1_buttons[B] = state;
             break;
         case SDLK_RETURN:
