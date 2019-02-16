@@ -14,6 +14,7 @@ bool initialized = false;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
+button player1_buttons[8];
 
 void initialize() {
     initialized = true;
@@ -27,6 +28,41 @@ void initialize() {
     if (renderer == NULL) {
         errx(EXIT_FAILURE, "SDL couldn't create a renderer! %s", SDL_GetError());
     }
+
+    for (int i = 0; i < 8; i++) {
+        player1_buttons[i] = false;
+    }
+}
+
+void update_key(SDL_Keycode sdlk, bool state) {
+    switch (sdlk) {
+        case SDLK_UP:
+            player1_buttons[UP] = state;
+            break;
+        case SDLK_DOWN:
+            player1_buttons[DOWN] = state;
+            break;
+        case SDLK_LEFT:
+            player1_buttons[LEFT] = state;
+            break;
+        case SDLK_RIGHT:
+            player1_buttons[RIGHT] = state;
+            break;
+        case SDLK_z:
+            player1_buttons[A] = state;
+            break;
+        case SDLK_x:
+            player1_buttons[B] = state;
+            break;
+        case SDLK_RETURN:
+            player1_buttons[START] = state;
+            break;
+        case SDLK_RSHIFT:
+            player1_buttons[SELECT] = state;
+            return;
+        default:
+            break;
+    }
 }
 
 void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
@@ -39,6 +75,12 @@ void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
         switch (event.type) {
             case SDL_QUIT:
                 errx(EXIT_FAILURE, "User requested quit");
+            case SDL_KEYDOWN:
+                update_key(event.key.keysym.sym, true);
+                break;
+            case SDL_KEYUP:
+                update_key(event.key.keysym.sym, false);
+                break;
             default:
                 break;
         }
@@ -64,7 +106,12 @@ void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
 }
 
 bool get_button(button btn, player p) {
-    return false;
+    if (p == one) {
+        return player1_buttons[btn];
+    }
+    else {
+        return false;
+    }
 }
 
 // Not called from anywhere yet

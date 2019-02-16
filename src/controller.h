@@ -8,10 +8,10 @@ typedef enum player_t {
 typedef enum button_t {
     A,
     B,
-    Select,
-    Start,
-    Up,
-    Down,
-    Left,
-    Right
+    SELECT,
+    START,
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
 } button;
