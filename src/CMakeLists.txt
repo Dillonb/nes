@@ -13,6 +13,7 @@ add_library(libnes
     debugger.c
     opcode_names.c
     noop_render.c
+    system.c
     )
 
 

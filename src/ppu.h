@@ -74,3 +74,5 @@ void ppu_step(ppu_memory* ppu_mem);
 byte read_ppu_register(ppu_memory* ppu_mem, byte register_num);
 void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value);
 void write_oam_byte(ppu_memory* ppu_mem, byte value);
+int get_screen_x(ppu_memory* ppu_mem);
+int get_screen_y(ppu_memory* ppu_mem);

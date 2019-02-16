@@ -3,6 +3,7 @@
 #include <src/cpu.h>
 #include <src/opcode_names.h>
 #include <src/mem.h>
+#include <src/system.h>
 
 #include <stdint.h>
 #include <src/debugger.h>
@@ -107,6 +108,18 @@ void print_byte(byte b) {
 
 int test_total_cycles = 7; // nestest.log starts at 7
 
+int get_ppu_x(memory* mem) {
+    int x = get_screen_x(&mem->ppu_mem);
+    if (x == -1) {
+        x = 0;
+    }
+    return x;
+}
+
+int get_ppu_y(memory* mem) {
+    return get_screen_y(&mem->ppu_mem);
+}
+
 void print_step_info(int index, nestest_step stepdata) {
     bool success = true;
     if (stepdata.address != mem.pc) {
@@ -139,6 +152,14 @@ void print_step_info(int index, nestest_step stepdata) {
         printf("\n");
         success = false;
     }
+    int ppu_x = get_screen_x(&mem.ppu_mem);
+    int ppu_y = get_screen_y(&mem.ppu_mem);
+    if (stepdata.ppu_x != ppu_x) {
+        printf("FAIL: ppu_x should be %d but is %d\n", stepdata.ppu_x, ppu_x);
+    }
+    if (stepdata.ppu_y != ppu_y) {
+        printf("FAIL: ppu_y should be %d but is %d\n", stepdata.ppu_y, ppu_y);
+    }
     if (success) {
         char *disassembly = disassemble(&mem, mem.pc);
         printf("%04d $%04X OPC: 0x%02X | %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X cycles: %d\n", index, mem.pc, read_byte(&mem, mem.pc), disassembly, mem.a, mem.x,
@@ -157,7 +178,12 @@ void test_run_rom(void) {
         TEST_ASSERT_EQUAL_UINT8(stepdata.y, mem.y);
         TEST_ASSERT_EQUAL_UINT8(stepdata.p, mem.p);
         TEST_ASSERT_EQUAL_INT(stepdata.cycles, test_total_cycles);
-        int cycles = cpu_step(&mem);
+        int ppu_x = get_ppu_x(&mem);
+        TEST_ASSERT_EQUAL_INT(stepdata.ppu_x, ppu_x);
+        int ppu_y = get_ppu_y(&mem);
+        TEST_ASSERT_EQUAL_INT(stepdata.ppu_y, ppu_y);
+
+        int cycles = system_step(&mem);
         printf("Took %d cycles\n", cycles);
         test_total_cycles += cycles;
     }
