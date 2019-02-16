@@ -7,6 +7,7 @@
 #include "ppu.h"
 #include "cpu.h"
 #include "debugger.h"
+#include "render.h"
 
 byte read_cartridge_space_address(rom* r, uint16_t address) {
     // http://wiki.nesdev.com/w/index.php/Mapper
@@ -36,8 +37,24 @@ byte read_byte(memory* mem, uint16_t address) {
         return value;
     }
     else if (address == 0x4016) {
-        printf("Access to controller register #1 attempted, returning 0x00 for now.\n");
-        return 0x00;
+        bool state;
+        if (mem->ctrl1.allread) {
+            // The first 8 reads will indicate which buttons are pressed (1 if pressed, 0 if not pressed).
+            // All subsequent reads will return D=1 on a Nintendo brand controller but may return D=0 on third party controllers such as the U-Force.
+            state = true; //
+        }
+        else {
+            state = get_button(mem->ctrl1.index, one);
+        }
+        if (!(mem->ctrl1.lastwrite & 0b1)) { // If the LSB of the last write to $2006 is NOT set
+            if (mem->ctrl1.index == RIGHT) {
+                mem->ctrl1.lastwrite = true;
+            }
+            else {
+                mem->ctrl1.index++;
+            }
+        }
+        return (byte)state;
     }
     else if (address == 0x4017) {
         printf("Access to controller register #2 attempted, returning 0x00 for now.\n");
@@ -67,7 +84,11 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         trigger_oam_dma(mem, address);
     }
     else if (address == 0x4016) {
-        printf("Wrote 0x%02X to 0x%04X\n", value, address);
+        if (value & 0b1) {
+            mem->ctrl1.index = 0;
+            mem->ctrl1.allread = false;
+        }
+        mem->ctrl1.lastwrite = value;
     }
     else if (address < 0x4018) {
         printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
@@ -88,6 +109,9 @@ memory get_blank_memory(rom* r) {
     mem.p = 0x34;
     mem.r = r;
     mem.ppu_mem = get_ppu_mem(r);
+
+    mem.ctrl1.index = A;
+    mem.ctrl1.lastwrite = 0;
 
     // Read initial value of program counter from the reset vector
     mem.pc = (read_cartridge_space_address(r, 0xFFFD) << 8) | read_cartridge_space_address(r, 0xFFFC);

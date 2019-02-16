@@ -5,6 +5,13 @@
 #include "rom.h"
 #include "util.h"
 #include "ppu.h"
+#include "controller.h"
+
+typedef struct controller_t {
+    button index;
+    byte lastwrite;
+    bool allread;
+} controller;
 
 typedef struct memory_t {
     // accumulator
@@ -34,6 +41,8 @@ typedef struct memory_t {
 
     // Internal RAM
     char ram[0x800];
+
+    controller ctrl1;
 } memory;
 
 byte read_byte(memory* mem, uint16_t address);
