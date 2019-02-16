@@ -596,6 +596,62 @@ const char* opcode_to_name_short(byte opcode) {
         case TYA:
             return "TYA";
 
+        /*******************
+         * Illegal opcodes *
+         *******************/
+
+        // Single NOP
+        case 0x1A:
+        case 0x3A:
+        case 0x5A:
+        case 0x7A:
+        case 0xDA:
+        case 0xFA: 
+            return "(NOP)";
+
+        // Double NOP
+        case 0x04:
+        case 0x14:
+        case 0x34:
+        case 0x44:
+        case 0x54:
+        case 0x64:
+        case 0x74:
+        case 0x80:
+        case 0x82:
+        case 0x89:
+        case 0xC2:
+        case 0xD4:
+        case 0xE2:
+        case 0xF4: 
+            return "(DOP)";
+
+        // Triple NOP
+        case 0x0C:
+        case 0x1C:
+        case 0x3C:
+        case 0x5C:
+        case 0x7C:
+        case 0xDC:
+        case 0xFC:
+            return "(TOP)";
+
+        // LAX: load accumulator and X with memory
+        case 0xA7:
+        case 0xB7:
+        case 0xAF:
+        case 0xBF:
+        case 0xA3:
+        case 0xB3: 
+            return "(LAX)";
+
+        // AAX: AND X register with accumulator and store result in memory
+        case 0x87:
+        case 0x97:
+        case 0x83:
+        case 0x8F:
+            return "(AAX)";
+
         default:
             return "INVALID";
     }

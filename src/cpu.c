@@ -813,6 +813,12 @@ int normal_cpu_step(memory* mem) {
             break;
         }
 
+        // SBC: identical to the actual SBC opcode
+        case 0xEB: {
+            sbc(mem, value_for_opcode(mem, opcode, &cycles));
+            break;
+        }
+
         default: {
             const char* opcode_short = opcode_to_name_short(opcode);
             char docs_link[DOCS_PREFIX_LENGTH + 10];
