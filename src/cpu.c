@@ -264,21 +264,23 @@ int interrupt_cpu_step(memory* mem) {
     errx(EXIT_FAILURE, "Interrupt type not implemented");
 }
 
-void ror(memory* mem, uint16_t address) {
+byte ror(memory* mem, uint16_t address) {
     bool oldc = (bool) get_p_carry(mem);
     byte value = read_byte(mem, address);
     set_p_carry_to(mem, (bool) (value & 1));
     value = (byte) (((value >> 1) & 0b01111111) | ((byte)oldc << 7));
     write_byte(mem, address, value);
+    return value;
 }
 
-void rol(memory* mem, uint16_t address) {
+byte rol(memory* mem, uint16_t address) {
     bool oldc = (bool) get_p_carry(mem);
     byte value = read_byte(mem, address);
     set_p_carry_to(mem, (value >> 7) & 1);
     value = (value << 1) | oldc;
     set_p_zn_on(mem, value);
     write_byte(mem, address, value);
+    return value;
 }
 
 int normal_cpu_step(memory* mem) {
@@ -816,6 +818,101 @@ int normal_cpu_step(memory* mem) {
         // SBC: identical to the actual SBC opcode
         case 0xEB: {
             sbc(mem, value_for_opcode(mem, opcode, &cycles));
+            break;
+        }
+
+        // DCP: DEC memory location then CMP with A register
+        case 0xC7:
+        case 0xD7:
+        case 0xCF:
+        case 0xDF:
+        case 0xDB:
+        case 0xC3:
+        case 0xD3: {
+            uint16_t addr = address_for_opcode(mem, opcode, NULL);
+            byte value = read_byte(mem, addr);
+            value -= 1;
+            write_byte(mem, addr, value);
+            cmp(mem, mem->a, value);
+            break;
+        }
+
+        // ISC: INC memory location then SBC from A register
+        case 0xE7:
+        case 0xF7:
+        case 0xEF:
+        case 0xFF:
+        case 0xFB:
+        case 0xE3:
+        case 0xF3: {
+            uint16_t addr = address_for_opcode(mem, opcode, NULL);
+            byte value = read_byte(mem, addr);
+            value += 1;
+            write_byte(mem, addr, value);
+            sbc(mem, value);
+            break;
+        }
+
+        // SLO: ASL a memory location, then OR with A register
+        case 0x07:
+        case 0x17:
+        case 0x0F:
+        case 0x1F:
+        case 0x1B:
+        case 0x03:
+        case 0x13: {
+            uint16_t addr = address_for_opcode(mem, opcode, NULL);
+            byte value = read_byte(mem, addr);
+            set_p_carry_to(mem, (value >> 7) & 1);
+            value <<= 1;
+            write_byte(mem, addr, value);
+            mem->a |= value;
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        // RLA: ROL memory location, then AND with A register
+        case 0x27:
+        case 0x37:
+        case 0x2F:
+        case 0x3F:
+        case 0x3B:
+        case 0x23:
+        case 0x33: {
+            uint16_t address = address_for_opcode(mem, opcode, NULL);
+            mem->a &= rol(mem, address);
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        // SRE: LSR the contents of a memory location, then EOR with A register
+        case 0x47:
+        case 0x57:
+        case 0x4F:
+        case 0x5F:
+        case 0x5B:
+        case 0x43:
+        case 0x53: {
+            uint16_t addr = address_for_opcode(mem, opcode, NULL);
+            byte value = read_byte(mem, addr);
+            set_p_carry_to(mem, (bool) (value & 1));
+            value >>= 1;
+            write_byte(mem, addr, value);
+            mem->a ^= value;
+            set_p_zn_on(mem, mem->a);
+            break;
+        }
+
+        // RRA: ROR the contents of a memory location, then ADC with the A register
+        case 0x67:
+        case 0x77:
+        case 0x6F:
+        case 0x7F:
+        case 0x7B:
+        case 0x63:
+        case 0x73: {
+            uint16_t address = address_for_opcode(mem, opcode, NULL);
+            adc(mem, ror(mem, address));
             break;
         }
 
