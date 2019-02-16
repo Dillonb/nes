@@ -314,8 +314,8 @@ void clear_sprite_overflow(ppu_memory* ppu_mem) {
     ppu_mem->status &= 0b11011111; // Clear sprite overflow flag on PPUSTATUS
 }
 
-byte get_color(int x, int y, tiledata tile) {
-    byte colorbyte = tile.attribute_table;
+byte get_color(int x, byte fine_x, int y, byte fine_y, tiledata tile) {
+    uint16_t colorbyte = (tile.attribute_table);
     // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
     // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on
     // which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
@@ -323,7 +323,7 @@ byte get_color(int x, int y, tiledata tile) {
     // TODO probably don't have to do this on every pixel, only on a new tile.
     bool bottom  = y % 32 >= 16;
     bool right = x % 32 >= 16;
-    byte bitmap_bit = 7 - (x % 8); // TODO fine scrolling
+    byte bitmap_bit = (7 - fine_x) - (x % 8); // TODO fine scrolling
 
     // bottom right, bottom left, top right, top left
     // BRBLTRTL
@@ -331,8 +331,8 @@ byte get_color(int x, int y, tiledata tile) {
     colorbyte >>= right * 2; // If we're in the right quadrant, need to shift over by 2, otherwise we're good
     colorbyte = (colorbyte & 0b00000011) << 2; // Make space for the LSB from the tile data
 
-    byte high = (tile.tile_bitmap_high & (0b1 << bitmap_bit)) >> bitmap_bit; // TODO fine scrolling
-    byte low  = (tile.tile_bitmap_low  & (0b1 << bitmap_bit)) >> bitmap_bit; // TODO fine scrolling
+    byte high = ((tile.tile_bitmap_high) & (0b1 << bitmap_bit)) >> bitmap_bit; // TODO fine scrolling
+    byte low  = ((tile.tile_bitmap_low ) & (0b1 << bitmap_bit)) >> bitmap_bit; // TODO fine scrolling
     colorbyte |= (high << 1) | low;
 
     return colorbyte;
@@ -363,7 +363,7 @@ void render_pixel(ppu_memory* ppu_mem) {
     }
 
     // Background
-    byte background_color = get_color(x, y, ppu_mem->tile);
+    byte background_color = get_color(x, get_fine_x(ppu_mem), y, get_fine_y(ppu_mem), ppu_mem->tile);
     color real_background_color = get_real_color(ppu_mem, background_color);
 
     byte sprite_color;
@@ -411,16 +411,23 @@ void fetch_step(ppu_memory* ppu_mem) {
         // Nametable byte
         ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
         // Attribute table byte
-        ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
+        ppu_mem->tile.attribute_table <<= 8;
+        ppu_mem->tile.attribute_table &= 0xFF00;
+        ppu_mem->tile.attribute_table |= (0xFF & vram_read(ppu_mem, get_attribute_address(ppu_mem)));
         dprintf("Read 0x%02X for ATTRIBUTE TABLE\n", ppu_mem->tile.attribute_table);
         // Tile bitmap
-        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + ppu_mem->tile.nametable * (uint16_t)16 + get_fine_y(ppu_mem);
+        uint16_t nametable = ppu_mem->tile.nametable & (byte)0xFF;
+        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + nametable * (uint16_t)16 + get_fine_y(ppu_mem);
         // Low byte
-        ppu_mem->tile.tile_bitmap_low = vram_read(ppu_mem, tile_bitmap_address);
+        ppu_mem->tile.tile_bitmap_low <<= 8;
+        ppu_mem->tile.tile_bitmap_low &= 0xFF00;
+        ppu_mem->tile.tile_bitmap_low |= (0xFF & vram_read(ppu_mem, tile_bitmap_address));
         // High byte
         // The high byte is not stored next to the low byte.
         // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
-        ppu_mem->tile.tile_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + (uint16_t)8);
+        ppu_mem->tile.tile_bitmap_high <<= 8;
+        ppu_mem->tile.tile_bitmap_high &= 0xFF00;
+        ppu_mem->tile.tile_bitmap_high |= (0xFF & vram_read(ppu_mem, tile_bitmap_address + (uint16_t)8));
 
         dprintf("Fetched 0x%02X for nametable byte\nFetched 0x%02X for attribute table byte\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
@@ -682,7 +689,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
                 ppu_mem->w = HIGH;
             }
             if (ppu_mem->t > 0x3FFF) {
-                errx(EXIT_FAILURE, "Somehow managed to write an address higher than 0x3FFF to PPUADDR? WTF?");
+                errx(EXIT_FAILURE, "Somehow managed to write an address higher than 0x3FFF (0x%04x) to PPUADDR? WTF?", ppu_mem->t);
             }
             return;
         }

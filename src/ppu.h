@@ -11,9 +11,9 @@ typedef enum high_or_low_t {
 
 typedef struct tiledata_t {
     byte nametable;
-    byte attribute_table;
-    byte tile_bitmap_low;
-    byte tile_bitmap_high;
+    uint16_t attribute_table;
+    uint16_t tile_bitmap_low;
+    uint16_t tile_bitmap_high;
 } tiledata;
 
 typedef struct color_t {
