@@ -933,6 +933,7 @@ void trigger_nmi() {
 }
 
 void trigger_oam_dma(memory* mem, uint16_t address) {
+    byte oam_address = mem->ppu_mem.oam_address;
     for (uint16_t i = 0; i < 0xFF; i++) {
         write_oam_byte(&mem->ppu_mem, read_byte(mem, address + i));
     }
@@ -942,6 +943,8 @@ void trigger_oam_dma(memory* mem, uint16_t address) {
     }
 
     stall_cpu(513);
+
+    mem->ppu_mem.oam_address = oam_address; // Should leave it intact
 }
 
 int cpu_step(memory* mem) {
