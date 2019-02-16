@@ -143,10 +143,10 @@ uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
 }
 
 uint16_t mirror_palette_address(uint16_t address) {
-    address %=32;
+    address %= 32;
 
-    if (address > 16 && address % 4 == 0) {
-        return address - (uint16_t)16;
+    if (address >= 0x10 && address % 4 == 0) {
+        return address - (uint16_t)0x10;
     }
 
     return address;
