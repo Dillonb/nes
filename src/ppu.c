@@ -158,7 +158,14 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
 
     // Pattern tables
     if (address < 0x2000) {
-        printf("Pattern tables written to! NROM can't do this (CHR ROM), does this ROM use a different mapper?\n");
+        // NROM
+        if (ppu_mem->r->mapper == 0) {
+            printf("WARNING: pattern tables (CHR ROM) written to! allowing it because I'm a dumb emulator\n");
+            ppu_mem->r->chr_rom[address] = value;
+        }
+        else {
+            errx(EXIT_FAILURE, "Mapper 0x%02X not implemented in PPU!", ppu_mem->r->mapper);
+        }
     }
     // Nametables
     else if (address < 0x3F00) {
