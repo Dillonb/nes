@@ -109,10 +109,7 @@ void print_byte(byte b) {
 int test_total_cycles = 7; // nestest.log starts at 7
 
 int get_ppu_x(memory* mem) {
-    int x = get_screen_x(&mem->ppu_mem);
-    if (x == -1) {
-        x = 0;
-    }
+    int x = get_screen_x(&mem->ppu_mem) + 1;
     return x;
 }
 
@@ -152,8 +149,8 @@ void print_step_info(int index, nestest_step stepdata) {
         printf("\n");
         success = false;
     }
-    int ppu_x = get_screen_x(&mem.ppu_mem);
-    int ppu_y = get_screen_y(&mem.ppu_mem);
+    int ppu_x = get_ppu_x(&mem);
+    int ppu_y = get_ppu_y(&mem);
     if (stepdata.ppu_x != ppu_x) {
         printf("FAIL: ppu_x should be %d but is %d\n", stepdata.ppu_x, ppu_x);
     }
@@ -162,8 +159,8 @@ void print_step_info(int index, nestest_step stepdata) {
     }
     if (success) {
         char *disassembly = disassemble(&mem, mem.pc);
-        printf("%04d $%04X OPC: 0x%02X | %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X cycles: %d\n", index, mem.pc, read_byte(&mem, mem.pc), disassembly, mem.a, mem.x,
-               mem.y, mem.p, mem.sp, test_total_cycles);
+        printf("%04d $%04X OPC: 0x%02X | %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X ppu: %03d,%03d cycles: %d\n", index, mem.pc, read_byte(&mem, mem.pc), disassembly, mem.a, mem.x,
+               mem.y, mem.p, mem.sp, ppu_x, ppu_y, test_total_cycles);
         free(disassembly);
     }
 }
