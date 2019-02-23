@@ -57,7 +57,7 @@ byte read_byte(memory* mem, uint16_t address) {
         return (byte)state;
     }
     else if (address == 0x4017) {
-        printf("Access to controller register #2 attempted, returning 0x00 for now.\n");
+        dprintf("Access to controller register #2 attempted, returning 0x00 for now.\n");
         return 0x00;
     }
     else if (address >= 0x4020) { // 0x4020 -> USHRT_MAX is cartridge space
@@ -91,7 +91,7 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         mem->ctrl1.lastwrite = value;
     }
     else if (address < 0x4018) {
-        printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
+        dprintf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
     }
     else {
         errx(EXIT_FAILURE, "attempted to write_byte() 0x%02x at 0x%04x, but this is not implemented (yet?)", value, address);
