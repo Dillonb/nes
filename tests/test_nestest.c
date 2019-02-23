@@ -174,6 +174,7 @@ void test_run_rom(void) {
         TEST_ASSERT_EQUAL_UINT8(stepdata.x, mem.x);
         TEST_ASSERT_EQUAL_UINT8(stepdata.y, mem.y);
         TEST_ASSERT_EQUAL_UINT8(stepdata.p, mem.p);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.sp, mem.sp);
         TEST_ASSERT_EQUAL_INT(stepdata.cycles, test_total_cycles);
         int ppu_x = get_ppu_x(&mem);
         TEST_ASSERT_EQUAL_INT(stepdata.ppu_x, ppu_x);
