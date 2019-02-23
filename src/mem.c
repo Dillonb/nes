@@ -8,21 +8,7 @@
 #include "cpu.h"
 #include "debugger.h"
 #include "render.h"
-
-byte read_cartridge_space_address(rom* r, uint16_t address) {
-    // http://wiki.nesdev.com/w/index.php/Mapper
-
-    // NROM
-    if (r->mapper == 0) {
-        if (address >= 0x8000) { // Can't be more than 0xFFFF
-            uint16_t prg_rom_address = (address - 0x8000) % get_prg_rom_bytes(r); // TODO optimize
-            byte result = r->prg_rom[prg_rom_address];
-
-            return result;
-        }
-    }
-    errx(EXIT_FAILURE, "attempted to read_cartridge_space_address() at 0x%x, but this is not implemented (yet?)", address);
-}
+#include "mapper.h"
 
 // http://wiki.nesdev.com/w/index.php/CPU_memory_map
 byte read_byte(memory* mem, uint16_t address) {
@@ -61,7 +47,7 @@ byte read_byte(memory* mem, uint16_t address) {
         return 0x00;
     }
     else if (address >= 0x4020) { // 0x4020 -> USHRT_MAX is cartridge space
-        return read_cartridge_space_address(mem->r, address);
+        return mapper_prg_read(mem, address);
     }
     else {
         errx(EXIT_FAILURE, "Access attempted for invalid address: %x", address);
@@ -114,7 +100,7 @@ memory get_blank_memory(rom* r) {
     mem.ctrl1.lastwrite = 0;
 
     // Read initial value of program counter from the reset vector
-    mem.pc = (read_cartridge_space_address(r, 0xFFFD) << 8) | read_cartridge_space_address(r, 0xFFFC);
+    mem.pc = (mapper_prg_read(&mem, 0xFFFD) << 8) | mapper_prg_read(&mem, 0xFFFC);
 
     dprintf("Set program counter to 0x%x\n", mem.pc);
 

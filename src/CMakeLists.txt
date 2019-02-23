@@ -14,6 +14,9 @@ add_library(libnes
     opcode_names.c
     noop_render.c
     system.c
+    mapper.c
+    mapper0.c
+    mapper1.c
     )
 
 
@@ -52,6 +55,15 @@ add_executable (nes nes.c
     render.h
 
     palette.h
+
+    mapper.c
+    mapper.h
+
+    mapper0.c
+    mapper0.h
+
+    mapper1.c
+    mapper1.h
     )
 
 target_link_libraries(nes SDL2)
@@ -92,4 +104,8 @@ add_executable (disassemble disassemble.c
 
     noop_render.c
     render.h
+
+    mapper.c
+    mapper0.c
+    mapper1.c
     )
