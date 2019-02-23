@@ -16,3 +16,7 @@ byte mapper0_prg_read(memory* mem, uint16_t address) {
 byte mapper0_chr_read(rom* r, uint16_t address) {
     return 0x00;
 }
+
+void mapper0_prg_write(memory* mem, uint16_t address, byte value) {
+
+}

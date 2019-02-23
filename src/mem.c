@@ -79,7 +79,11 @@ void write_byte(memory* mem, uint16_t address, byte value) {
     else if (address < 0x4018) {
         dprintf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
     }
+    else if (address < 0x4020) {
+        dprintf("Write to CPU test mode register, ignoring.\n");
+    }
     else {
+        mapper_prg_write(mem, address, value);
         errx(EXIT_FAILURE, "attempted to write_byte() 0x%02x at 0x%04x, but this is not implemented (yet?)", value, address);
     }
 }
