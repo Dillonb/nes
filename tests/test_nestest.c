@@ -15,8 +15,8 @@ typedef struct nestest_step_t {
     byte y;
     byte p;
     byte sp;
-    byte ppu_x;
-    byte ppu_y;
+    int ppu_x;
+    int ppu_y;
     int cycles;
 } nestest_step;
 
@@ -82,13 +82,13 @@ void test_load_steps(void) {
         fseek(fp, 5, SEEK_CUR);
 
         fgets(buf, 4, fp);
-        temp_step.ppu_x = (byte)strtol(buf, NULL, 10);
+        temp_step.ppu_x = (int)strtol(buf, NULL, 10);
 
         // Skip label
         fseek(fp, 1, SEEK_CUR);
 
         fgets(buf, 4, fp);
-        temp_step.ppu_y = (byte)strtol(buf, NULL, 10);
+        temp_step.ppu_y = (int)strtol(buf, NULL, 10);
 
         // Skip label
         fseek(fp, 5, SEEK_CUR);
