@@ -45,7 +45,7 @@ void load_register(byte shift_register, uint16_t address, memory* mem) {
     }
     else {
         prg_bank = shift_register & (byte)0b1111;
-        ram_enabled = shift_register & (byte)0b10000 != 0;
+        ram_enabled = (shift_register & (byte)0b10000) >> 4;
     }
 }
 
