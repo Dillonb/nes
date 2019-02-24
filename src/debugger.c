@@ -272,18 +272,16 @@ void print_disassembly(memory* mem, uint16_t addr) {
 void debug_hook(debug_hook_type type, memory* mem) {
     if (debug_mode()) {
         print_status(mem);
-    }
-    if (type == INTERRUPT && breakpoint_on_interrupt) {
-        debugger_wait(mem);
-    }
-    else if (type == STEP) {
-        if (debug_mode()) {
+        if (type == INTERRUPT && breakpoint_on_interrupt) {
+            debugger_wait(mem);
+        }
+        else if (type == STEP) {
             printf("\n\nSteps: %d\nCycles: %ld\n$%04x: Executing instruction ", cpu_steps++, get_total_cpu_cycles(), mem->pc);
             print_disassembly(mem, mem->pc);
             printf("\n");
-        }
-        if (is_breakpoint(mem->pc) || debugger_state == STEPPING || debugger_state == STOPPED) {
-            debugger_wait(mem);
+            if (is_breakpoint(mem->pc) || debugger_state == STEPPING || debugger_state == STOPPED) {
+                debugger_wait(mem);
+            }
         }
     }
 }
