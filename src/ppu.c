@@ -300,9 +300,6 @@ void clear_vblank(ppu_memory* ppu_mem) {
 
 void set_sprite_overflow(ppu_memory* ppu_mem) {
     ppu_mem->status |= 0b00100000; // Set sprite overflow flag on PPUSTATUS
-    if (vblank_nmi(ppu_mem)) {
-        trigger_nmi();
-    }
 }
 
 void clear_sprite_overflow(ppu_memory* ppu_mem) {
