@@ -81,10 +81,10 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         mem->ctrl1.lastwrite = value;
     }
     else if (address < 0x4018) {
-        printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
+        dprintf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
     }
     else if (address < 0x4020) {
-        printf("Write to CPU test mode register, ignoring.\n");
+        dprintf("Write to CPU test mode register, ignoring.\n");
     }
     else {
         mapper_prg_write(mem, address, value);
