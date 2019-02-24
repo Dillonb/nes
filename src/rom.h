@@ -3,6 +3,7 @@
 #include "util.h"
 
 #define BYTES_PER_PRG_ROM_BLOCK 16384
+#define BYTES_PER_PRG_RAM_BLOCK 8192
 #define BYTES_PER_CHR_ROM_BLOCK 8192
 #define TRAINER_BYTES 512
 
@@ -20,7 +21,9 @@ typedef struct ines_header_t {
 
 typedef enum nametable_mirroring_t {
     HORIZONTAL,
-    VERTICAL
+    VERTICAL,
+    SINGLE_LOWER,
+    SINGLE_UPPER
 } nametable_mirroring;
 
 typedef struct rom_t {
@@ -34,6 +37,7 @@ typedef struct rom_t {
 } rom;
 
 size_t get_prg_rom_bytes(rom* r);
+size_t get_prg_ram_bytes(rom* r);
 size_t get_chr_rom_bytes(rom* r);
 int has_trainer(ines_header* header);
 rom* read_rom(char* filename);

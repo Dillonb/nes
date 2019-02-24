@@ -20,6 +20,15 @@ size_t get_prg_rom_bytes(rom* r) {
   return (size_t) BYTES_PER_PRG_ROM_BLOCK * r->header->prg_rom_blocks;
 }
 
+size_t get_prg_ram_bytes(rom* r) {
+    size_t prg_ram_blocks = r->header->prg_ram_blocks;
+    if (prg_ram_blocks == 0) {
+        prg_ram_blocks = 1;
+    }
+
+    return prg_ram_blocks * BYTES_PER_PRG_RAM_BLOCK;
+}
+
 size_t get_chr_rom_bytes(rom* r) {
   int blocks = r->header->chr_rom_blocks;
 
