@@ -306,6 +306,14 @@ void clear_sprite_overflow(ppu_memory* ppu_mem) {
     ppu_mem->status &= 0b11011111; // Clear sprite overflow flag on PPUSTATUS
 }
 
+void set_sprite_zero_hit(ppu_memory* ppu_mem) {
+    ppu_mem->status |= 0b01000000; // Set sprite zero hit flag on PPUSTATUS
+}
+
+void clear_sprite_zero_hit(ppu_memory* ppu_mem) {
+    ppu_mem->status &= 0b10111111; // Clear sprite zero hit flag on PPUSTATUS
+}
+
 byte get_color(int x, byte fine_x, int y, byte fine_y, tiledata tile) {
     uint16_t colorbyte = (tile.attribute_table);
     // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
@@ -361,6 +369,7 @@ void render_pixel(ppu_memory* ppu_mem) {
     byte sprite_color;
     color real_sprite_color;
     bool found_sprite = false;
+    int found_sprite_index = -1;
     // Sprites
     for (int i = 0; i < ppu_mem->num_sprites && !found_sprite; i++) {
         sprite s = ppu_mem->sprites[i];
@@ -378,13 +387,18 @@ void render_pixel(ppu_memory* ppu_mem) {
                 dprintf("Color: %02X\n", color);
                 found_sprite = true;
                 sprite_color = color;
+                found_sprite_index = i;
                 real_sprite_color = get_real_color(ppu_mem, sprite_color);
+                break;
             }
         }
     }
 
     if (found_sprite) {
         dprintf("RENDERING SPRITE PIXEL! %02X%02X%02X%02X\n", real_sprite_color.r, real_sprite_color.g, real_sprite_color.b, real_sprite_color.a);
+        if (found_sprite_index == 0 && background_color != 0) {
+            set_sprite_zero_hit(ppu_mem);
+        }
         ppu_mem->screen[x][y] = real_sprite_color;
     }
     else {
@@ -586,6 +600,7 @@ void ppu_step(ppu_memory* ppu_mem) {
     if (ppu_mem->cycle == 1 && ppu_mem->scan_line == 0) {
         clear_vblank(ppu_mem);
         clear_sprite_overflow(ppu_mem);
+        clear_sprite_zero_hit(ppu_mem);
     }
 }
 
