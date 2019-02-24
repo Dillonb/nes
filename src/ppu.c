@@ -132,6 +132,13 @@ uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
             nametable_addr -= 0x800;
         }
     }
+    else if (mirror_mode == SINGLE_LOWER) {
+        nametable_addr %= 0x400;
+    }
+    else if (mirror_mode == SINGLE_UPPER) {
+        nametable_addr %= 0x400;
+        nametable_addr += 0x400;
+    }
     else {
         errx(EXIT_FAILURE, "Need to implement some kind of mirroring! Rev up those debuggers!");
     }
@@ -593,12 +600,21 @@ byte read_status_sideeffects(ppu_memory* ppu_mem) {
     return oldval;
 }
 
+byte ppu_open_bus;
+
 byte read_ppu_register(ppu_memory* ppu_mem, byte register_num) {
+    byte result;
     switch (register_num) {
-        case 2:
-            return read_status_sideeffects(ppu_mem);
+        case 2: {
+            // Update last 5 bits of status register from open bus
+            byte last5 = ppu_open_bus & (byte)0b00011111;
+            ppu_mem->status = (ppu_mem->status & (byte)0b11100000) | last5;
+            result = read_status_sideeffects(ppu_mem);
+            break;
+        }
         case 4:
-            return ppu_mem->oam_data[ppu_mem->oam_address];
+            result = ppu_mem->oam_data[ppu_mem->oam_address];
+            break;
         case 7: {
             byte value = vram_read(ppu_mem, ppu_mem->v);
             if (ppu_mem->v < 0x3F00) {
@@ -611,11 +627,17 @@ byte read_ppu_register(ppu_memory* ppu_mem, byte register_num) {
             }
             ppu_mem->v += get_addr_increment(ppu_mem);
 
-            return value;
+            result = value;
+            break;
         }
         default:
-            errx(EXIT_FAILURE, "Tried to read invalid PPU register %x - only 2, 4, and 7 are capable of being read from", register_num);
+            printf("WARNING: reading from invalid PPU register %x - only 2, 4, and 7 are capable of being read from", register_num);
+            return ppu_open_bus;
     }
+
+    ppu_open_bus = result;
+
+    return result;
 }
 
 void write_oam_byte(ppu_memory* ppu_mem, byte value) {
@@ -623,10 +645,6 @@ void write_oam_byte(ppu_memory* ppu_mem, byte value) {
 }
 
 void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
-    // Update last 5 bits of status register _every_ write to _any_ ppu register
-    byte last5 = value & 0b00011111;
-    ppu_mem->status = (ppu_mem->status & 0b11100000) | last5;
-
     switch (register_num) {
         case 0:
             ppu_mem->control = value;
@@ -677,7 +695,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
                 ppu_mem->w = HIGH;
             }
             if (ppu_mem->t > 0x3FFF) {
-                errx(EXIT_FAILURE, "Somehow managed to write an address higher than 0x3FFF (0x%04x) to PPUADDR? WTF?", ppu_mem->t);
+                //errx(EXIT_FAILURE, "Somehow managed to write an address higher than 0x3FFF (0x%04x) to PPUADDR? WTF?", ppu_mem->t);
             }
             return;
         }
@@ -686,6 +704,8 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
             ppu_mem->v += get_addr_increment(ppu_mem);
             return;
         default:
-            errx(EXIT_FAILURE, "Tried to write 0x%02X to invalid or unimplemented PPU register %x", value, register_num);
+            printf("WARNING: writing 0x%02X to read-only PPU register %x\n", value, register_num);
+            ppu_open_bus = value;
+
     }
 }

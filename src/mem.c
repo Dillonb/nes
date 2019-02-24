@@ -22,6 +22,10 @@ byte read_byte(memory* mem, uint16_t address) {
         dprintf("Read 0x%02x from PPU register %d\n", value, register_num);
         return value;
     }
+    else if (address == 0x4015) {
+        printf("Reading from 0x4015, returning 0 for now\n");
+        return 0x00;
+    }
     else if (address == 0x4016) {
         bool state;
         if (mem->ctrl1.allread) {
@@ -46,7 +50,7 @@ byte read_byte(memory* mem, uint16_t address) {
         dprintf("Access to controller register #2 attempted, returning 0x00 for now.\n");
         return 0x00;
     }
-    else if (address >= 0x4020) { // 0x4020 -> USHRT_MAX is cartridge space
+    else if (address >= 0x4020) {
         return mapper_prg_read(mem, address);
     }
     else {
@@ -77,10 +81,10 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         mem->ctrl1.lastwrite = value;
     }
     else if (address < 0x4018) {
-        dprintf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
+        printf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
     }
     else if (address < 0x4020) {
-        dprintf("Write to CPU test mode register, ignoring.\n");
+        printf("Write to CPU test mode register, ignoring.\n");
     }
     else {
         mapper_prg_write(mem, address, value);

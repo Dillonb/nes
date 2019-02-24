@@ -35,24 +35,29 @@ int chr_offset_for_bank(memory *mem, int bank) {
     if (bank >= 0x80) {
         bank -= 0x100;
     }
-    bank %= mem->r->header->chr_rom_blocks;
+    if (bank > 0 && mem->r->header->chr_rom_blocks > 0) {
+        bank %= mem->r->header->chr_rom_blocks;
+    }
     return bank * BYTES_PER_CHR_ROM_BLOCK;
 }
 
 byte mapper1_prg_read(memory* mem, uint16_t address) {
+    byte result;
     if (address < 0x6000) {
         errx(EXIT_FAILURE, "Mapper 1: Sub-0x6000 unsupported memory address read, 0x%04X", address);
     }
     else if (address < 0xC000) { // PRG bank 0, 0x8000 - 0xBFFF
-        return mem->r->prg_rom[prg_bank_0_offset + (address  % 0x4000)];
+        result = mem->r->prg_rom[prg_bank_0_offset + (address  % 0x4000)];
     }
     else { // PRG bank 1, 0xC000 - 0xFFFF
         if (prg_bank_1_offset == -1) {
             prg_bank_1_offset = get_last_prg_bank(mem);
         }
 
-        return mem->r->prg_rom[prg_bank_1_offset + (address % 0x4000)];
+        result = mem->r->prg_rom[prg_bank_1_offset + (address % 0x4000)];
     }
+
+    return result;
 }
 
 void load_register(byte shift_register, uint16_t address, memory* mem) {
@@ -65,7 +70,13 @@ void load_register(byte shift_register, uint16_t address, memory* mem) {
         prg_bank_mode = (shift_register >> 2) & (byte)0b11;
         chr_bank_mode = (shift_register >> 4) & (byte)0b1;
 
-        if (mirroring == 2) {
+        if (mirroring == 0) {
+            mem->r->nametable_mirroring_mode = SINGLE_LOWER;
+        }
+        else if (mirroring == 1) {
+            mem->r->nametable_mirroring_mode = SINGLE_UPPER;
+        }
+        else if (mirroring == 2) {
             mem->r->nametable_mirroring_mode = VERTICAL;
         }
         else if (mirroring == 3) {
@@ -121,27 +132,32 @@ byte shift_register = 0x10;
 
 void mapper1_prg_write(memory* mem, uint16_t address, byte value) {
     if (address < 0x6000) {
-        errx(EXIT_FAILURE, "Wrote to invalid address for mapper 1: 0x%04X", address);
+        printf("Wrote to invalid address for mapper 1: 0x%04X\n", address);
     }
     else if (address < 0x8000) {
         // 8kb prg ram bank
         mem->r->prg_ram[address - 0x6000] = value;
     }
-    else if (address < 0xFFFF) {
+    else {
         // TODO need to discard writes that happen on consecutive cycles, see https://wiki.nesdev.com/w/index.php/MMC1
 
         // Shift register stuff
         if (value > 0x7F) {
-            // MSB not set, clear shift register
+            // MSB set, clear shift register
+            printf("Mapper 1: clearing shift register\n");
             shift_register = 0x10;
         }
         else {
-            byte bit = (value & (byte)0b1) << 4;
+            byte bit = (value & (byte)1) << 4;
 
+            byte old_sr = shift_register;
             // as soon as the 1 from 0x10 has been shifted into the LSB, we're done.
             bool done_writing = (shift_register & 1) == 1;
             shift_register >>= 1;
+            byte sr_before_or = shift_register;
             shift_register |= bit;
+
+            printf("Mapper 1: Loading SR: old: %02X before or: %02X new: %02X value: %02X bit: %02X address: $%04X\n", old_sr, sr_before_or, shift_register, value, bit, address);
 
             if (done_writing) {
                 load_register(shift_register, address, mem);
@@ -166,4 +182,15 @@ byte mapper1_chr_read(ppu_memory* ppu_mem, uint16_t address) {
 }
 
 void mapper1_chr_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
+    int offset;
+    if (address < 0x1000) {
+        offset = chr_bank_0_offset;
+    }
+    else if (address < 0x2000) {
+        offset = chr_bank_1_offset;
+    }
+    else {
+        errx(EXIT_FAILURE, "Mapper 1: Attempt to write 0x%02X to out of range CHR address 0x%04X", value, address);
+    }
+    ppu_mem->r->chr_rom[offset + (address % 0x1000)] = value;
 }
