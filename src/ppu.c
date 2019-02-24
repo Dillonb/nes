@@ -315,21 +315,8 @@ void clear_sprite_zero_hit(ppu_memory* ppu_mem) {
 }
 
 byte get_color(int x, byte fine_x, int y, tiledata tile) {
-    byte colorbyte = (tile.attribute_table);
-    // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
-    // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on
-    // which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
-
-    // TODO take into account fine scrolling?
-    bool bottom  = y % 32 >= 16;
-    bool right = x % 32 >= 16;
+    byte colorbyte = tile.attribute_table;
     byte bitmap_bit = ((byte)15 - fine_x);
-
-    // bottom right, bottom left, top right, top left
-    // BRBLTRTL
-    colorbyte >>= bottom * 4; // If we're in the bottom quadrants, need to shift over by 4, otherwise we're good.
-    colorbyte >>= right * 2; // If we're in the right quadrant, need to shift over by 2, otherwise we're good
-    colorbyte = (colorbyte & (byte)0b00000011) << 2; // Make space for the LSB from the tile data
 
     byte high = (byte)(tile.tile_bitmap_high >> bitmap_bit) & (byte)1;
     byte low  = (byte)(tile.tile_bitmap_low >> bitmap_bit) & (byte)1;
@@ -423,7 +410,16 @@ void fetch_step(ppu_memory* ppu_mem) {
         // Nametable byte
         ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
         // Attribute table byte
-        ppu_mem->tile.attribute_table = vram_read(ppu_mem, get_attribute_address(ppu_mem));
+        byte at = vram_read(ppu_mem, get_attribute_address(ppu_mem));
+        // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
+        // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on
+        // which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
+        // This code grabs the correct 2 bits from the attribute table value for the current tile, and shifts it so it's easy
+        // to insert the two LSBs that come from the tile.
+        at >>= ((ppu_mem->v >> (byte)4) & (byte)4) | (ppu_mem->v & (byte)2);
+        at &= 0b11;
+        at <<= 2;
+        ppu_mem->tile.attribute_table = at;
         // Tile bitmap
         uint16_t nametable = ppu_mem->tile.nametable & (byte)0xFF;
         uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + nametable * (uint16_t)16 + get_fine_y(ppu_mem);
@@ -438,10 +434,8 @@ void fetch_step(ppu_memory* ppu_mem) {
 
         dprintf("Nametable byte 0x%02X\nAttribute table 0x%04X\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
-        // Once done, move to the next tile if we're in a visible line
-        if (is_line_visible(ppu_mem)) {
-            increment_x(ppu_mem);
-        }
+        // Once done, move to the next tile
+        increment_x(ppu_mem);
     }
 }
 
@@ -579,7 +573,7 @@ void ppu_step(ppu_memory* ppu_mem) {
     // Pre-render
     else if (ppu_mem->scan_line == 261) {
         if (rendering_enabled(ppu_mem)) {
-            if ((ppu_mem->cycle> 0 && ppu_mem->cycle < 257) || (ppu_mem->cycle > 320 && ppu_mem->cycle < 336)) {
+            if ((ppu_mem->cycle> 0 && ppu_mem->cycle < 257) || (ppu_mem->cycle > 320 && ppu_mem->cycle <= 336)) {
                 fetch_step(ppu_mem);
                 if (ppu_mem->cycle == 256) {
                     increment_y(ppu_mem);
