@@ -386,7 +386,7 @@ void render_pixel(ppu_memory* ppu_mem) {
             if (color % 4 != 0) {
                 dprintf("Color: %02X\n", color);
                 found_sprite = true;
-                sprite_color = color;
+                sprite_color = color | 0x10;
                 found_sprite_index = i;
                 real_sprite_color = get_real_color(ppu_mem, sprite_color);
                 break;
