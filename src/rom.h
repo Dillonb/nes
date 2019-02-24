@@ -30,6 +30,7 @@ typedef struct rom_t {
   byte* chr_rom;
   byte mapper;
   nametable_mirroring nametable_mirroring_mode;
+  byte prg_ram[0x2000];
 } rom;
 
 size_t get_prg_rom_bytes(rom* r);

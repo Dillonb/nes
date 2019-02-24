@@ -12,11 +12,15 @@ byte mapper0_prg_read(memory* mem, uint16_t address) {
     }
     errx(EXIT_FAILURE, "attempted to read_cartridge_space_address() at 0x%x, but this is not implemented (yet?)", address);
 }
-
-byte mapper0_chr_read(rom* r, uint16_t address) {
-    return 0x00;
-}
-
 void mapper0_prg_write(memory* mem, uint16_t address, byte value) {
 
+}
+
+byte mapper0_chr_read(ppu_memory* ppu_mem, uint16_t address) {
+    return ppu_mem->r->chr_rom[address];
+}
+
+void mapper0_chr_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
+    printf("WARNING: NROM pattern tables (CHR ROM) written to! allowing it because I'm a dumb emulator\n");
+    ppu_mem->r->chr_rom[address] = value;
 }

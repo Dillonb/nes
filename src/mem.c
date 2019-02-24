@@ -84,7 +84,6 @@ void write_byte(memory* mem, uint16_t address, byte value) {
     }
     else {
         mapper_prg_write(mem, address, value);
-        errx(EXIT_FAILURE, "attempted to write_byte() 0x%02x at 0x%04x, but this is not implemented (yet?)", value, address);
     }
 }
 

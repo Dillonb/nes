@@ -8,6 +8,7 @@
 #include "debugger.h"
 #include "render.h"
 #include "palette.h"
+#include "mapper.h"
 
 #define VBLANK_LINE 241
 #define MAX_SPRITES_PER_LINE 8
@@ -158,14 +159,7 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
 
     // Pattern tables
     if (address < 0x2000) {
-        // NROM
-        if (ppu_mem->r->mapper == 0) {
-            printf("WARNING: pattern tables (CHR ROM) written to! allowing it because I'm a dumb emulator\n");
-            ppu_mem->r->chr_rom[address] = value;
-        }
-        else {
-            errx(EXIT_FAILURE, "Mapper 0x%02X not implemented in PPU!", ppu_mem->r->mapper);
-        }
+        mapper_chr_write(ppu_mem, address, value);
     }
     // Nametables
     else if (address < 0x3F00) {
@@ -187,13 +181,7 @@ byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
 
     // Pattern tables
     if (address < 0x2000) {
-        // NROM
-        if (ppu_mem->r->mapper == 0) {
-            result = ppu_mem->r->chr_rom[address];
-        }
-        else {
-            errx(EXIT_FAILURE, "Mapper 0x%02X not implemented in PPU!", ppu_mem->r->mapper);
-        }
+        result = mapper_chr_read(ppu_mem, address);
     }
     // Nametables
     else if (address < 0x3F00) {
