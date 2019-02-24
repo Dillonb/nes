@@ -554,7 +554,7 @@ void ppu_step(ppu_memory* ppu_mem) {
                 render_pixel(ppu_mem);
             }
 
-            if ((ppu_mem->cycle > 0 && ppu_mem->cycle < 257) || (ppu_mem->cycle > 320 && ppu_mem->cycle < 336)) {
+            if ((ppu_mem->cycle > 0 && ppu_mem->cycle < 257) || (ppu_mem->cycle > 320 && ppu_mem->cycle <= 336)) {
                 fetch_step(ppu_mem);
                 if (ppu_mem->cycle == 256) {
                     increment_y(ppu_mem);
