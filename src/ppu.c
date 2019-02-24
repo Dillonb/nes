@@ -315,7 +315,7 @@ void clear_sprite_zero_hit(ppu_memory* ppu_mem) {
 }
 
 byte get_color(int x, byte fine_x, int y, tiledata tile) {
-    uint16_t colorbyte = (tile.attribute_table);
+    byte colorbyte = (tile.attribute_table);
     // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
     // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on
     // which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
@@ -386,7 +386,7 @@ void render_pixel(ppu_memory* ppu_mem) {
             if (color % 4 != 0) {
                 dprintf("Color: %02X\n", color);
                 found_sprite = true;
-                sprite_color = color | 0x10;
+                sprite_color = color | (byte)0x10;
                 found_sprite_index = i;
                 real_sprite_color = get_real_color(ppu_mem, sprite_color);
             }
@@ -398,7 +398,12 @@ void render_pixel(ppu_memory* ppu_mem) {
         if (found_sprite_index == 0 && background_color != 0) {
             set_sprite_zero_hit(ppu_mem);
         }
-        ppu_mem->screen[x][y] = real_sprite_color;
+        if (background_color != 0 && ppu_mem->sprites[found_sprite_index].priority == 1) {
+            ppu_mem->screen[x][y] = real_background_color;
+        }
+        else {
+            ppu_mem->screen[x][y] = real_sprite_color;
+        }
     }
     else {
         ppu_mem->screen[x][y] = real_background_color;
