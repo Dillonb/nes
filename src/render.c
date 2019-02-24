@@ -112,7 +112,7 @@ void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
             SDL_RenderFillRect(renderer, &rect);
         }
     }
-    printf("Updating renderer\n");
+    dprintf("Updating renderer\n");
     SDL_RenderPresent(renderer);
 }
 

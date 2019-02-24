@@ -523,7 +523,7 @@ void ppu_step(ppu_memory* ppu_mem) {
         if (ppu_mem->scan_line >= NUM_LINES) {
             ppu_mem->frame++;
             ppu_mem->scan_line = 0;
-            printf("Rendering frame %llu\n", ppu_mem->frame);
+            dprintf("Rendering frame %llu\n", ppu_mem->frame);
             render_screen(ppu_mem->screen);
         }
     }
