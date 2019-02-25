@@ -1,6 +1,8 @@
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 find_package(SDL2 REQUIRED)
+include_directories("/usr/local/include")
+link_directories("/usr/local/lib")
 
 # For testing
 add_library(libnes
