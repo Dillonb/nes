@@ -99,13 +99,8 @@ uint16_t get_attribute_address(ppu_memory* ppu_mem) {
 }
 
 uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
-    if (addr > 0x2fff) {
-        addr -= 0x1000;
-    }
     uint16_t nametable_addr = addr - (uint16_t)0x2000;
-    if (nametable_addr >= 0x1000) {
-        errx(EXIT_FAILURE, "0x%04X is not a nametable address!", addr);
-    }
+    nametable_addr %= 0x1000;
     nametable_mirroring mirror_mode = ppu_mem->r->nametable_mirroring_mode;
 
     if (mirror_mode == HORIZONTAL) {
