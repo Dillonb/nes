@@ -28,9 +28,10 @@ void mapper0_prg_write(memory* mem, uint16_t address, byte value) {
         address -= 0x6000;
         address %= prg_ram_bytes;
         mem->r->prg_ram[address] = value;
+        printf("Wrote 0x%02X to 0x%04X\n", value, address + 0x6000);
     }
     else {
-        errx(EXIT_FAILURE, "Tried to write 0x%02X to PRG at 0x%04X", value, address);
+        printf("Tried to write 0x%02X to PRG at 0x%04X\n", value, address);
     }
 }
 
