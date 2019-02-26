@@ -345,39 +345,46 @@ void render_pixel(ppu_memory* ppu_mem) {
     }
 
     // Background
-    byte background_color = get_color(x, get_fine_x(ppu_mem), y, ppu_mem->tile);
-    color real_background_color = get_real_color(ppu_mem, background_color);
+    byte background_color = 0;
+    color real_background_color;
+
+    if (background_enabled(ppu_mem)) {
+        background_color = get_color(x, get_fine_x(ppu_mem), y, ppu_mem->tile);
+        real_background_color = get_real_color(ppu_mem, background_color);
+    }
 
     byte sprite_color;
     color real_sprite_color;
     bool found_sprite = false;
     int found_sprite_index = -1;
     // Sprites
-    for (int i = 0; i < ppu_mem->num_sprites && !found_sprite; i++) {
-        sprite s = ppu_mem->sprites[i];
-        int offset = x - s.x_coord;
-        // Does the sprite overlap the pixel we're currently in?
-        if (offset >= 0 && offset < 8) {
-            // TODO: I think this may be broken
-            byte color = (s.pattern.palette & (byte)0b11) << 2;
-            int shift = s.pattern.reverse ? offset : 7 - offset;
-            color |= ((s.pattern.high_byte >> shift) & 1) << 1;
-            color |= (s.pattern.low_byte >> shift) & 1;
+    if (sprites_enabled(ppu_mem)) {
+        for (int i = 0; i < ppu_mem->num_sprites && !found_sprite; i++) {
+            sprite s = ppu_mem->sprites[i];
+            int offset = x - s.x_coord;
+            // Does the sprite overlap the pixel we're currently in?
+            if (offset >= 0 && offset < 8) {
+                // TODO: I think this may be broken
+                byte color = (s.pattern.palette & (byte) 0b11) << 2;
+                int shift = s.pattern.reverse ? offset : 7 - offset;
+                color |= ((s.pattern.high_byte >> shift) & 1) << 1;
+                color |= (s.pattern.low_byte >> shift) & 1;
 
-            // Is the pixel of the sprite we want to render non-transparent?
-            if (color % 4 != 0) {
-                dprintf("Color: %02X\n", color);
-                found_sprite = true;
-                sprite_color = color | (byte)0x10;
-                found_sprite_index = i;
-                real_sprite_color = get_real_color(ppu_mem, sprite_color);
+                // Is the pixel of the sprite we want to render non-transparent?
+                if (color % 4 != 0) {
+                    dprintf("Color: %02X\n", color);
+                    found_sprite = true;
+                    sprite_color = color | (byte) 0x10;
+                    found_sprite_index = i;
+                    real_sprite_color = get_real_color(ppu_mem, sprite_color);
+                }
             }
         }
     }
 
     if (found_sprite) {
         dprintf("RENDERING SPRITE PIXEL! %02X%02X%02X%02X\n", real_sprite_color.r, real_sprite_color.g, real_sprite_color.b, real_sprite_color.a);
-        if (found_sprite_index == 0 && background_color != 0) {
+        if (found_sprite_index == 0 && background_color != 0 && x != 255) {
             set_sprite_zero_hit(ppu_mem);
         }
         if (background_color != 0 && ppu_mem->sprites[found_sprite_index].priority == 1) {
