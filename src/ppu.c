@@ -100,7 +100,7 @@ uint16_t get_attribute_address(ppu_memory* ppu_mem) {
 
 uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
     uint16_t nametable_addr = addr - (uint16_t)0x2000;
-    nametable_addr %= 0x1000;
+    //nametable_addr %= 0x1000;
     nametable_mirroring mirror_mode = ppu_mem->r->nametable_mirroring_mode;
 
     if (mirror_mode == HORIZONTAL) {
@@ -124,7 +124,7 @@ uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
         if (nametable_addr >= 0x800) {
             // First and second nametables are 0x000-0x800
             // Third and fourth are mirrors of first and second, respectively
-            nametable_addr -= 0x800;
+            nametable_addr %= 0x800;
         }
     }
     else if (mirror_mode == SINGLE_LOWER) {
@@ -142,7 +142,7 @@ uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
         errx(EXIT_FAILURE, "Got a value >= 0x800 after mirroring! Rev up those debuggers!");
     }
 
-    return nametable_addr % (uint16_t)0x800;
+    return nametable_addr;
 }
 
 uint16_t mirror_palette_address(uint16_t address) {
@@ -418,7 +418,8 @@ void fetch_step(ppu_memory* ppu_mem) {
     if (ppu_mem->cycle % 8 == 0) {
         dprintf("Fetching at screen pos %d,%d, VRAM pos %d~%d,%d~%d\n", get_screen_x(ppu_mem), get_screen_y(ppu_mem), get_coarse_x(ppu_mem), get_fine_x(ppu_mem), get_coarse_y(ppu_mem), get_fine_y(ppu_mem));
         // Nametable byte
-        ppu_mem->tile.nametable = vram_read(ppu_mem, get_nametable_address(ppu_mem));
+        uint16_t nametable_addr = get_nametable_address(ppu_mem);
+        ppu_mem->tile.nametable = vram_read(ppu_mem, nametable_addr);
         // Attribute table byte
         byte at = vram_read(ppu_mem, get_attribute_address(ppu_mem));
         // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
@@ -541,7 +542,7 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
 void ppu_step(ppu_memory* ppu_mem) {
     ppu_mem->cycle++;
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
-        ppu_mem->cycle = 0;
+        ppu_mem->cycle = 1;
         ppu_mem->scan_line++;
         if (ppu_mem->scan_line >= NUM_LINES) {
             ppu_mem->frame++;
@@ -712,7 +713,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
                 ppu_mem->w = HIGH;
             }
             if (ppu_mem->t > 0x3FFF) {
-                //errx(EXIT_FAILURE, "Somehow managed to write an address higher than 0x3FFF (0x%04x) to PPUADDR? WTF?", ppu_mem->t);
+                errx(EXIT_FAILURE, "Somehow managed to write an address higher than 0x3FFF (0x%04x) to PPUADDR? WTF?", ppu_mem->t);
             }
             return;
         }
