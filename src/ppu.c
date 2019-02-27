@@ -252,6 +252,14 @@ bool rendering_enabled(ppu_memory* ppu_mem) {
     return (ppu_mem->mask & 0b00011000) > 0; // Enable sprites OR enable background flags enabled
 }
 
+bool sprites_enabled(ppu_memory* ppu_mem) {
+    return (ppu_mem->mask & 0b00010000) > 0;
+}
+
+bool background_enabled(ppu_memory* ppu_mem) {
+    return (ppu_mem->mask & 0b00001000) > 0;
+}
+
 bool is_line_visible(ppu_memory* ppu_mem) {
     // Pre-render scanline
     if (ppu_mem->scan_line == 0) {
