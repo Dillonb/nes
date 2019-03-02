@@ -105,6 +105,16 @@ rom* read_rom(char* filename) {
 
     r->mapper = get_mapper_number(r);
     r->nametable_mirroring_mode = get_nametable_mirroring_mode(r);
+    switch (r->nametable_mirroring_mode) {
+        case HORIZONTAL:
+            printf("Nametable mirroring mode: HORIZONTAL\n");
+            break;
+        case VERTICAL:
+            printf("Nametable mirroring mode: VERTICAL\n");
+            break;
+        default:
+            printf("Nametable mirroring mode: UNKNOWN\n");
+    }
 
     printf("Rom has mapper %d\n", r->mapper);
 
