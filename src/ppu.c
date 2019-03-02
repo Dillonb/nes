@@ -649,7 +649,7 @@ byte read_ppu_register(ppu_memory* ppu_mem, byte register_num) {
             break;
         }
         default:
-            printf("WARNING: reading from invalid PPU register %x - only 2, 4, and 7 are capable of being read from", register_num);
+            printf("WARNING: reading from invalid PPU register %x - only 2, 4, and 7 are capable of being read from\n", register_num);
             return ppu_open_bus;
     }
 
