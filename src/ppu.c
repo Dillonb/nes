@@ -330,9 +330,7 @@ byte get_color(int x, byte fine_x, int y, tiledata tile) {
 
 color get_real_color(ppu_memory* ppu_mem, byte colorbyte) {
     byte palette_entry = vram_read(ppu_mem, (uint16_t)(colorbyte + 0x3F00));
-    if (palette_entry >= 64) {
-        errx(EXIT_FAILURE, "Error: palette entry out of range. Maybe time to mod 64 it? or there's something else going on");
-    }
+    palette_entry %= 64;
     return rgb_palette[palette_entry];
 }
 
@@ -700,14 +698,14 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
         case 6: {
             if (ppu_mem->w == HIGH) {
                 // Mask out old high byte
-                byte highvalue = value & (byte)0b00111111; // Highest value allowed = 0x3F in high byte
+                uint16_t highvalue = value & (byte)0b00111111; // Highest value allowed = 0x3F in high byte
                 ppu_mem->t &= 0x00FF;
-                ppu_mem->t |= ((uint16_t)highvalue) << 8;
+                ppu_mem->t |= highvalue << 8;
                 ppu_mem->w = LOW;
             }
             else if (ppu_mem->w == LOW) {
                 // Mask out old low byte
-                ppu_mem->t &= 0xFF00;
+                ppu_mem->t &= 0x3F00;
                 ppu_mem->t |= value;
                 ppu_mem->v = ppu_mem->t;
                 ppu_mem->w = HIGH;
