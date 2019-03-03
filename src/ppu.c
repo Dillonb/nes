@@ -236,7 +236,7 @@ uint16_t get_background_table_base_address(ppu_memory* ppu_mem) {
 }
 
 uint16_t get_sprite_pattern_table_address(ppu_memory* ppu_mem) {
-    return get_sprite_pattern_table_flag(ppu_mem) * (uint16_t)1000;
+    return get_sprite_pattern_table_flag(ppu_mem) * (uint16_t)0x1000;
 }
 
 // 0 - 261
@@ -476,7 +476,7 @@ sprite_pattern get_sprite_pattern(ppu_memory* ppu_mem, byte tile, byte attr, int
         // Use bit 0 of the OAM table's tile value for 8x16 sprites
         addr = (tile & (byte)0b00000001) * (uint16_t)0x1000;
         dprintf("Using pattern table 0x%04X for sprite\n", addr);
-        tile &= 0x0b11111110; // and mask out that bit
+        tile &= 0b11111110; // and mask out that bit
         // If we need to, skip to the next byte (8x16 sprites take up two bytes, obviously)
         if (offset > 7) {
             tile++;
