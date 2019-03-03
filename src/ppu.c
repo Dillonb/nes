@@ -22,12 +22,10 @@ ppu_memory get_ppu_mem(rom* r) {
     ppu_mem.mask        = 0b00000000;
     ppu_mem.status      = 0b10100000;
     ppu_mem.oam_address = 0b00000000;
-    ppu_mem.scroll      = 0b00000000;
     ppu_mem.v           = 0b0000000000000000;
     ppu_mem.t           = 0b0000000000000000;
     ppu_mem.w           = HIGH;
     ppu_mem.data        = 0b00000000;
-    ppu_mem.dma         = 0b00000000;
 
     ppu_mem.tile.attribute_table  = 0;
     ppu_mem.tile.nametable        = 0;
