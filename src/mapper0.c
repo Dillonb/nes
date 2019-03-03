@@ -5,14 +5,14 @@
 byte mapper0_prg_read(memory* mem, uint16_t address) {
 
     if (address >= 0x6000 && address < 0x8000) {
-        int prg_ram_bytes = get_prg_ram_bytes(mem->r);
+        size_t prg_ram_bytes = get_prg_ram_bytes(mem->r);
         address -= 0x6000;
         address %= prg_ram_bytes;
         byte result = mem->r->prg_ram[address];
         return result;
     }
     else if (address >= 0x8000) { // Can't be more than 0xFFFF
-        uint16_t prg_rom_address = (address - 0x8000) % get_prg_rom_bytes(mem->r); // TODO optimize
+        uint16_t prg_rom_address = (uint16_t) ((address - 0x8000) % (int)get_prg_rom_bytes(mem->r)); // TODO optimize
         byte result = mem->r->prg_rom[prg_rom_address];
 
         return result;
@@ -24,7 +24,7 @@ byte mapper0_prg_read(memory* mem, uint16_t address) {
 
 void mapper0_prg_write(memory* mem, uint16_t address, byte value) {
     if (address >= 0x6000 && address < 0x8000) {
-        int prg_ram_bytes = get_prg_ram_bytes(mem->r);
+        size_t prg_ram_bytes = get_prg_ram_bytes(mem->r);
         address -= 0x6000;
         address %= prg_ram_bytes;
         mem->r->prg_ram[address] = value;
