@@ -44,7 +44,11 @@ int chr_offset_for_bank(memory *mem, int bank) {
 byte mapper1_prg_read(memory* mem, uint16_t address) {
     byte result;
     if (address < 0x6000) {
-        errx(EXIT_FAILURE, "Mapper 1: Sub-0x6000 unsupported memory address read, 0x%04X", address);
+        printf("Mapper 1: Sub-0x6000 unsupported memory address read, 0x%04X\n", address);
+        result = 0x00;
+    }
+    else if (address < 0x8000) {
+        result = mem->r->prg_ram[address - 0x6000];
     }
     else if (address < 0xC000) { // PRG bank 0, 0x8000 - 0xBFFF
         result = mem->r->prg_rom[prg_bank_0_offset + (address  % 0x4000)];
