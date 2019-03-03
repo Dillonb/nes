@@ -117,7 +117,7 @@ uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
         }
         else {
             // fourth nametable is a mirror of the third
-            nametable_addr -= 0x800;
+            nametable_addr %= 0x800;
         }
     }
     else if (mirror_mode == VERTICAL) {
