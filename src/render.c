@@ -16,6 +16,8 @@ SDL_Renderer* renderer = NULL;
 
 button player1_buttons[8];
 
+color last_screen[SCREEN_WIDTH][SCREEN_HEIGHT];
+
 void initialize() {
     initialized = true;
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -31,6 +33,17 @@ void initialize() {
 
     for (int i = 0; i < 8; i++) {
         player1_buttons[i] = false;
+    }
+
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+        for (int y = 0; y < SCREEN_HEIGHT; y++) {
+            color c;
+            c.r = 0;
+            c.g = 0;
+            c.b = 0;
+            c.a = 0;
+            last_screen[x][y] = c;
+        }
     }
 }
 
@@ -102,6 +115,11 @@ void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     for (int y = 0; y < 240; y++) {
         for (int x = 0; x < 256; x++) {
             color c = screen[x][y];
+            color lastc = last_screen[x][y];
+            if (c.r == lastc.r && c.g == lastc.g && c.b == lastc.b) {
+                continue;
+            }
+            last_screen[x][y] = c;
             SDL_Rect rect;
             rect.x = x * SCREEN_SCALE;
             rect.y = y * SCREEN_SCALE;
