@@ -83,10 +83,37 @@ void test_stack16() {
 
 }
 
+void test_ppuscroll_write() {
+    memory mem_ = mock_memory();
+    memory* mem = &mem_; // For convenience
+
+    // Clear
+    write_byte(mem, 0x2005, 0x00);
+    write_byte(mem, 0x2005, 0x00);
+    TEST_ASSERT_EQUAL_UINT16(0x0000, mem->ppu_mem.t);
+    TEST_ASSERT_EQUAL_UINT8(0x00, mem->ppu_mem.x);
+
+    // First write
+    write_byte(mem, 0x2005, 0b01111101);
+    TEST_ASSERT_EQUAL_UINT16(0b000000000001111, mem->ppu_mem.t);
+    TEST_ASSERT_EQUAL_UINT8(0b101, mem->ppu_mem.x);
+
+    // Second write
+    write_byte(mem, 0x2005, 0b01011110);
+    TEST_ASSERT_EQUAL_UINT16(0b110000101101111, mem->ppu_mem.t);
+    TEST_ASSERT_EQUAL_UINT8(0b101, mem->ppu_mem.x);
+
+    // Write to PPUCONTROL
+    write_byte(mem, 0x2000, 0b00000011); // Only care about the last 2 bits
+    TEST_ASSERT_EQUAL_UINT16(0b110110101101111, mem->ppu_mem.t);
+    TEST_ASSERT_EQUAL_UINT8(0b101, mem->ppu_mem.x);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_pflags);
     RUN_TEST(test_stack);
     RUN_TEST(test_stack16);
+    RUN_TEST(test_ppuscroll_write);
     return UNITY_END();
 }

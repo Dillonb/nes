@@ -667,7 +667,7 @@ void write_ppu_register(ppu_memory* ppu_mem, byte register_num, byte value) {
         case 0:
             ppu_mem->control = value;
             ppu_mem->t &= 0b0111001111111111; // Mask out two bits to copy data into
-            ppu_mem->t |= (uint16_t)(value & 0b00000011) << 8;
+            ppu_mem->t |= (uint16_t)(value & 0b00000011) << 10;
             dprintf("NMI on VBlank is now: %d\n", vblank_nmi(ppu_mem));
             return;
         case 1:
