@@ -542,7 +542,7 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
 void ppu_step(ppu_memory* ppu_mem) {
     ppu_mem->cycle++;
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
-        ppu_mem->cycle = 1;
+        ppu_mem->cycle = 0;
         ppu_mem->scan_line++;
         if (ppu_mem->scan_line >= NUM_LINES) {
             ppu_mem->frame++;
