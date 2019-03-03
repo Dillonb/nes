@@ -98,7 +98,6 @@ uint16_t get_attribute_address(ppu_memory* ppu_mem) {
 
 uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
     uint16_t nametable_addr = addr - (uint16_t)0x2000;
-    //nametable_addr %= 0x1000;
     nametable_mirroring mirror_mode = ppu_mem->r->nametable_mirroring_mode;
 
     if (mirror_mode == HORIZONTAL) {
