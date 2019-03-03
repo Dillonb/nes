@@ -40,7 +40,7 @@ typedef struct memory_t {
     ppu_memory ppu_mem;
 
     // Internal RAM
-    char ram[0x800];
+    byte ram[0x800];
 
     controller ctrl1;
 } memory;
