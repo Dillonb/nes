@@ -38,7 +38,7 @@ int chr_offset_for_bank(memory *mem, int bank) {
     if (bank > 0 && mem->r->header->chr_rom_blocks > 0) {
         bank %= mem->r->header->chr_rom_blocks;
     }
-    return bank * BYTES_PER_CHR_ROM_BLOCK;
+    return bank * (BYTES_PER_CHR_ROM_BLOCK / 2);
 }
 
 byte mapper1_prg_read(memory* mem, uint16_t address) {
@@ -61,7 +61,6 @@ byte mapper1_prg_read(memory* mem, uint16_t address) {
 }
 
 void load_register(byte shift_register, uint16_t address, memory* mem) {
-    printf("Loading register (address 0x%04X) with value %02X\n", address, shift_register);
     if (address < 0x8000) {
         errx(EXIT_FAILURE, "Mapper 1: Tried to load register with an address less than 0x8000.");
     }
@@ -144,20 +143,15 @@ void mapper1_prg_write(memory* mem, uint16_t address, byte value) {
         // Shift register stuff
         if (value > 0x7F) {
             // MSB set, clear shift register
-            printf("Mapper 1: clearing shift register\n");
             shift_register = 0x10;
         }
         else {
             byte bit = (value & (byte)1) << 4;
 
-            byte old_sr = shift_register;
             // as soon as the 1 from 0x10 has been shifted into the LSB, we're done.
             bool done_writing = (shift_register & 1) == 1;
             shift_register >>= 1;
-            byte sr_before_or = shift_register;
             shift_register |= bit;
-
-            printf("Mapper 1: Loading SR: old: %02X before or: %02X new: %02X value: %02X bit: %02X address: $%04X\n", old_sr, sr_before_or, shift_register, value, bit, address);
 
             if (done_writing) {
                 load_register(shift_register, address, mem);
