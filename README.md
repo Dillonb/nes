@@ -5,17 +5,21 @@ A NES emulator, still very much a WIP. Some simple games are mostly working, but
 ## Building
 
 * Install clang and SDL2
-* cd build
-* cmake ..
-* make
+* Run the following commands:
+
+```bash
+cd build
+cmake ..
+make
+```
 
 ## Running
 
-./nes <rom.nes>
+    ./nes <rom.nes>
 
 To run in debug, do:
 
-./nes <rom.nes> debug
+    ./nes <rom.nes> debug
 
 To create breakpoints, place a rom.nes.breakpoints file next to rom.nes. Each line of this file should contain a memory address to break on.
 
