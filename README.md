@@ -1,14 +1,28 @@
+# nes
 
-## Links
+A NES emulator, still very much a WIP. Some simple games are mostly working, but there are still quite a few bugs.
 
-### Instructions
-https://www.masswerk.at/6502/6502_instruction_set.html
+## Building
 
-### Online Assembler
-https://www.masswerk.at/6502/assembler.html
+* Install clang and SDL2
+* cd build
+* cmake ..
+* make
 
-### .nes file format
-http://wiki.nesdev.com/w/index.php/INES
+## Running
 
-### CPU memory map
-http://wiki.nesdev.com/w/index.php/CPU_memory_map
+./nes <rom.nes>
+
+To run in debug, do:
+
+./nes <rom.nes> debug
+
+To create breakpoints, place a rom.nes.breakpoints file next to rom.nes. Each line of this file should contain a memory address to break on.
+
+## Controls
+
+* WASD/Arrow Keys: D-Pad
+* J/Z: A
+* K/X: B
+* Right shift: Select
+* Enter: Start
