@@ -1,6 +1,7 @@
 #include <err.h>
 #include <stdlib.h>
 #include "mapper1.h"
+#include "debugger.h"
 
 
 byte prg_bank_mode = 1;
@@ -44,7 +45,7 @@ int chr_offset_for_bank(memory *mem, int bank) {
 byte mapper1_prg_read(memory* mem, uint16_t address) {
     byte result;
     if (address < 0x6000) {
-        printf("Mapper 1: Sub-0x6000 unsupported memory address read, 0x%04X\n", address);
+        dprintf("Mapper 1: Sub-0x6000 unsupported memory address read, 0x%04X\n", address);
         result = 0x00;
     }
     else if (address < 0x8000) {
@@ -73,16 +74,22 @@ void load_register(byte shift_register, uint16_t address, memory* mem) {
         prg_bank_mode = (shift_register >> 2) & (byte)0b11;
         chr_bank_mode = (shift_register >> 4) & (byte)0b1;
 
+        dprintf("Wrote %02X to CTRL PRG bank mode: %d CHR bank mode: %d\n", shift_register, prg_bank_mode, chr_bank_mode);
+
         if (mirroring == 0) {
+            dprintf("Mirroring mode is now: SINGLE_LOWER\n");
             mem->r->nametable_mirroring_mode = SINGLE_LOWER;
         }
         else if (mirroring == 1) {
+            dprintf("Mirroring mode is now: SINGLE_UPPER\n");
             mem->r->nametable_mirroring_mode = SINGLE_UPPER;
         }
         else if (mirroring == 2) {
+            dprintf("Mirroring mode is now: VERTICAL\n");
             mem->r->nametable_mirroring_mode = VERTICAL;
         }
         else if (mirroring == 3) {
+            dprintf("Mirroring mode is now: HORIZONTAL\n");
             mem->r->nametable_mirroring_mode = HORIZONTAL;
         }
         else {
