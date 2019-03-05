@@ -67,8 +67,8 @@ void increment_y(ppu_memory* ppu_mem) {
         }
         else {
             y += 1;
-            ppu_mem->v = (uint16_t) ((ppu_mem->v & ~0x03E0) | (y << 5));
         }
+        ppu_mem->v = (uint16_t) ((ppu_mem->v & ~0x03E0) | (y << 5));
     }
 }
 uint16_t get_coarse_x(ppu_memory* ppu_mem) {
