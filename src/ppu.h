@@ -11,7 +11,7 @@ typedef enum high_or_low_t {
 
 typedef struct tiledata_t {
     byte nametable;
-    byte attribute_table;
+    uint32_t attribute_table;
     uint16_t tile_bitmap_low;
     uint16_t tile_bitmap_high;
 } tiledata;
@@ -56,6 +56,9 @@ typedef struct ppu_memory_t {
     byte x;     // Fine x scroll (this is only 3 bits)
     high_or_low w; // Keeps track of which byte to write to on 16 bit registers
 
+    uint16_t temp_bitmap_low;
+    uint16_t temp_bitmap_high;
+    uint32_t temp_attribute_table;
     tiledata tile;
 
     color screen[256][240];

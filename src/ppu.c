@@ -314,9 +314,11 @@ void clear_sprite_zero_hit(ppu_memory* ppu_mem) {
     ppu_mem->status &= 0b10111111; // Clear sprite zero hit flag on PPUSTATUS
 }
 
-byte get_color(int x, byte fine_x, int y, tiledata tile) {
-    byte colorbyte = tile.attribute_table;
-    byte bitmap_bit = ((byte)15 - fine_x);
+byte get_color(byte fine_x, tiledata tile) {
+    int bitmap_bit = 15 - fine_x;
+    // crumb is half a nibble
+    int at_crumb = 30 - (fine_x * 2);
+    byte colorbyte = (byte)((tile.attribute_table >> at_crumb) & 0b11) << 2;
 
     byte high = (byte)(tile.tile_bitmap_high >> bitmap_bit) & (byte)1;
     byte low  = (byte)(tile.tile_bitmap_low >> bitmap_bit) & (byte)1;
@@ -352,7 +354,7 @@ void render_pixel(ppu_memory* ppu_mem) {
     color real_background_color;
 
     if (background_enabled(ppu_mem)) {
-        background_color = get_color(x, get_fine_x(ppu_mem), y, ppu_mem->tile);
+        background_color = get_color(get_fine_x(ppu_mem), ppu_mem->tile);
         real_background_color = get_real_color(ppu_mem, background_color);
     }
 
@@ -406,40 +408,60 @@ void render_pixel(ppu_memory* ppu_mem) {
 
 void fetch_step(ppu_memory* ppu_mem) {
     // Each of these fetches takes 2 cycles on a real CPU, and we need to do 4 of them. All 4 will have been completed on the 8th cycle.
-    // TODO: do I need to load them in real time or is it ok to grab them all at once every 8 cycles?
-    // Just in case I need to do this, to make it easier, they're loaded in the same order they would be in real time, below.
     ppu_mem->tile.tile_bitmap_low <<= 1;
     ppu_mem->tile.tile_bitmap_high <<= 1;
-    if (ppu_mem->cycle % 8 == 0) {
-        dprintf("Fetching at screen pos %d,%d, VRAM pos %d~%d,%d~%d\n", get_screen_x(ppu_mem), get_screen_y(ppu_mem), get_coarse_x(ppu_mem), get_fine_x(ppu_mem), get_coarse_y(ppu_mem), get_fine_y(ppu_mem));
+    ppu_mem->tile.attribute_table <<= 2;
+    if (ppu_mem->cycle % 8 == 1) {
+        dprintf("Fetching at screen pos %d,%d, VRAM pos %d~%d,%d~%d\n", get_screen_x(ppu_mem), get_screen_y(ppu_mem),
+                get_coarse_x(ppu_mem), get_fine_x(ppu_mem), get_coarse_y(ppu_mem), get_fine_y(ppu_mem));
         // Nametable byte
         uint16_t nametable_addr = get_nametable_address(ppu_mem);
         ppu_mem->tile.nametable = vram_read(ppu_mem, nametable_addr);
+    }
+
+    if (ppu_mem->cycle % 8 == 3) {
         // Attribute table byte
-        byte at = vram_read(ppu_mem, get_attribute_address(ppu_mem));
+        uint32_t at = vram_read(ppu_mem, get_attribute_address(ppu_mem));
         // Colors in the PPU are 4 bits. This 4 bit number is then used as an index into the palette to get the _real_ color.
         // The two most significant bits come from the attribute table byte. Where in this byte they come from depends on
         // which "metatile" in the background they come from. These "metatiles" are 32x32 pixels, or 4x4 tiles.
-        // This code grabs the correct 2 bits from the attribute table value for the current tile, and shifts it so it's easy
-        // to insert the two LSBs that come from the tile.
+        // This code grabs the correct 2 bits from the attribute table value for the current tile, and repeats it to fill
+        // an entire tile's worth of shifts.
         at >>= ((ppu_mem->v >> (byte)4) & (byte)4) | (ppu_mem->v & (byte)2);
         at &= 0b11;
-        at <<= 2;
-        ppu_mem->tile.attribute_table = at;
-        // Tile bitmap
+        at |= (at << 2)
+              | (at << 4)
+              | (at << 6)
+              | (at << 8)
+              | (at << 10)
+              | (at << 12)
+              | (at << 14);
+
+        ppu_mem->temp_attribute_table = at;
+    }
+
+    if (ppu_mem->cycle % 8 == 5) {
+        // Tile bitmap low byte
         uint16_t nametable = ppu_mem->tile.nametable & (byte)0xFF;
         uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + nametable * (uint16_t)16 + get_fine_y(ppu_mem);
-        // Low byte
-        uint16_t low = vram_read(ppu_mem, tile_bitmap_address);
-        ppu_mem->tile.tile_bitmap_low |= low;
-        // High byte
+        ppu_mem->temp_bitmap_low = vram_read(ppu_mem, tile_bitmap_address);
+    }
+
+    if (ppu_mem->cycle % 8 == 7) {
+        // Tile bitmap high byte
         // The high byte is not stored next to the low byte.
         // The entire tile's 8 low bytes are stored first, then 8 high bytes. So, offset by 8 bytes to get the high byte.
-        uint16_t high = vram_read(ppu_mem, tile_bitmap_address + (uint16_t)8);
-        ppu_mem->tile.tile_bitmap_high |= high;
+        uint16_t nametable = ppu_mem->tile.nametable & (byte)0xFF;
+        uint16_t tile_bitmap_address = get_background_table_base_address(ppu_mem) + nametable * (uint16_t)16 + get_fine_y(ppu_mem);
+        ppu_mem->temp_bitmap_high = vram_read(ppu_mem, tile_bitmap_address + (uint16_t)8);
+    }
 
-        dprintf("Nametable byte 0x%02X\nAttribute table 0x%04X\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
+    dprintf("Nametable byte 0x%02X\nAttribute table 0x%04X\n", ppu_mem->tile.nametable, ppu_mem->tile.attribute_table);
 
+    if (ppu_mem->cycle % 8 == 0) {
+        ppu_mem->tile.tile_bitmap_low |= ppu_mem->temp_bitmap_low;
+        ppu_mem->tile.tile_bitmap_high |= ppu_mem->temp_bitmap_high;
+        ppu_mem->tile.attribute_table |= ppu_mem->temp_attribute_table;
         // Once done, move to the next tile
         increment_x(ppu_mem);
     }
