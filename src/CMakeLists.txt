@@ -19,6 +19,7 @@ add_library(libnes
     mapper.c
     mapper0.c
     mapper1.c
+    mapper2.c
     )
 
 
@@ -66,6 +67,9 @@ add_executable (nes nes.c
 
     mapper1.c
     mapper1.h
+
+    mapper2.c
+    mapper2.h
     )
 
 target_link_libraries(nes SDL2)
@@ -110,4 +114,5 @@ add_executable (disassemble disassemble.c
     mapper.c
     mapper0.c
     mapper1.c
+    mapper2.c
     )

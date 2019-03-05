@@ -14,8 +14,8 @@ byte ram_enabled;
 
 byte prg_bank = 0;
 
-int prg_bank_0_offset = 0;
-int prg_bank_1_offset = -1;
+int m1_prg_bank_0_offset = 0;
+int m1_prg_bank_1_offset = -1;
 
 int chr_bank_0_offset = 0;
 int chr_bank_1_offset = 0;
@@ -52,14 +52,14 @@ byte mapper1_prg_read(memory* mem, uint16_t address) {
         result = mem->r->prg_ram[address - 0x6000];
     }
     else if (address < 0xC000) { // PRG bank 0, 0x8000 - 0xBFFF
-        result = mem->r->prg_rom[prg_bank_0_offset + (address  % 0x4000)];
+        result = mem->r->prg_rom[m1_prg_bank_0_offset + (address  % 0x4000)];
     }
     else { // PRG bank 1, 0xC000 - 0xFFFF
-        if (prg_bank_1_offset == -1) {
-            prg_bank_1_offset = get_last_prg_bank(mem);
+        if (m1_prg_bank_1_offset == -1) {
+            m1_prg_bank_1_offset = get_last_prg_bank(mem);
         }
 
-        result = mem->r->prg_rom[prg_bank_1_offset + (address % 0x4000)];
+        result = mem->r->prg_rom[m1_prg_bank_1_offset + (address % 0x4000)];
     }
 
     return result;
@@ -110,18 +110,18 @@ void load_register(byte shift_register, uint16_t address, memory* mem) {
     switch (prg_bank_mode) {
         case 0:
         case 1:
-            prg_bank_0_offset = prg_offset_for_bank(mem, prg_bank & 0b1110);
-            prg_bank_1_offset = prg_offset_for_bank(mem, prg_bank | 0b1);
+            m1_prg_bank_0_offset = prg_offset_for_bank(mem, prg_bank & 0b1110);
+            m1_prg_bank_1_offset = prg_offset_for_bank(mem, prg_bank | 0b1);
             break;
 
         case 2:
-            prg_bank_0_offset = prg_offset_for_bank(mem, 0);
-            prg_bank_1_offset = prg_offset_for_bank(mem, prg_bank);
+            m1_prg_bank_0_offset = prg_offset_for_bank(mem, 0);
+            m1_prg_bank_1_offset = prg_offset_for_bank(mem, prg_bank);
             break;
 
         case 3:
-            prg_bank_0_offset = prg_offset_for_bank(mem, prg_bank);
-            prg_bank_1_offset = get_last_prg_bank(mem);
+            m1_prg_bank_0_offset = prg_offset_for_bank(mem, prg_bank);
+            m1_prg_bank_1_offset = get_last_prg_bank(mem);
             break;
 
         default:
