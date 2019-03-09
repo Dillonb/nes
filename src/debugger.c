@@ -33,7 +33,7 @@ void set_breakpoints_for_rom(char* filename) {
     // Read breakpoints if file exists
     char bpfilename[strlen(filename) + 13];
     strncpy(bpfilename, filename, strlen(filename) + 1);
-    strncat(bpfilename, ".breakpoints", 12);
+    strcat(bpfilename, ".breakpoints");
 
     FILE* bpfp = fopen(bpfilename, "r");
 
