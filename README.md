@@ -4,7 +4,7 @@ A NES emulator, still very much a WIP. Some simple games are mostly working, but
 
 ## Building
 
-* Install clang and SDL2
+* Install cmake and SDL2
 * Run the following commands:
 
 ```bash
