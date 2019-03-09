@@ -318,17 +318,22 @@ byte get_color(byte fine_x, tiledata tile) {
     int bitmap_bit = 15 - fine_x;
     // crumb is half a nibble
     int at_crumb = 30 - (fine_x * 2);
-    byte colorbyte = (byte)((tile.attribute_table >> at_crumb) & 0b11) << 2;
+    byte at_entry = (byte)((tile.attribute_table >> at_crumb) & 0b11) << 2;
 
-    byte high = (byte)(tile.tile_bitmap_high >> bitmap_bit) & (byte)1;
-    byte low  = (byte)(tile.tile_bitmap_low >> bitmap_bit) & (byte)1;
-    colorbyte |= (high << 1) | low;
+    byte pt_entry = (byte)((tile.tile_bitmap_high >> bitmap_bit) & (byte)1) << 1
+                  | (byte)((tile.tile_bitmap_low  >> bitmap_bit) & (byte)1);
 
-    return colorbyte;
+    if (pt_entry == 0) {
+        return pt_entry;
+    }
+    else {
+        return at_entry | pt_entry;
+    }
 }
 
 color get_real_color(ppu_memory* ppu_mem, byte colorbyte) {
-    byte palette_entry = vram_read(ppu_mem, (uint16_t)(colorbyte + 0x3F00));
+    uint16_t addr = (uint16_t)(colorbyte + 0x3F00);
+    byte palette_entry = vram_read(ppu_mem, addr);
     palette_entry %= 64;
     return rgb_palette[palette_entry];
 }
@@ -369,7 +374,6 @@ void render_pixel(ppu_memory* ppu_mem) {
             int offset = x - s.x_coord;
             // Does the sprite overlap the pixel we're currently in?
             if (offset >= 0 && offset < 8) {
-                // TODO: I think this may be broken
                 byte color = (s.pattern.palette & (byte) 0b11) << 2;
                 int shift = s.pattern.reverse ? offset : 7 - offset;
                 color |= ((s.pattern.high_byte >> shift) & 1) << 1;
