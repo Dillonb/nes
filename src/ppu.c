@@ -360,8 +360,8 @@ void render_pixel(ppu_memory* ppu_mem) {
 
     if (background_enabled(ppu_mem)) {
         background_color = get_color(get_fine_x(ppu_mem), ppu_mem->tile);
-        real_background_color = get_real_color(ppu_mem, background_color);
     }
+    real_background_color = get_real_color(ppu_mem, background_color);
 
     byte sprite_color;
     color real_sprite_color;
