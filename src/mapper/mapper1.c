@@ -20,52 +20,52 @@ int m1_prg_bank_1_offset = -1;
 int chr_bank_0_offset = 0;
 int chr_bank_1_offset = 0;
 
-int prg_offset_for_bank(memory *mem, int bank) {
+int prg_offset_for_bank(rom* r, int bank) {
     if (bank >= 0x80) {
         bank -= 0x100;
     }
-    bank %= mem->r->header->prg_rom_blocks;
+    bank %= r->header->prg_rom_blocks;
     return bank * BYTES_PER_PRG_ROM_BLOCK;
 }
 
-int get_last_prg_bank(memory* mem) {
-    return prg_offset_for_bank(mem, mem->r->header->prg_rom_blocks - 1);
+int get_last_prg_bank(rom* r) {
+    return prg_offset_for_bank(r, r->header->prg_rom_blocks - 1);
 }
 
-int chr_offset_for_bank(memory *mem, int bank) {
+int chr_offset_for_bank(rom* r, int bank) {
     if (bank >= 0x80) {
         bank -= 0x100;
     }
-    if (bank > 0 && mem->r->header->chr_rom_blocks > 0) {
-        bank %= mem->r->header->chr_rom_blocks;
+    if (bank > 0 && r->header->chr_rom_blocks > 0) {
+        bank %= r->header->chr_rom_blocks;
     }
     return bank * (BYTES_PER_CHR_ROM_BLOCK / 2);
 }
 
-byte mapper1_prg_read(memory* mem, uint16_t address) {
+byte mapper1_prg_read(rom* r, uint16_t address) {
     byte result;
     if (address < 0x6000) {
         dprintf("Mapper 1: Sub-0x6000 unsupported memory address read, 0x%04X\n", address);
         result = 0x00;
     }
     else if (address < 0x8000) {
-        result = mem->r->prg_ram[address - 0x6000];
+        result = r->prg_ram[address - 0x6000];
     }
     else if (address < 0xC000) { // PRG bank 0, 0x8000 - 0xBFFF
-        result = mem->r->prg_rom[m1_prg_bank_0_offset + (address  % 0x4000)];
+        result = r->prg_rom[m1_prg_bank_0_offset + (address  % 0x4000)];
     }
     else { // PRG bank 1, 0xC000 - 0xFFFF
         if (m1_prg_bank_1_offset == -1) {
-            m1_prg_bank_1_offset = get_last_prg_bank(mem);
+            m1_prg_bank_1_offset = get_last_prg_bank(r);
         }
 
-        result = mem->r->prg_rom[m1_prg_bank_1_offset + (address % 0x4000)];
+        result = r->prg_rom[m1_prg_bank_1_offset + (address % 0x4000)];
     }
 
     return result;
 }
 
-void load_register(byte shift_register, uint16_t address, memory* mem) {
+void load_register(byte shift_register, uint16_t address, rom* r) {
     if (address < 0x8000) {
         errx(EXIT_FAILURE, "Mapper 1: Tried to load register with an address less than 0x8000.");
     }
@@ -78,19 +78,19 @@ void load_register(byte shift_register, uint16_t address, memory* mem) {
 
         if (mirroring == 0) {
             dprintf("Mirroring mode is now: SINGLE_LOWER\n");
-            mem->r->nametable_mirroring_mode = SINGLE_LOWER;
+            r->nametable_mirroring_mode = SINGLE_LOWER;
         }
         else if (mirroring == 1) {
             dprintf("Mirroring mode is now: SINGLE_UPPER\n");
-            mem->r->nametable_mirroring_mode = SINGLE_UPPER;
+            r->nametable_mirroring_mode = SINGLE_UPPER;
         }
         else if (mirroring == 2) {
             dprintf("Mirroring mode is now: VERTICAL\n");
-            mem->r->nametable_mirroring_mode = VERTICAL;
+            r->nametable_mirroring_mode = VERTICAL;
         }
         else if (mirroring == 3) {
             dprintf("Mirroring mode is now: HORIZONTAL\n");
-            mem->r->nametable_mirroring_mode = HORIZONTAL;
+            r->nametable_mirroring_mode = HORIZONTAL;
         }
         else {
             errx(EXIT_FAILURE, "Mapper 1: unrecognized or unimplemented mirroring mode %d", mirroring);
@@ -110,18 +110,18 @@ void load_register(byte shift_register, uint16_t address, memory* mem) {
     switch (prg_bank_mode) {
         case 0:
         case 1:
-            m1_prg_bank_0_offset = prg_offset_for_bank(mem, prg_bank & 0b1110);
-            m1_prg_bank_1_offset = prg_offset_for_bank(mem, prg_bank | 0b1);
+            m1_prg_bank_0_offset = prg_offset_for_bank(r, prg_bank & 0b1110);
+            m1_prg_bank_1_offset = prg_offset_for_bank(r, prg_bank | 0b1);
             break;
 
         case 2:
-            m1_prg_bank_0_offset = prg_offset_for_bank(mem, 0);
-            m1_prg_bank_1_offset = prg_offset_for_bank(mem, prg_bank);
+            m1_prg_bank_0_offset = prg_offset_for_bank(r, 0);
+            m1_prg_bank_1_offset = prg_offset_for_bank(r, prg_bank);
             break;
 
         case 3:
-            m1_prg_bank_0_offset = prg_offset_for_bank(mem, prg_bank);
-            m1_prg_bank_1_offset = get_last_prg_bank(mem);
+            m1_prg_bank_0_offset = prg_offset_for_bank(r, prg_bank);
+            m1_prg_bank_1_offset = get_last_prg_bank(r);
             break;
 
         default:
@@ -129,24 +129,24 @@ void load_register(byte shift_register, uint16_t address, memory* mem) {
     }
 
     if (chr_bank_mode == 0) {
-        chr_bank_0_offset = chr_offset_for_bank(mem, chr_bank_0 & 0b1110);
-        chr_bank_1_offset = chr_offset_for_bank(mem, chr_bank_0 | 0b1);
+        chr_bank_0_offset = chr_offset_for_bank(r, chr_bank_0 & 0b1110);
+        chr_bank_1_offset = chr_offset_for_bank(r, chr_bank_0 | 0b1);
     }
     else { // chr_bank_mode is only a single bit
-        chr_bank_0_offset = chr_offset_for_bank(mem, chr_bank_0);
-        chr_bank_1_offset = chr_offset_for_bank(mem, chr_bank_1);
+        chr_bank_0_offset = chr_offset_for_bank(r, chr_bank_0);
+        chr_bank_1_offset = chr_offset_for_bank(r, chr_bank_1);
     }
 }
 
 byte shift_register = 0x10;
 
-void mapper1_prg_write(memory* mem, uint16_t address, byte value) {
+void mapper1_prg_write(rom* r, uint16_t address, byte value) {
     if (address < 0x6000) {
         printf("Wrote to invalid address for mapper 1: 0x%04X\n", address);
     }
     else if (address < 0x8000) {
         // 8kb prg ram bank
-        mem->r->prg_ram[address - 0x6000] = value;
+        r->prg_ram[address - 0x6000] = value;
     }
     else {
         // TODO need to discard writes that happen on consecutive cycles, see https://wiki.nesdev.com/w/index.php/MMC1
@@ -165,14 +165,14 @@ void mapper1_prg_write(memory* mem, uint16_t address, byte value) {
             shift_register |= bit;
 
             if (done_writing) {
-                load_register(shift_register, address, mem);
+                load_register(shift_register, address, r);
                 shift_register = 0x10;
             }
         }
     }
 }
 
-byte mapper1_chr_read(ppu_memory* ppu_mem, uint16_t address) {
+byte mapper1_chr_read(rom* r, uint16_t address) {
     int offset;
     if (address < 0x1000) {
         offset = chr_bank_0_offset;
@@ -183,10 +183,10 @@ byte mapper1_chr_read(ppu_memory* ppu_mem, uint16_t address) {
     else {
         errx(EXIT_FAILURE, "Mapper 1: Attempt to read out of range CHR address 0x%04X", address);
     }
-    return ppu_mem->r->chr_rom[offset + (address % 0x1000)];
+    return r->chr_rom[offset + (address % 0x1000)];
 }
 
-void mapper1_chr_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
+void mapper1_chr_write(rom* r, uint16_t address, byte value) {
     int offset;
     if (address < 0x1000) {
         offset = chr_bank_0_offset;
@@ -197,5 +197,5 @@ void mapper1_chr_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
     else {
         errx(EXIT_FAILURE, "Mapper 1: Attempt to write 0x%02X to out of range CHR address 0x%04X", value, address);
     }
-    ppu_mem->r->chr_rom[offset + (address % 0x1000)] = value;
+    r->chr_rom[offset + (address % 0x1000)] = value;
 }

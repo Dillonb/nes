@@ -158,7 +158,7 @@ void vram_write(ppu_memory* ppu_mem, uint16_t address, byte value) {
 
     // Pattern tables
     if (address < 0x2000) {
-        mapper_chr_write(ppu_mem, address, value);
+        mapper_chr_write(ppu_mem->r, address, value);
     }
     // Nametables
     else if (address < 0x3F00) {
@@ -180,7 +180,7 @@ byte vram_read(ppu_memory* ppu_mem, uint16_t address) {
 
     // Pattern tables
     if (address < 0x2000) {
-        result = mapper_chr_read(ppu_mem, address);
+        result = mapper_chr_read(ppu_mem->r, address);
     }
     // Nametables
     else if (address < 0x3F00) {

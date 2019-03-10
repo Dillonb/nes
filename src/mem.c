@@ -51,7 +51,7 @@ byte read_byte(memory* mem, uint16_t address) {
         return 0x00;
     }
     else if (address >= 0x4020) {
-        return mapper_prg_read(mem, address);
+        return mapper_prg_read(mem->r, address);
     }
     else {
         errx(EXIT_FAILURE, "Access attempted for invalid address: %x", address);
@@ -87,7 +87,7 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         dprintf("Write to CPU test mode register, ignoring.\n");
     }
     else {
-        mapper_prg_write(mem, address, value);
+        mapper_prg_write(mem->r, address, value);
     }
 }
 
@@ -107,7 +107,7 @@ memory get_blank_memory(rom* r) {
     mem.ctrl1.lastwrite = 0;
 
     // Read initial value of program counter from the reset vector
-    mem.pc = (mapper_prg_read(&mem, 0xFFFD) << 8) | mapper_prg_read(&mem, 0xFFFC);
+    mem.pc = (mapper_prg_read(mem.r, 0xFFFD) << 8) | mapper_prg_read(mem.r, 0xFFFC);
 
     dprintf("Set program counter to 0x%x\n", mem.pc);
 
