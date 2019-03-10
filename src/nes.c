@@ -6,7 +6,7 @@
 #include "cpu.h"
 #include "debugger.h"
 #include "mem.h"
-#include "rom.h"
+#include "mapper/rom.h"
 #include "util.h"
 
 int main(int argc, char** argv) {

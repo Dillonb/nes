@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "util.h"
-#include "rom.h"
+#include "mapper/rom.h"
 
 typedef enum high_or_low_t {
     HIGH,

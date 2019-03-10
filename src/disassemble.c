@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "rom.h"
+#include "mapper/rom.h"
 #include "mem.h"
 #include "debugger.h"
 

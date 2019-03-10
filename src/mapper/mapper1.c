@@ -1,7 +1,7 @@
 #include <err.h>
 #include <stdlib.h>
 #include "mapper1.h"
-#include "debugger.h"
+#include "../debugger.h"
 
 
 byte prg_bank_mode = 1;

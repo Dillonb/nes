@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "rom.h"
+#include "mapper/rom.h"
 #include "util.h"
 #include "ppu.h"
 #include "controller.h"

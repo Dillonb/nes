@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "rom.h"
+#include "mapper/rom.h"
 
 int main(int argc, char** argv) {
     if (argc != 2) {

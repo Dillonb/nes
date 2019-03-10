@@ -4,7 +4,7 @@
 #include "mapper2.h"
 #include "mapper1.h" // For helper functions
 
-#include "debugger.h"
+#include "../debugger.h"
 
 int m2_prg_bank_0_offset = 0;
 int m2_prg_bank_1_offset = -1;

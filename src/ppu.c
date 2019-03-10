@@ -8,7 +8,7 @@
 #include "debugger.h"
 #include "render.h"
 #include "palette.h"
-#include "mapper.h"
+#include "mapper/mapper.h"
 
 #define VBLANK_LINE 241
 #define MAX_SPRITES_PER_LINE 8

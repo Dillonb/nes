@@ -1,26 +1,26 @@
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
+add_subdirectory(mapper)
+
 find_package(SDL2 REQUIRED)
 include_directories("/usr/local/include")
 link_directories("/usr/local/lib")
 
 # For testing
-add_library(libnes
+add_library(core
     util.c
     cpu.c
     mem.c
-    rom.c
+        mapper/rom.c
     ppu.c
     set.c
     debugger.c
     opcode_names.c
     noop_render.c
     system.c
-    mapper.c
-    mapper0.c
-    mapper1.c
-    mapper2.c
     )
+
+target_link_libraries(core mapper)
 
 
 add_executable (nes nes.c
@@ -29,9 +29,6 @@ add_executable (nes nes.c
 
     mem.c
     mem.h
-
-    rom.c
-    rom.h
 
     lib.c
     lib.h
@@ -58,61 +55,17 @@ add_executable (nes nes.c
     render.h
 
     palette.h
-
-    mapper.c
-    mapper.h
-
-    mapper0.c
-    mapper0.h
-
-    mapper1.c
-    mapper1.h
-
-    mapper2.c
-    mapper2.h
     )
 
-target_link_libraries(nes SDL2)
+target_link_libraries(nes SDL2 mapper)
 
 
 add_executable (prgdump prgdump.c
-    rom.c
-    rom.h
+        mapper/rom.c
+        mapper/rom.h
     )
 
 
-add_executable (disassemble disassemble.c
-    rom.c
-    rom.h
+add_executable (disassemble disassemble.c)
+target_link_libraries(disassemble core)
 
-    mem.c
-    mem.h
-
-    util.h
-
-    cpu.c
-    cpu.h
-
-    ppu.c
-    ppu.h
-
-    opcode_names.c
-    opcode_names.h
-
-    debugger.c
-    debugger.h
-
-    set.c
-    set.h
-
-    util.c
-    util.h
-
-    noop_render.c
-    render.h
-
-    mapper.c
-    mapper0.c
-    mapper1.c
-    mapper2.c
-    )

@@ -8,7 +8,7 @@
 #include "cpu.h"
 #include "debugger.h"
 #include "render.h"
-#include "mapper.h"
+#include "mapper/mapper.h"
 
 // http://wiki.nesdev.com/w/index.php/CPU_memory_map
 byte read_byte(memory* mem, uint16_t address) {

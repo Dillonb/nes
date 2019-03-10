@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "util.h"
+#include "../util.h"
 #include "rom.h"
 #include "mapper.h"
 #include "mapper0.h"

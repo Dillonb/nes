@@ -1,6 +1,6 @@
 #pragma once
 #include <stdio.h>
-#include "util.h"
+#include "../util.h"
 
 #define BYTES_PER_PRG_ROM_BLOCK 16384
 #define BYTES_PER_PRG_RAM_BLOCK 8192
