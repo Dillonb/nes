@@ -32,7 +32,7 @@ ppu_memory get_ppu_mem(rom* r) {
     ppu_mem.tile.tile_bitmap_high = 0;
     ppu_mem.tile.tile_bitmap_low  = 0;
 
-    ppu_mem.frame = 0;
+    ppu_mem.frame = 1;
     ppu_mem.scan_line = 0;
     ppu_mem.cycle = 0;
 
@@ -565,9 +565,17 @@ void ppu_step(ppu_memory* ppu_mem) {
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
         ppu_mem->cycle = 0;
         ppu_mem->scan_line++;
+
         if (ppu_mem->scan_line >= NUM_LINES) {
             ppu_mem->frame++;
             ppu_mem->scan_line = 0;
+
+            // On odd frames, if rendering is enabled, skip the first cycle of the first visible line.
+            if (ppu_mem->frame % 2 == 1
+                && rendering_enabled(ppu_mem)) {
+                ppu_mem->cycle++;
+            }
+
             dprintf("Rendering frame %llu\n", ppu_mem->frame);
             render_screen(ppu_mem->screen);
         }
