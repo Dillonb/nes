@@ -20,6 +20,8 @@ int m1_prg_bank_1_offset = -1;
 int chr_bank_0_offset = 0;
 int chr_bank_1_offset = 0;
 
+byte shift_register = 0x10;
+
 int prg_offset_for_bank(rom* r, int bank) {
     if (bank >= 0x80) {
         bank -= 0x100;
@@ -65,7 +67,7 @@ byte mapper1_prg_read(rom* r, uint16_t address) {
     return result;
 }
 
-void load_register(byte shift_register, uint16_t address, rom* r) {
+void load_register(uint16_t address, rom* r) {
     if (address < 0x8000) {
         errx(EXIT_FAILURE, "Mapper 1: Tried to load register with an address less than 0x8000.");
     }
@@ -138,8 +140,6 @@ void load_register(byte shift_register, uint16_t address, rom* r) {
     }
 }
 
-byte shift_register = 0x10;
-
 void mapper1_prg_write(rom* r, uint16_t address, byte value) {
     if (address < 0x6000) {
         printf("Wrote to invalid address for mapper 1: 0x%04X\n", address);
@@ -165,7 +165,7 @@ void mapper1_prg_write(rom* r, uint16_t address, byte value) {
             shift_register |= bit;
 
             if (done_writing) {
-                load_register(shift_register, address, r);
+                load_register(address, r);
                 shift_register = 0x10;
             }
         }
