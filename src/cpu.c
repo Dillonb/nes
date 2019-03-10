@@ -250,7 +250,7 @@ int interrupt_nmi(memory* mem) {
     mem->pc = read_address(mem, NMI_PC_LOCATION);
     dprintf("Read and jumped to address 0x%04x out of 0x%04x for NMI handler\n", mem->pc, NMI_PC_LOCATION);
     set_p_interrupt(mem);
-    return 7;
+    return 10;
 }
 
 interrupt_type interrupt = NONE;
