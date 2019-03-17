@@ -8,4 +8,5 @@ byte mapper4_prg_read(rom* r, uint16_t address);
 void mapper4_prg_write(rom* r, uint16_t address, byte value);
 byte mapper4_chr_read(rom* r, uint16_t address);
 void mapper4_chr_write(rom* r, uint16_t address, byte value);
+void mapper4_ppu_step(rom* r, int cycle, int scan_line, bool rendering_enabled);
 

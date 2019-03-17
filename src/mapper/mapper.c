@@ -96,3 +96,13 @@ void mapper_chr_write(rom* r, uint16_t address, byte value) {
             errx(EXIT_FAILURE, "chr write: Unknown mapper %d!", r->mapper);
     }
 }
+
+void mapper_ppu_step(rom *r, int cycle, int scan_line, bool rendering_enabled) {
+    switch (r->mapper) {
+        case 4:
+            mapper4_ppu_step(r, cycle, scan_line, rendering_enabled);
+            break;
+        default:
+            break;
+    }
+}

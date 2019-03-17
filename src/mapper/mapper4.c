@@ -27,7 +27,7 @@ int chr_offset_for_1kb_bank(rom *r, int bank) {
     }
     bank %= (blocks * 8); // chr_rom_blocks is given in 8kb units
     int offset = bank * 0x400;
-    printf("CHR bank %d offset = 0x%04X\n", bank, offset);
+    dprintf("CHR bank %d offset = 0x%04X\n", bank, offset);
     return offset;
 }
 
@@ -103,7 +103,7 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
         r->mapperdata.chr_bank_mode = (value & (byte)0b10000000) >> 7;
         r->mapperdata.prg_bank_mode = (value & (byte)0b01000000) >> 6;
         r->mapperdata.bank_register = value & (byte)0b111;
-        printf("CHR bank mode: %d\nPRG bank mode: %d\nGonna update R%d next!\n",
+        dprintf("CHR bank mode: %d\nPRG bank mode: %d\nGonna update R%d next!\n",
                r->mapperdata.chr_bank_mode,
                r->mapperdata.prg_bank_mode,
                r->mapperdata.bank_register);
@@ -115,7 +115,7 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
         if (r->mapperdata.bank_register == 0 || r->mapperdata.bank_register == 1) {
             value &= (byte)0b11111110;
         }
-        printf("Setting R%d to offset %d\n", r->mapperdata.bank_register, value);
+        dprintf("Setting R%d to offset %d\n", r->mapperdata.bank_register, value);
         // Bank data
         switch (r->mapperdata.bank_register) {
             case 0:
@@ -171,7 +171,7 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
     }
     else if (address < 0xE000 && address % 2 == 1) {
         // IRQ reload
-        printf("TODO: implement this when I do IRQs\n");
+        r->mapperdata.counter = 0;
     }
     else if (address <= 0xFFFF && address % 2 == 0) {
         // IRQ disable
@@ -243,4 +243,17 @@ byte mapper4_chr_read(rom* r, uint16_t address) {
 
 void mapper4_chr_write(rom* r, uint16_t address, byte value) {
     r->chr_rom[mapper4_get_chr_rom_index(r, address)] = value;
+}
+
+void mapper4_ppu_step(rom* r, int cycle, int scan_line, bool rendering_enabled) {
+    if (cycle == 280 && rendering_enabled && scan_line < 231) {
+        if (r->mapperdata.counter == 0) {
+            r->mapperdata.counter = r->mapperdata.irq_latch;
+        }
+        else {
+            if (--r->mapperdata.counter == 0 && r->mapperdata.irq_enable) {
+                printf("IRQ time!\n");
+            }
+        }
+    }
 }

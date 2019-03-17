@@ -561,6 +561,7 @@ void evaluate_sprites(ppu_memory* ppu_mem) {
 }
 
 void ppu_step(ppu_memory* ppu_mem) {
+    bool is_rendering_enabled = rendering_enabled(ppu_mem);
     ppu_mem->cycle++;
     if (ppu_mem->cycle >= CYCLES_PER_LINE) {
         ppu_mem->cycle = 0;
@@ -572,7 +573,7 @@ void ppu_step(ppu_memory* ppu_mem) {
 
             // On odd frames, if rendering is enabled, skip the first cycle of the first visible line.
             if (ppu_mem->frame % 2 == 1
-                && rendering_enabled(ppu_mem)) {
+                && is_rendering_enabled) {
                 ppu_mem->cycle++;
             }
 
@@ -581,9 +582,11 @@ void ppu_step(ppu_memory* ppu_mem) {
         }
     }
 
+    mapper_ppu_step(ppu_mem->r, ppu_mem->cycle, ppu_mem->scan_line, is_rendering_enabled);
+
     // Visible
     if (ppu_mem->scan_line < 240) {
-        if (rendering_enabled(ppu_mem)) {
+        if (is_rendering_enabled) {
             if (is_visible(ppu_mem)) {
                 render_pixel(ppu_mem);
             }
@@ -612,7 +615,7 @@ void ppu_step(ppu_memory* ppu_mem) {
     }
     // Pre-render
     else if (ppu_mem->scan_line == 261) {
-        if (rendering_enabled(ppu_mem)) {
+        if (is_rendering_enabled) {
             if ((ppu_mem->cycle> 0 && ppu_mem->cycle < 257) || (ppu_mem->cycle > 320 && ppu_mem->cycle <= 336)) {
                 fetch_step(ppu_mem);
                 if (ppu_mem->cycle == 256) {

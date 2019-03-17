@@ -55,6 +55,7 @@ typedef struct mapper_data_t {
     byte ram_write_protect;
     bool irq_enable;
     byte irq_latch;
+    byte counter;
 } mapper_data;
 
 typedef struct rom_t {
