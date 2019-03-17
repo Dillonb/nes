@@ -10,4 +10,6 @@ add_library(mapper
         mapper1.h
         mapper2.c
         mapper2.h
+        mapper4.c
+        mapper4.h
         )
