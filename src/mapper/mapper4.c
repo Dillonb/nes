@@ -190,22 +190,25 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
 int mapper4_get_chr_rom_index(rom *r, uint16_t address) {
     if (r->mapperdata.chr_bank_mode == 0) {
         if (address < 0x800) { // 2KB bank
-            return (uint16_t)r->mapperdata.chr_bank_0_offset + address;
+            return r->mapperdata.chr_bank_0_offset + address;
         }
         else if (address < 0x1000) { // 2KB bank
-            return (uint16_t)r->mapperdata.chr_bank_1_offset + (address % 0x800);
+            return r->mapperdata.chr_bank_1_offset + (address % 0x800);
         }
         else if (address < 0x1400) { // 1KB bank
-            return (uint16_t)r->mapperdata.chr_bank_2_offset + (address % 0x400);
+            return r->mapperdata.chr_bank_2_offset + (address % 0x400);
         }
         else if (address < 0x1800) { // 1KB bank
-            return (uint16_t)r->mapperdata.chr_bank_3_offset + (address % 0x400);
+            return r->mapperdata.chr_bank_3_offset + (address % 0x400);
         }
         else if (address < 0x1C00) { // 1KB bank
-            return (uint16_t)r->mapperdata.chr_bank_4_offset + (address % 0x400);
+            return r->mapperdata.chr_bank_4_offset + (address % 0x400);
         }
         else if (address < 0x2000) { // 1KB bank
-            return (uint16_t)r->mapperdata.chr_bank_5_offset + (address % 0x400);
+            return r->mapperdata.chr_bank_5_offset + (address % 0x400);
+        }
+        else {
+            errx(EXIT_FAILURE, "Mapper 4: Unhandled CHR read at 0x%04X", address);
         }
     }
     else {
