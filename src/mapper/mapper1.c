@@ -3,6 +3,26 @@
 #include "mapper1.h"
 #include "../debugger.h"
 
+void mapper1_init(mapper_data* mapperdata) {
+    mapperdata->prg_bank_mode = 1;
+    mapperdata->chr_bank_mode = 0;
+
+    mapperdata->chr_bank_0 = 0;
+    mapperdata->chr_bank_1 = 0;
+
+    mapperdata->ram_enabled = 0;
+
+    mapperdata->prg_bank = 0;
+
+    mapperdata->prg_bank_0_offset = 0;
+    mapperdata->prg_bank_1_offset = -1;
+
+    mapperdata->chr_bank_0_offset = 0;
+    mapperdata->chr_bank_1_offset = 0;
+
+    mapperdata->shift_register = 0x10;
+}
+
 
 int prg_offset_for_bank(rom* r, int bank) {
     if (bank >= 0x80) {
@@ -36,14 +56,14 @@ byte mapper1_prg_read(rom* r, uint16_t address) {
         result = r->prg_ram[address - 0x6000];
     }
     else if (address < 0xC000) { // PRG bank 0, 0x8000 - 0xBFFF
-        result = r->prg_rom[r->mapperdata.m1_prg_bank_0_offset + (address  % 0x4000)];
+        result = r->prg_rom[r->mapperdata.prg_bank_0_offset + (address  % 0x4000)];
     }
     else { // PRG bank 1, 0xC000 - 0xFFFF
-        if (r->mapperdata.m1_prg_bank_1_offset == -1) {
-            r->mapperdata.m1_prg_bank_1_offset = get_last_prg_bank(r);
+        if (r->mapperdata.prg_bank_1_offset == -1) {
+            r->mapperdata.prg_bank_1_offset = get_last_prg_bank(r);
         }
 
-        result = r->prg_rom[r->mapperdata.m1_prg_bank_1_offset + (address % 0x4000)];
+        result = r->prg_rom[r->mapperdata.prg_bank_1_offset + (address % 0x4000)];
     }
 
     return result;
@@ -94,18 +114,18 @@ void load_register(uint16_t address, rom* r) {
     switch (r->mapperdata.prg_bank_mode) {
         case 0:
         case 1:
-            r->mapperdata.m1_prg_bank_0_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank & 0b1110);
-            r->mapperdata.m1_prg_bank_1_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank | 0b1);
+            r->mapperdata.prg_bank_0_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank & 0b1110);
+            r->mapperdata.prg_bank_1_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank | 0b1);
             break;
 
         case 2:
-            r->mapperdata.m1_prg_bank_0_offset = prg_offset_for_bank(r, 0);
-            r->mapperdata.m1_prg_bank_1_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank);
+            r->mapperdata.prg_bank_0_offset = prg_offset_for_bank(r, 0);
+            r->mapperdata.prg_bank_1_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank);
             break;
 
         case 3:
-            r->mapperdata.m1_prg_bank_0_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank);
-            r->mapperdata.m1_prg_bank_1_offset = get_last_prg_bank(r);
+            r->mapperdata.prg_bank_0_offset = prg_offset_for_bank(r, r->mapperdata.prg_bank);
+            r->mapperdata.prg_bank_1_offset = get_last_prg_bank(r);
             break;
 
         default:

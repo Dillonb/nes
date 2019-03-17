@@ -37,8 +37,8 @@ typedef struct mapper_data_t {
 
     byte prg_bank;
 
-    int m1_prg_bank_0_offset;
-    int m1_prg_bank_1_offset;
+    int prg_bank_0_offset;
+    int prg_bank_1_offset;
 
     int chr_bank_0_offset;
     int chr_bank_1_offset;

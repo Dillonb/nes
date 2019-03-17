@@ -44,7 +44,7 @@ target_link_libraries(nes SDL2 core render mapper)
 
 
 add_executable (prgdump prgdump.c)
-target_link_libraries(prgdump mapper)
+target_link_libraries(prgdump mapper core nooprender)
 
 
 add_executable (disassemble disassemble.c)

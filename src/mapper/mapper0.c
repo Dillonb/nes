@@ -3,6 +3,9 @@
 #include <stdint.h>
 
 #include "rom.h"
+
+void mapper0_init(mapper_data* mapperdata) {}
+
 byte mapper0_prg_read(rom* r, uint16_t address) {
 
     if (address >= 0x6000 && address < 0x8000) {
