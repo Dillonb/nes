@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "rom.h"
+#include "../debugger.h"
 
 int prg_offset_for_8kb_bank(rom* r, int bank) {
     if (bank < 0) {
@@ -95,7 +96,7 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
         address -= 0x6000;
         address %= prg_ram_bytes;
         r->prg_ram[address] = value;
-        printf("Wrote 0x%02X to 0x%04X\n", value, address + 0x6000);
+        dprintf("Wrote 0x%02X to 0x%04X\n", value, address + 0x6000);
     }
     else if (address < 0xA000 && address % 2 == 0) {
         // Bank select
@@ -137,11 +138,11 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
                 break;
             case 6:
                 r->mapperdata.prg_bank_0_offset = prg_offset_for_8kb_bank(r, value);
-                printf("R6 offset is now: 0x%04X\n", r->mapperdata.prg_bank_0_offset);
+                dprintf("R6 offset is now: 0x%04X\n", r->mapperdata.prg_bank_0_offset);
                 break;
             case 7:
                 r->mapperdata.prg_bank_1_offset = prg_offset_for_8kb_bank(r, value);
-                printf("R7 offset is now: 0x%04X\n", r->mapperdata.prg_bank_1_offset);
+                dprintf("R7 offset is now: 0x%04X\n", r->mapperdata.prg_bank_1_offset);
                 break;
             default:
                 errx(EXIT_FAILURE, "MMC3: Bank data write: Unhandled bank number: %d", r->mapperdata.bank_register);
@@ -149,7 +150,7 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
     }
     else if (address < 0xC000 && address % 2 == 0) {
         // Mirroring
-        if (value & (byte)1 == 0) {
+        if ((value & (byte)1) == 0) {
             r->nametable_mirroring_mode = VERTICAL;
             printf("Nametable mirroring mode is now: VERTICAL\n");
         }
@@ -241,5 +242,5 @@ byte mapper4_chr_read(rom* r, uint16_t address) {
 }
 
 void mapper4_chr_write(rom* r, uint16_t address, byte value) {
-    errx(EXIT_FAILURE, "MMC3: Unhandled CHR write: 0x%04X = 0x%02X", address, value);
+    r->chr_rom[mapper4_get_chr_rom_index(r, address)] = value;
 }
