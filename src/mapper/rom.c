@@ -42,8 +42,8 @@ size_t get_chr_rom_bytes(rom* r) {
 
 
 unsigned char get_mapper_number(rom* r) {
-  unsigned char lower_nybble = r->header->flags_6 & 0b11110000;
-  unsigned char upper_nybble = r->header->flags_7 & 0b11110000;
+  unsigned char lower_nybble = r->header->flags_6 & (byte)0b11110000;
+  unsigned char upper_nybble = r->header->flags_7 & (byte)0b11110000;
 
   return (lower_nybble >> 4 ) | upper_nybble;
 }

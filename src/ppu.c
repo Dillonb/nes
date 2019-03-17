@@ -146,7 +146,7 @@ uint16_t mirror_palette_address(uint16_t address) {
     address %= 32;
 
     if (address >= 0x10 && address % 4 == 0) {
-        return address - (uint16_t)0x10;
+        address -= 0x10;
     }
 
     return address;
