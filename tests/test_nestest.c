@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <src/debugger.h>
 
-typedef struct nestest_step_t {
+typedef struct step_t {
     uint16_t address;
     byte a;
     byte x;
@@ -18,7 +18,7 @@ typedef struct nestest_step_t {
     int ppu_x;
     int ppu_y;
     int cycles;
-} nestest_step;
+} log_step;
 
 rom* r;
 memory mem;
@@ -35,12 +35,12 @@ void test_load_rom(void) {
 }
 
 int num_steps = 8991;
-nestest_step steps[8991];
+log_step steps[8991];
 void test_load_steps(void) {
     FILE* fp = fopen("nestest.log", "rb");
 
     for (int step = 0; step < num_steps; step++) {
-        nestest_step temp_step;
+        log_step temp_step;
 
         char buf[10];
 
@@ -117,7 +117,7 @@ int get_ppu_y(memory* mem) {
     return get_screen_y(&mem->ppu_mem);
 }
 
-void print_step_info(int index, nestest_step stepdata) {
+void print_step_info(int index, log_step stepdata) {
     bool success = true;
     if (stepdata.address != mem.pc) {
         printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
@@ -167,7 +167,7 @@ void print_step_info(int index, nestest_step stepdata) {
 
 void test_run_rom(void) {
     for (int step = 0; step < num_steps; step++) {
-        nestest_step stepdata = steps[step];
+        log_step stepdata = steps[step];
         print_step_info(step, stepdata);
         TEST_ASSERT_EQUAL_UINT16(stepdata.address, mem.pc);
         TEST_ASSERT_EQUAL_UINT8(stepdata.a, mem.a);
