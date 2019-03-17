@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include <stdbool.h>
 #include "../util.h"
 
 #define BYTES_PER_PRG_ROM_BLOCK 16384
@@ -44,9 +45,16 @@ typedef struct mapper_data_t {
 
     int chr_bank_0_offset;
     int chr_bank_1_offset;
+    int chr_bank_2_offset;
+    int chr_bank_3_offset;
+    int chr_bank_4_offset;
+    int chr_bank_5_offset;
 
     byte shift_register;
-
+    byte bank_register;
+    byte ram_write_protect;
+    bool irq_enable;
+    byte irq_latch;
 } mapper_data;
 
 typedef struct rom_t {

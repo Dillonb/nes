@@ -920,7 +920,7 @@ int normal_cpu_step(memory* mem) {
             const char* opcode_short = opcode_to_name_short(opcode);
             char docs_link[DOCS_PREFIX_LENGTH + 10];
             snprintf(docs_link, sizeof(docs_link), "%s%s", docs_prefix, opcode_short);
-            errx(EXIT_FAILURE, "Opcode not implemented: %s hex 0x%x\nSee %s", opcode_to_name_full(opcode), opcode, docs_link);
+            errx(EXIT_FAILURE, "At 0x%04X - opcode not implemented: %s hex 0x%x\nSee %s", old_pc, opcode_to_name_full(opcode), opcode, docs_link);
         }
     }
 
