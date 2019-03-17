@@ -85,6 +85,26 @@ nametable_mirroring get_nametable_mirroring_mode(rom* r) {
     }
 }
 
+void initialize_mapperdata(rom* r) {
+    r->mapperdata.prg_bank_mode = 1;
+    r->mapperdata.chr_bank_mode = 0;
+
+    r->mapperdata.chr_bank_0 = 0;
+    r->mapperdata.chr_bank_1 = 0;
+
+    r->mapperdata.ram_enabled = 0;
+
+    r->mapperdata.prg_bank = 0;
+
+    r->mapperdata.m1_prg_bank_0_offset = 0;
+    r->mapperdata.m1_prg_bank_1_offset = -1;
+
+    r->mapperdata.chr_bank_0_offset = 0;
+    r->mapperdata.chr_bank_1_offset = 0;
+
+    r->mapperdata.shift_register = 0x10;
+}
+
 rom* read_rom(char* filename) {
 
     rom* r = malloc(sizeof(rom));
@@ -119,5 +139,7 @@ rom* read_rom(char* filename) {
     printf("Rom has mapper %d\n", r->mapper);
 
     fclose(fp);
+
+    initialize_mapperdata(r);
     return r;
 }

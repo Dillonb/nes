@@ -26,6 +26,27 @@ typedef enum nametable_mirroring_t {
     SINGLE_UPPER
 } nametable_mirroring;
 
+typedef struct mapper_data_t {
+    byte prg_bank_mode;
+    byte chr_bank_mode;
+
+    byte chr_bank_0;
+    byte chr_bank_1;
+
+    byte ram_enabled;
+
+    byte prg_bank;
+
+    int m1_prg_bank_0_offset;
+    int m1_prg_bank_1_offset;
+
+    int chr_bank_0_offset;
+    int chr_bank_1_offset;
+
+    byte shift_register;
+
+} mapper_data;
+
 typedef struct rom_t {
   ines_header* header;
   byte* trainer; // 512 bytes, or NULL.
@@ -33,6 +54,7 @@ typedef struct rom_t {
   byte* chr_rom;
   byte mapper;
   nametable_mirroring nametable_mirroring_mode;
+  mapper_data mapperdata;
   byte prg_ram[0x2000];
 } rom;
 
