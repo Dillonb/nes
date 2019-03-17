@@ -45,6 +45,8 @@ void mapper4_init(rom* r) {
     r->mapperdata.ram_enabled = 1;
     r->mapperdata.ram_write_protect = 0;
     r->mapperdata.irq_enable = false;
+
+    r->mapperdata.irq_next_cycle = false;
 }
 
 byte mapper4_prg_read(rom* r, uint16_t address) {
@@ -176,12 +178,12 @@ void mapper4_prg_write(rom* r, uint16_t address, byte value) {
     else if (address <= 0xFFFF && address % 2 == 0) {
         // IRQ disable
         r->mapperdata.irq_enable = false;
-        printf("IRQs are now DISABLED\n");
+        dprintf("IRQs are now DISABLED\n");
     }
     else if (address <= 0xFFFF && address % 2 == 1) {
         // IRQ enable
         r->mapperdata.irq_enable = true;
-        printf("IRQs are now ENABLED\n");
+        dprintf("IRQs are now ENABLED\n");
     }
     else {
         errx(EXIT_FAILURE, "Tried to write 0x%02X to PRG at 0x%04X\n", value, address);
@@ -252,7 +254,7 @@ void mapper4_ppu_step(rom* r, int cycle, int scan_line, bool rendering_enabled) 
         }
         else {
             if (--r->mapperdata.counter == 0 && r->mapperdata.irq_enable) {
-                printf("IRQ time!\n");
+                r->mapperdata.irq_next_cycle = true;
             }
         }
     }

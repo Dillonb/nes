@@ -11,6 +11,7 @@ const char* docs_prefix = "https://www.masswerk.at/6502/6502_instruction_set.htm
 #define DOCS_PREFIX_LENGTH 55
 
 #define NMI_PC_LOCATION 0xFFFA
+#define IRQ_PC_LOCATION 0xFFFE
 
 long total_cycles = 0;
 int stall_cycles = 0;
@@ -253,6 +254,14 @@ int interrupt_nmi(memory* mem) {
     return 10;
 }
 
+int interrupt_irq(memory* mem) {
+    stack_push16(mem, mem->pc);
+    php(mem);
+    mem->pc = read_address(mem, IRQ_PC_LOCATION);
+    set_p_interrupt(mem);
+    return 7;
+}
+
 interrupt_type interrupt = NONE;
 
 int interrupt_cpu_step(memory* mem) {
@@ -260,6 +269,9 @@ int interrupt_cpu_step(memory* mem) {
     // Before doing the step, see if there was an interrupt triggered
     if (interrupt == nmi) {
         return interrupt_nmi(mem);
+    }
+    if (interrupt == irq) {
+        return interrupt_irq(mem);
     }
     errx(EXIT_FAILURE, "Interrupt type not implemented");
 }
@@ -949,6 +961,11 @@ void trigger_oam_dma(memory* mem, uint16_t address) {
 
 int cpu_step(memory* mem) {
     int cycles;
+    if (mem->r->mapperdata.irq_next_cycle) {
+        mem->r->mapperdata.irq_next_cycle = false;
+        interrupt = irq;
+    }
+
     if (interrupt != NONE) {
         cycles = interrupt_cpu_step(mem);
         interrupt = NONE;

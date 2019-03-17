@@ -56,6 +56,7 @@ typedef struct mapper_data_t {
     bool irq_enable;
     byte irq_latch;
     byte counter;
+    bool irq_next_cycle;
 } mapper_data;
 
 typedef struct rom_t {
