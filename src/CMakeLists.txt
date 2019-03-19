@@ -24,6 +24,8 @@ add_library(core
         system.c
         system.h
         palette.h
+        apu.c
+        apu.h
         )
 
 add_library(nooprender

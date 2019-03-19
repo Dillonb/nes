@@ -5,6 +5,7 @@
 #include "mapper/rom.h"
 #include "util.h"
 #include "ppu.h"
+#include "apu.h"
 #include "controller.h"
 
 typedef struct controller_t {
@@ -38,6 +39,9 @@ typedef struct memory_t {
 
     // PPU
     ppu_memory ppu_mem;
+
+    // APU
+    apu_memory apu_mem;
 
     // Internal RAM
     byte ram[0x800];

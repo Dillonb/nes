@@ -81,7 +81,7 @@ void write_byte(memory* mem, uint16_t address, byte value) {
         mem->ctrl1.lastwrite = value;
     }
     else if (address < 0x4018) {
-        dprintf("Write to APU register at address 0x%04x detected. Ignoring for now.\n", address);
+        write_apu_register(&mem->apu_mem, address - 0x4000, value);
     }
     else if (address < 0x4020) {
         dprintf("Write to CPU test mode register, ignoring.\n");
@@ -226,7 +226,6 @@ void set_p_zero_to(memory* mem, bool value) {
 void set_p_carry_to(memory* mem, bool value) {
     set_p_flag_to(mem, P_CARRY, value);
 }
-
 
 void set_p_zero_on(memory* mem, byte value) {
     if (value == 0x00) {
