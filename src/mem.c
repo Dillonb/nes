@@ -64,7 +64,7 @@ void write_byte(memory* mem, uint16_t address, byte value) {
     }
     else if (address < 0x4000) { // PPU registers
         // 8 ppu registers, repeating every 8 bytes from 0x2000 to 0x3FFF
-        byte register_num = (address - 2000) % 8;
+        byte register_num = (byte)((address - 2000) % 8);
         dprintf("Writing 0x%02x to PPU register %d\n", value, register_num);
         write_ppu_register(&mem->ppu_mem, register_num, value);
     }
