@@ -1,8 +1,8 @@
 #pragma once
 #include "util.h"
 
-const double AUDIO_SAMPLE_RATE = 44100;
-const double STEPS_PER_SAMPLE = CPU_FREQUENCY / AUDIO_SAMPLE_RATE;
+static const double AUDIO_SAMPLE_RATE = 44100;
+static const double STEPS_PER_SAMPLE = CPU_FREQUENCY / AUDIO_SAMPLE_RATE;
 
 typedef struct apu_memory_t {
     long cycle;
