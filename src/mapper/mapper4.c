@@ -248,7 +248,7 @@ void mapper4_chr_write(rom* r, uint16_t address, byte value) {
 }
 
 void mapper4_ppu_step(rom* r, int cycle, int scan_line, bool rendering_enabled) {
-    if (cycle == 280 && rendering_enabled && scan_line < 231) {
+    if (cycle == 260 && rendering_enabled && scan_line < 231) {
         if (r->mapperdata.counter == 0) {
             r->mapperdata.counter = r->mapperdata.irq_latch;
         }
