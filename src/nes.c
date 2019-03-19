@@ -4,6 +4,7 @@
 
 #include "system.h"
 #include "cpu.h"
+#include "apu.h"
 #include "debugger.h"
 #include "mem.h"
 #include "mapper/rom.h"
@@ -35,6 +36,7 @@ int main(int argc, char** argv) {
     memory mem = get_blank_memory(r);
 
 
+    apu_init(&mem.apu_mem);
 
     while (true) {
         system_step(&mem);

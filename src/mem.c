@@ -111,6 +111,8 @@ memory get_blank_memory(rom* r) {
 
     dprintf("Set program counter to 0x%x\n", mem.pc);
 
+    mem.apu_mem = get_apu_mem();
+
     return mem;
 }
 
