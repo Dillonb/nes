@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "unity.h"
 #include <src/cpu.h>
 #include <src/opcode_names.h>
@@ -13,6 +15,10 @@ memory mock_memory() {
     mem.p = 0x34;
     mem.pc = 0x0000; // For tests, start reading at 0x0000 so we don't need to load a real ROM
 
+    rom* r = malloc(sizeof(rom));
+
+    mem.r = r;
+
     return mem;
 }
 
@@ -21,6 +27,8 @@ void test_brk(void) {
     write_byte(&mem, 0x0000, BRK);
     cpu_step(&mem);
     TEST_ASSERT_MESSAGE(get_p_interrupt(&mem) == 1, "Interrupt flag not set by BRK");
+
+    free(mem.r);
 }
 
 int main(void) {
