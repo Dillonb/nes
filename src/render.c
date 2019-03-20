@@ -93,7 +93,7 @@ void update_key(SDL_Keycode sdlk, bool state) {
     }
 }
 
-void render_screen(color screen[SCREEN_WIDTH][SCREEN_HEIGHT]) {
+void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     if (!initialized) {
         initialize();
     }

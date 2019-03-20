@@ -578,7 +578,7 @@ void ppu_step(ppu_memory* ppu_mem) {
             }
 
             dprintf("Rendering frame %llu\n", ppu_mem->frame);
-            render_screen(ppu_mem->screen);
+            render_screen(&ppu_mem->screen);
         }
     }
 
