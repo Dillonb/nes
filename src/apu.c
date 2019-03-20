@@ -6,7 +6,10 @@
 #include "apu.h"
 
 byte read_apu_register(apu_memory* apu_mem, byte register_num) {
-
+    switch (register_num) {
+        default:
+            return 0x00;
+    }
 }
 
 byte pulse_duty[4][8] = {
