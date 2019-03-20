@@ -27,6 +27,8 @@ void write_pulse_register(pulse_oscillator* pulse, int register_num, byte value,
             pulse->duty_value = (byte)((value & 0b11000000) >> 6);
             pulse->length_counter_halt = ((value & 0b00100000) >> 5) == 1;
             pulse->constant_volume     = ((value & 0b00010000) >> 4) == 1;
+            pulse->vol_and_env_period  = value & (byte)0b1111;
+            pulse->envelope_start      = true;
             break;
         }
         case 1:
@@ -45,6 +47,8 @@ void write_pulse_register(pulse_oscillator* pulse, int register_num, byte value,
 
             pulse->length_counter = length_counter_table[(value & 0b11111000) >> 3];
             printf("PULSE %d: Loaded %d into length counter\n", pulsenum, pulse->length_counter);
+
+            pulse->envelope_start = true;
             break;
         }
     }
@@ -68,15 +72,28 @@ apu_memory get_apu_mem() {
     return apu_mem;
 }
 
+float get_volume_scale(byte volume) {
+    return volume == 0 ? 0 : (float)volume / 15.0f;
+}
+
 float get_pulse_sample(pulse_oscillator* pulse) {
     if (pulse->timer_register < 8 || pulse->enable == false || pulse->length_counter == 0) {
         return 0.0f;
     }
-    if (pulse_duty[pulse->duty_value][pulse->duty_step] == 1) {
-        return 1.0f;
+
+    float volume_scale;
+    if (pulse->constant_volume) {
+        volume_scale = get_volume_scale(pulse->vol_and_env_period);
     }
     else {
-        return -1.0f;
+        volume_scale = get_volume_scale(pulse->envelope_volume);
+    }
+
+    if (pulse_duty[pulse->duty_value][pulse->duty_step] == 1) {
+        return 1.0f * volume_scale;
+    }
+    else {
+        return -1.0f * volume_scale;
     }
 }
 
@@ -101,12 +118,45 @@ void dec_length_counter(apu_memory* apu_mem) {
     pulse_dec_length_counter(&apu_mem->pulse2);
 }
 
+void pulse_clock_envelope(pulse_oscillator* pulse) {
+    if (pulse->envelope_start) {
+        pulse->envelope_start  = false;
+        pulse->envelope_period_value  = pulse->vol_and_env_period;
+        pulse->envelope_volume = 15;
+    }
+    else if (pulse->envelope_period_value > 0) {
+        pulse->envelope_period_value--;
+    }
+    else {
+        // At the end of the envelope period, decrement the volume by one.
+        if (pulse->envelope_volume > 0) {
+            pulse->envelope_volume--;
+        }
+        else if (!pulse->length_counter_halt) { // Same bit is used for this, but inverted
+            pulse->envelope_volume = 15;
+        }
+
+        pulse->envelope_period_value = pulse->vol_and_env_period;
+    }
+}
+
+void clock_envelope(apu_memory* apu_mem) {
+    pulse_clock_envelope(&apu_mem->pulse1);
+    pulse_clock_envelope(&apu_mem->pulse2);
+}
+
 void step_frame_counter(apu_memory *apu_mem) {
     switch (apu_mem->frame_counter_mode) {
         case FC_4STEP:
             apu_mem->frame_counter = (byte)((apu_mem->frame_counter + 1) % 4);
             switch (apu_mem->frame_counter) {
+                case 0:
+                case 2:
+                    clock_envelope(apu_mem);
+                    break;
                 case 1:
+                    clock_envelope(apu_mem);
+                    break;
                 case 3:
                     dec_length_counter(apu_mem);
                     break;
@@ -115,8 +165,13 @@ void step_frame_counter(apu_memory *apu_mem) {
         case FC_5STEP:
             apu_mem->frame_counter = (byte)((apu_mem->frame_counter + 1) % 5);
             switch (apu_mem->frame_counter) {
+                case 0:
+                case 2:
+                    clock_envelope(apu_mem);
+                    break;
                 case 1:
                 case 3:
+                    clock_envelope(apu_mem);
                     dec_length_counter(apu_mem);
             }
             break;
