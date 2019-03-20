@@ -12,6 +12,7 @@ typedef struct pulse_oscillator_t {
     uint16_t timer_step; // Progress through timer period. Updated internally.
     byte duty_value; // 3 bit value. Written through register. Selects waveform.
     byte duty_step; // Current position in the duty byte. Updated internally when timer hits 0.
+    bool enable;
 } pulse_oscillator;
 
 typedef struct apu_memory_t {

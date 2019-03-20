@@ -2,6 +2,7 @@
 #include <err.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "apu.h"
 
 byte read_apu_register(apu_memory* apu_mem, byte register_num) {
@@ -58,6 +59,11 @@ void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
     }
     else if (register_num == 0x15) {
         // Channel enable and length counter status
+        //apu_mem->dmc.enable = (value >> 4) == 1;
+        //apu_mem->noise.enable = (value >> 3) == 1;
+        //apu_mem->triangle.enable = (value >> 2) == 1;
+        apu_mem->pulse2.enable = ((value >> 1) & 1) == 1;
+        apu_mem->pulse1.enable = (value & 1) == 1;
     }
     else if (register_num == 0x17) {
         // Frame counter
@@ -76,11 +82,14 @@ apu_memory get_apu_mem() {
     apu_mem.pulse1.timer_register = 0;
     apu_mem.pulse2.timer_register = 0;
 
+    apu_mem.pulse1.enable = 0;
+    apu_mem.pulse2.enable = 0;
+
     return apu_mem;
 }
 
 float get_pulse_sample(pulse_oscillator* pulse) {
-    if (pulse->timer_register < 8) {
+    if (pulse->timer_register < 8 || pulse->enable == false) {
         return 0.0f;
     }
     if (pulse_duty[pulse->duty_value][pulse->duty_step] == 1) {
