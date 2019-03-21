@@ -118,7 +118,7 @@ void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     // TODO this is probably kinda slow
     for (int y = 0; y < 240; y++) {
         for (int x = 0; x < 256; x++) {
-            color c = screen[x][y];
+            color c = (*screen)[x][y];
             color lastc = last_screen[x][y];
             if (c.r == lastc.r && c.g == lastc.g && c.b == lastc.b) {
                 continue;
