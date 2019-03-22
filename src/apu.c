@@ -27,15 +27,21 @@ byte length_counter_table[] = {
 void write_pulse_register(pulse_oscillator* pulse, int register_num, byte value, int pulsenum) {
     switch (register_num) {
         case 0: {
-            pulse->duty_value = (byte)((value & 0b11000000) >> 6);
+            pulse->duty_value          = (byte)((value & 0b11000000) >> 6);
             pulse->length_counter_halt = ((value & 0b00100000) >> 5) == 1;
             pulse->constant_volume     = ((value & 0b00010000) >> 4) == 1;
             pulse->vol_and_env_period  = value & (byte)0b1111;
             pulse->envelope_start      = true;
             break;
         }
-        case 1:
+        case 1: {
+            pulse->sweep_enabled     = (value & 0b10000000) >> 7 == 1;
+            pulse->sweep_period      = (byte)(value & 0b01110000) >> 4;
+            pulse->sweep_negate      = (byte)(value & 0b00001000) >> 3 == 1;
+            pulse->sweep_shift_count = (byte)(value & 0b00000111);
+            pulse->sweep_reload      = true;
             break;
+        }
         case 2: {
             pulse->timer_register &= 0b11100000000;
             pulse->timer_register |= value;
@@ -80,7 +86,7 @@ float get_volume_scale(byte volume) {
 }
 
 float get_pulse_sample(pulse_oscillator* pulse) {
-    if (pulse->timer_register < 8 || pulse->enable == false || pulse->length_counter == 0) {
+    if (pulse->timer_register < 8 || pulse->enable == false || pulse->length_counter == 0 || pulse->sweep_period > 0x7FF) {
         return 0.0f;
     }
 
@@ -148,6 +154,37 @@ void clock_envelope(apu_memory* apu_mem) {
     pulse_clock_envelope(&apu_mem->pulse2);
 }
 
+void pulse_clock_sweep(pulse_oscillator* pulse, int pulsenum) {
+    if (pulse->sweep_enabled && pulse->sweep_counter == 0) {
+        pulse->sweep_counter = pulse->sweep_period;
+        uint16_t diff = pulse->timer_register >> pulse->sweep_shift_count;
+        if (pulse->sweep_negate) {
+            pulse->timer_register = pulse->timer_register
+                    - diff
+                    // Pulse channel 1 subtracts 1 more here
+                    - (pulsenum == 1);
+        }
+        else {
+            pulse->timer_register += diff;
+        }
+    }
+
+    if (pulse->sweep_reload) {
+        pulse->sweep_reload = false;
+        pulse->sweep_counter = pulse->sweep_period;
+    }
+    else {
+        if (pulse->sweep_counter > 0) {
+            pulse->sweep_counter--;
+        }
+    }
+}
+
+void clock_sweep(apu_memory* apu_mem) {
+    pulse_clock_sweep(&apu_mem->pulse1, 1);
+    pulse_clock_sweep(&apu_mem->pulse2, 2);
+}
+
 void step_frame_counter(apu_memory *apu_mem) {
     switch (apu_mem->frame_counter_mode) {
         case FC_4STEP:
@@ -159,9 +196,11 @@ void step_frame_counter(apu_memory *apu_mem) {
                     break;
                 case 1:
                     clock_envelope(apu_mem);
+                    clock_sweep(apu_mem);
                     break;
                 case 3:
                     dec_length_counter(apu_mem);
+                    clock_sweep(apu_mem);
                     break;
             }
             break;
@@ -176,6 +215,7 @@ void step_frame_counter(apu_memory *apu_mem) {
                 case 3:
                     clock_envelope(apu_mem);
                     dec_length_counter(apu_mem);
+                    clock_sweep(apu_mem);
             }
             break;
     }
@@ -296,8 +336,8 @@ void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
         apu_mem->interrupt_inhibit = ((value >> 6) & 1) == 1;
 
         if (apu_mem->frame_counter_mode == FC_5STEP) {
-            // clock envelope
-            // clock sweep
+            clock_envelope(apu_mem);
+            clock_sweep(apu_mem);
             dec_length_counter(apu_mem);
         }
 

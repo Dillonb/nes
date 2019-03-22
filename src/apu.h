@@ -20,10 +20,19 @@ typedef struct pulse_oscillator_t {
     bool enable;
     bool length_counter_halt;
     bool constant_volume;
+
     byte vol_and_env_period;
+
     bool envelope_start;
     byte envelope_volume;
     byte envelope_period_value;
+
+    bool sweep_enabled;
+    byte sweep_period;
+    bool sweep_negate;
+    byte sweep_shift_count;
+    bool sweep_reload;
+    byte sweep_counter;
 } pulse_oscillator;
 
 typedef struct apu_memory_t {
