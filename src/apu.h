@@ -35,6 +35,24 @@ typedef struct pulse_oscillator_t {
     byte sweep_counter;
 } pulse_oscillator;
 
+typedef struct triangle_oscillator_t {
+    bool enable;
+
+    uint16_t timer_register; // 11 bit value. Written through register. Selects frequency.
+    uint16_t timer_step; // Progress through timer period. Updated internally.
+    bool length_counter_halt;
+    byte length_counter; // Set by register, from lookup table. Decremented internally.
+
+    byte duty_step;
+
+    bool linear_counter_reload;
+    byte linear_counter_load;
+    byte linear_counter;
+
+
+
+} triangle_oscillator;
+
 typedef struct apu_memory_t {
     long cycle;
     float buffer[APU_RING_BUFFER_SIZE];
@@ -43,6 +61,8 @@ typedef struct apu_memory_t {
 
     pulse_oscillator pulse1;
     pulse_oscillator pulse2;
+
+    triangle_oscillator triangle;
 
     int frame_counter_mode;
     bool interrupt_inhibit;

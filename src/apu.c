@@ -19,6 +19,11 @@ byte pulse_duty[4][8] = {
         {1, 0, 0, 1, 1, 1, 1, 1}
 };
 
+byte triangle_duty[] = {
+        15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5,  4,  3,  2,  1,  0,
+        0,  1,  2,  3,  4,  5,  6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+};
+
 byte length_counter_table[] = {
         10, 254, 20, 2, 40, 4, 80, 6, 160, 8, 60, 10, 14, 12, 26,
         14, 12, 16, 24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16,
@@ -45,21 +50,52 @@ void write_pulse_register(pulse_oscillator* pulse, int register_num, byte value,
         case 2: {
             pulse->timer_register &= 0b11100000000;
             pulse->timer_register |= value;
-            printf("PULSE %d: Timer Low written: Pulse timer is now %d\n", pulsenum, pulse->timer_register);
+            //printf("PULSE %d: Timer Low written: Pulse timer is now %d\n", pulsenum, pulse->timer_register);
             break;
         }
 
         case 3: {
             pulse->timer_register &= 0b00011111111;
             pulse->timer_register |= (value & 0b00000111) << 8;
-            printf("PULSE %d: Timer High written: Pulse timer is now %d\n", pulsenum, pulse->timer_register);
+            //printf("PULSE %d: Timer High written: Pulse timer is now %d\n", pulsenum, pulse->timer_register);
 
             pulse->length_counter = length_counter_table[(value & 0b11111000) >> 3];
-            printf("PULSE %d: Loaded %d into length counter\n", pulsenum, pulse->length_counter);
+            //printf("PULSE %d: Loaded %d into length counter\n", pulsenum, pulse->length_counter);
 
             pulse->envelope_start = true;
             break;
         }
+    }
+}
+
+void write_triangle_register(triangle_oscillator* triangle, int register_num, byte value) {
+    switch (register_num) {
+        case 0: { // 0x4008
+            triangle->length_counter_halt = (value & 0b10000000) == 0b10000000;
+            triangle->linear_counter_load = (byte) (value & 0b01111111);
+            triangle->linear_counter_reload = true;
+            break;
+        }
+        case 1: // 0x4009
+            // Unused
+            break;
+        case 2: { // 0x400A
+            triangle->timer_register &= 0b11100000000;
+            triangle->timer_register |= value;
+            printf("TRIANGLE: Timer Low written: Triangle timer is now %d\n", triangle->timer_register);
+            break;
+        }
+        case 3: { // 0x400B
+            triangle->timer_register &= 0b00011111111;
+            triangle->timer_register |= ((uint16_t)value & 0b111) << 8;
+            triangle->length_counter = length_counter_table[value >> 3];
+            triangle->linear_counter_reload = true;
+            printf("TRIANGLE: Timer High written: Triangle timer is now %d\n", triangle->timer_register);
+            printf("TRIANGLE: Loaded %d into length counter\n", triangle->length_counter);
+            break;
+        }
+        default:
+            break;
     }
 }
 
@@ -85,8 +121,18 @@ float get_volume_scale(byte volume) {
     return volume == 0 ? 0 : (float)volume / 15.0f;
 }
 
+float get_triangle_sample(triangle_oscillator* triangle) {
+    if (triangle->enable && triangle->length_counter > 0 && triangle->linear_counter > 0) {
+        float duty = triangle_duty[triangle->duty_step];
+        return (duty - 7.5f) / 7.5f;
+    }
+    else {
+        return 0.0f;
+    }
+}
+
 float get_pulse_sample(pulse_oscillator* pulse) {
-    if (pulse->timer_register < 8 || pulse->enable == false || pulse->length_counter == 0 || pulse->sweep_period > 0x7FF) {
+    if (pulse->timer_register < 8 || pulse->timer_register > 0x7FF || pulse->enable == false || pulse->length_counter == 0) {
         return 0.0f;
     }
 
@@ -122,9 +168,16 @@ void pulse_dec_length_counter(pulse_oscillator* pulse) {
     }
 }
 
+void triangle_dec_length_counter(triangle_oscillator* triangle) {
+    if (triangle->length_counter > 0 && !triangle->length_counter_halt) {
+        triangle->length_counter--;
+    }
+}
+
 void dec_length_counter(apu_memory* apu_mem) {
     pulse_dec_length_counter(&apu_mem->pulse1);
     pulse_dec_length_counter(&apu_mem->pulse2);
+    triangle_dec_length_counter(&apu_mem->triangle);
 }
 
 void pulse_clock_envelope(pulse_oscillator* pulse) {
@@ -169,7 +222,7 @@ void pulse_clock_sweep(pulse_oscillator* pulse, int pulsenum) {
         }
     }
 
-    if (pulse->sweep_reload) {
+    if (pulse->sweep_reload || pulse->sweep_counter == 0) {
         pulse->sweep_reload = false;
         pulse->sweep_counter = pulse->sweep_period;
     }
@@ -185,6 +238,20 @@ void clock_sweep(apu_memory* apu_mem) {
     pulse_clock_sweep(&apu_mem->pulse2, 2);
 }
 
+void clock_triangle_linear_counter(triangle_oscillator* triangle) {
+    if (triangle->linear_counter_reload) {
+        triangle->linear_counter = triangle->linear_counter_load;
+    }
+    else if (triangle->linear_counter > 0) {
+        triangle->linear_counter--;
+    }
+
+    if (triangle->length_counter_halt == 0) { // This flag is reused here.
+        triangle->linear_counter_reload = false;
+    }
+}
+
+
 void step_frame_counter(apu_memory *apu_mem) {
     switch (apu_mem->frame_counter_mode) {
         case FC_4STEP:
@@ -193,9 +260,11 @@ void step_frame_counter(apu_memory *apu_mem) {
                 case 0:
                 case 2:
                     clock_envelope(apu_mem);
+                    clock_triangle_linear_counter(&apu_mem->triangle);
                     break;
                 case 1:
                     clock_envelope(apu_mem);
+                    clock_triangle_linear_counter(&apu_mem->triangle);
                     clock_sweep(apu_mem);
                     break;
                 case 3:
@@ -210,14 +279,28 @@ void step_frame_counter(apu_memory *apu_mem) {
                 case 0:
                 case 2:
                     clock_envelope(apu_mem);
+                    clock_triangle_linear_counter(&apu_mem->triangle);
                     break;
                 case 1:
                 case 3:
                     clock_envelope(apu_mem);
+                    clock_triangle_linear_counter(&apu_mem->triangle);
                     dec_length_counter(apu_mem);
                     clock_sweep(apu_mem);
+                    break;
             }
             break;
+    }
+}
+void step_triangle_timer(triangle_oscillator* triangle) {
+    if (triangle->timer_step == 0) {
+        triangle->timer_step = triangle->timer_register;
+        if (triangle->length_counter > 0 && triangle->linear_counter > 0) {
+            triangle->duty_step = (byte)((triangle->duty_step + 1) % 32);
+        }
+    }
+    else {
+        triangle->timer_step--;
     }
 }
 
@@ -233,6 +316,8 @@ void apu_step(apu_memory* apu_mem) {
         step_pulse_timer(&apu_mem->pulse1);
         step_pulse_timer(&apu_mem->pulse2);
     }
+    // Triangle clock is as fast as the CPU
+    step_triangle_timer(&apu_mem->triangle);
 
     if ((int)(last_cycle / APU_STEPS_PER_FRAME_COUNTER_STEP) != (int)(this_cycle / APU_STEPS_PER_FRAME_COUNTER_STEP)) {
         step_frame_counter(apu_mem);
@@ -240,10 +325,11 @@ void apu_step(apu_memory* apu_mem) {
 
     if ((int)(last_cycle / APU_STEPS_PER_SAMPLE) != (int)(this_cycle / APU_STEPS_PER_SAMPLE)) {
         // TODO other oscs, and mix them
-        float pulse1_sample = get_pulse_sample(&apu_mem->pulse1);
-        float pulse2_sample = get_pulse_sample(&apu_mem->pulse2);
+        float pulse1_sample   = get_pulse_sample(&apu_mem->pulse1);
+        float pulse2_sample   = get_pulse_sample(&apu_mem->pulse2);
+        float triangle_sample = get_triangle_sample(&apu_mem->triangle);
 
-        float sample = (0.5f * pulse1_sample) + (0.5f * pulse2_sample);
+        float sample = (0.33f * pulse1_sample) + (0.33f * pulse2_sample) + (0.33f * triangle_sample);
         sample *= 0.10f;
         apu_mem->buffer[(apu_mem->buffer_write_index++) % APU_RING_BUFFER_SIZE] = sample;
     }
@@ -307,7 +393,7 @@ void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
         write_pulse_register(&apu_mem->pulse2, register_num % 4, value, 2);
     }
     else if (register_num < 0xC) {
-        // Triangle
+        write_triangle_register(&apu_mem->triangle, register_num % 4, value);
     }
     else if (register_num < 0x10) {
         // Noise
@@ -317,9 +403,9 @@ void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
     }
     else if (register_num == 0x15) {
         // Channel enable and length counter status
-        //apu_mem->dmc.enable = (value >> 4) == 1;
-        //apu_mem->noise.enable = (value >> 3) == 1;
-        //apu_mem->triangle.enable = (value >> 2) == 1;
+        //apu_mem->dmc.enable = ((value >> 4) & 1) == 1;
+        //apu_mem->noise.enable = ((value >> 3) & 1) == 1;
+        apu_mem->triangle.enable = ((value >> 2) & 1) == 1;
         apu_mem->pulse2.enable = ((value >> 1) & 1) == 1;
         if (!apu_mem->pulse2.enable) {
             apu_mem->pulse2.length_counter = 0;
@@ -337,6 +423,7 @@ void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
 
         if (apu_mem->frame_counter_mode == FC_5STEP) {
             clock_envelope(apu_mem);
+            clock_triangle_linear_counter(&apu_mem->triangle);
             clock_sweep(apu_mem);
             dec_length_counter(apu_mem);
         }
