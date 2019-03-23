@@ -12,12 +12,13 @@ static const double APU_STEPS_PER_FRAME_COUNTER_STEP = CPU_FREQUENCY / 240.0;
 #define FC_5STEP 1
 
 typedef struct pulse_oscillator_t {
+    bool enable;
+
     uint16_t timer_register; // 11 bit value. Written through register. Selects frequency.
     uint16_t timer_step; // Progress through timer period. Updated internally.
     byte duty_value; // 3 bit value. Written through register. Selects waveform.
     byte duty_step; // Current position in the duty byte. Updated internally when timer hits 0.
     byte length_counter; // Set by register, from lookup table. Decremented internally.
-    bool enable;
     bool length_counter_halt;
     bool constant_volume;
 
@@ -48,10 +49,27 @@ typedef struct triangle_oscillator_t {
     bool linear_counter_reload;
     byte linear_counter_load;
     byte linear_counter;
-
-
-
 } triangle_oscillator;
+
+typedef struct noise_oscillator_t {
+    bool enable;
+
+    bool length_counter_halt;
+    bool cv_or_env;
+    byte vol_and_env_period;
+
+    bool mode;
+
+    uint16_t timer_register;
+    uint16_t timer_step;
+
+    byte length_counter;
+
+    uint16_t lfsr;
+    bool envelope_start;
+    byte envelope_period_value;
+    byte envelope_volume;
+} noise_oscillator;
 
 typedef struct apu_memory_t {
     long cycle;
@@ -63,6 +81,8 @@ typedef struct apu_memory_t {
     pulse_oscillator pulse2;
 
     triangle_oscillator triangle;
+
+    noise_oscillator noise;
 
     int frame_counter_mode;
     bool interrupt_inhibit;
