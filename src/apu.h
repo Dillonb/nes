@@ -71,6 +71,23 @@ typedef struct noise_oscillator_t {
     byte envelope_volume;
 } noise_oscillator;
 
+typedef struct dmc_oscillator_t {
+    bool enable;
+    uint16_t sample_address_register;
+    uint16_t sample_address;
+
+    uint16_t sample_length_register;
+    uint16_t sample_length;
+
+    bool irq_enabled;
+    bool loop;
+    byte rate;
+    byte level;
+    int sample_bit;
+    byte output_buffer;
+    byte tick;
+} dmc_oscillator;
+
 typedef struct apu_memory_t {
     long cycle;
     float buffer[APU_RING_BUFFER_SIZE];
@@ -87,11 +104,12 @@ typedef struct apu_memory_t {
     int frame_counter_mode;
     bool interrupt_inhibit;
     byte frame_counter;
+    dmc_oscillator dmc;
 } apu_memory;
 
 apu_memory get_apu_mem();
 
-byte read_apu_register(apu_memory* apu_mem, byte register_num);
+byte read_apu_status(apu_memory *apu_mem);
 void write_apu_register(apu_memory* apu_mem, int register_num, byte value);
 void apu_step(apu_memory* apu_mem);
 void apu_init(apu_memory* apu_mem);

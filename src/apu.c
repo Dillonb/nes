@@ -5,11 +5,23 @@
 #include <stdbool.h>
 #include "apu.h"
 
-byte read_apu_register(apu_memory* apu_mem, byte register_num) {
-    switch (register_num) {
-        default:
-            return 0x00;
-    }
+byte read_apu_status(apu_memory *apu_mem) {
+    byte dmc_interrupt = 0;
+    byte frame_interrupt = 0;
+    byte dmc = apu_mem->dmc.sample_length > 0 ? (byte)1 : (byte)0;
+    byte noise = apu_mem->noise.length_counter > 0 ? (byte)1 : (byte)0;
+    byte triangle = apu_mem->triangle.length_counter > 0 ? (byte)1 : (byte)0;
+    byte pulse1 = apu_mem->pulse1.length_counter > 0 ? (byte)1 : (byte)0;
+    byte pulse2 = apu_mem->pulse2.length_counter > 0 ? (byte)1 : (byte)0;
+
+    return (dmc_interrupt << 7) |
+            (frame_interrupt << 6) |
+            (dmc << 4) |
+            (noise << 3) |
+            (triangle << 2) |
+            (pulse2 << 1) |
+            (pulse1);
+
 }
 
 byte pulse_duty[4][8] = {
@@ -32,7 +44,10 @@ byte length_counter_table[] = {
 uint16_t noise_timer_table[] = {
         4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068 };
 
-void write_pulse_register(pulse_oscillator* pulse, int register_num, byte value, int pulsenum) {
+byte dmc_rate_table[] = {
+        214, 190, 170, 160, 143, 127, 113, 107, 95, 80, 71, 64, 53, 42, 36, 27 };
+
+void write_pulse_register(pulse_oscillator *pulse, int register_num, byte value) {
     switch (register_num) {
         case 0: {
             pulse->duty_value          = (byte)((value & 0b11000000) >> 6);
@@ -80,7 +95,6 @@ void write_triangle_register(triangle_oscillator* triangle, int register_num, by
         case 2: { // 0x400A
             triangle->timer_register &= 0b11100000000;
             triangle->timer_register |= value;
-            printf("TRIANGLE: Timer Low written: Triangle timer is now %d\n", triangle->timer_register);
             break;
         }
         case 3: { // 0x400B
@@ -120,6 +134,34 @@ void write_noise_register(noise_oscillator* noise, int register_num, byte value)
     }
 }
 
+void write_dmc_register(dmc_oscillator* dmc, int register_num, byte value) {
+    switch (register_num) {
+        case 0: { // 0x4010
+            dmc->irq_enabled = (value & 0b10000000) == 0b10000000;
+            dmc->loop        = (value & 0b01000000) == 0b01000000;
+            dmc->rate        = dmc_rate_table[value & 0b00001111];
+            break;
+        }
+        case 1: { // 0x4011
+            dmc->level = value & (byte)0b01111111;
+            printf("Wrote raw DMC level: %d\n", dmc->level);
+            break;
+        }
+        case 2: { // 0x4012
+            dmc->sample_address_register = (uint16_t)0xC000 | ((uint16_t)value << 6);
+            printf("Playing sample from 0x%04X\n", dmc->sample_address_register);
+            break;
+        }
+        case 3: { // 0x4013
+            dmc->sample_length_register = ((uint16_t)value << 4) | (uint16_t)1;
+            printf("Playing sample %d bytes long\n", dmc->sample_length_register);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 apu_memory get_apu_mem() {
     apu_memory apu_mem;
     apu_mem.cycle = 0;
@@ -138,11 +180,22 @@ apu_memory get_apu_mem() {
     apu_mem.noise.enable = 0;
     apu_mem.noise.lfsr = 1; // for pseudorandom
 
+    apu_mem.dmc.enable = false;
+    apu_mem.dmc.level = 0;
+    apu_mem.dmc.sample_length = 0;
+    apu_mem.dmc.sample_address = 0;
+    apu_mem.dmc.sample_bit = 0;
+
     return apu_mem;
 }
 
 float get_volume_scale(byte volume) {
     return volume == 0 ? 0 : (float)volume / 15.0f;
+}
+
+float get_dmc_sample(dmc_oscillator* dmc) {
+    float level = dmc->level;
+    return (level - 63.5f) / 63.5f;
 }
 
 float get_noise_sample(noise_oscillator* noise) {
@@ -390,6 +443,31 @@ void step_noise_timer(noise_oscillator* noise) {
         noise->timer_step--;
     }
 }
+
+void step_dmc_timer(dmc_oscillator* dmc) {
+    if (!dmc->enable || dmc->sample_bit == 0) {
+        return;
+    }
+    if (dmc->tick == 0) {
+        dmc->tick = dmc->rate;
+        if ((dmc->output_buffer & 1) == 1) {
+            if (dmc->level < 126) {
+                dmc->level += 2;
+            }
+        }
+        else {
+            if (dmc->level > 1) {
+                dmc->level -= 2;
+            }
+        }
+        dmc->sample_bit--;
+        dmc->output_buffer >>= 1;
+    }
+    else {
+        dmc->tick--;
+    }
+}
+
 void apu_step(apu_memory* apu_mem) {
     double last_cycle = apu_mem->cycle++;
     double this_cycle = apu_mem->cycle;
@@ -402,6 +480,7 @@ void apu_step(apu_memory* apu_mem) {
         step_pulse_timer(&apu_mem->pulse1);
         step_pulse_timer(&apu_mem->pulse2);
         step_noise_timer(&apu_mem->noise);
+        step_dmc_timer(&apu_mem->dmc);
     }
     // Triangle clock is as fast as the CPU
     step_triangle_timer(&apu_mem->triangle);
@@ -416,11 +495,14 @@ void apu_step(apu_memory* apu_mem) {
         float pulse2_sample   = get_pulse_sample(&apu_mem->pulse2);
         float triangle_sample = get_triangle_sample(&apu_mem->triangle);
         float noise_sample    = get_noise_sample(&apu_mem->noise);
+        float dmc_sample      = get_dmc_sample(&apu_mem->dmc);
+        //printf("DMC sample: %f\n", dmc_sample);
 
-        float sample = (0.25f * pulse1_sample) +
-                (0.25f * pulse2_sample) +
-                (0.25f * triangle_sample) +
-                (0.25f * noise_sample);
+        float sample = (0.2f * pulse1_sample) +
+                (0.2f * pulse2_sample) +
+                (0.2f * triangle_sample) +
+                (0.2f * noise_sample) +
+                (0.5f * dmc_sample);
         sample *= 0.10f;
         apu_mem->buffer[(apu_mem->buffer_write_index++) % APU_RING_BUFFER_SIZE] = sample;
     }
@@ -478,10 +560,10 @@ void apu_init(apu_memory* apu_mem) {
 void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
     if (register_num < 0x4) {
         // Pulse 1
-        write_pulse_register(&apu_mem->pulse1, register_num % 4, value, 1);
+        write_pulse_register(&apu_mem->pulse1, register_num % 4, value);
     } else if (register_num < 0x8) {
         // Pulse 2
-        write_pulse_register(&apu_mem->pulse2, register_num % 4, value, 2);
+        write_pulse_register(&apu_mem->pulse2, register_num % 4, value);
     }
     else if (register_num < 0xC) {
         write_triangle_register(&apu_mem->triangle, register_num % 4, value);
@@ -490,11 +572,20 @@ void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
         write_noise_register(&apu_mem->noise, register_num % 4, value);
     }
     else if (register_num < 0x14) {
-        // DMC
+        write_dmc_register(&apu_mem->dmc, register_num % 4, value);
     }
     else if (register_num == 0x15) {
         // Channel enable and length counter status
-        //apu_mem->dmc.enable = ((value >> 4) & 1) == 1;
+        apu_mem->dmc.enable = ((value >> 4) & 1) == 1;
+        if (apu_mem->dmc.enable) {
+            if (apu_mem->dmc.sample_length == 0) {
+                apu_mem->dmc.sample_length = apu_mem->dmc.sample_length_register;
+                apu_mem->dmc.sample_address = apu_mem->dmc.sample_address_register;
+            }
+        }
+        else {
+            apu_mem->dmc.sample_length = 0;
+        }
         apu_mem->noise.enable = ((value >> 3) & 1) == 1;
         apu_mem->triangle.enable = ((value >> 2) & 1) == 1;
         apu_mem->pulse2.enable = ((value >> 1) & 1) == 1;

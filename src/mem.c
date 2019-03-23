@@ -17,14 +17,13 @@ byte read_byte(memory* mem, uint16_t address) {
     }
     else if (address < 0x4000) { // PPU registers
         // 8 ppu registers, repeating every 8 bytes from 0x2000 to 0x3FFF
-        byte register_num = (address - 2000) % 8;
+        byte register_num = (byte)((address - 2000) % 8);
         byte value = read_ppu_register(&mem->ppu_mem, register_num);
         dprintf("Read 0x%02x from PPU register %d\n", value, register_num);
         return value;
     }
     else if (address == 0x4015) {
-        printf("Reading from 0x4015, returning 0 for now\n");
-        return 0x00;
+        return read_apu_status(&mem->apu_mem);
     }
     else if (address == 0x4016) {
         bool state;
