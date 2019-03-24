@@ -10,15 +10,11 @@
 #define SCREEN_HEIGHT 240
 #define SCREEN_SCALE 4
 
-const int TICKS_PER_FRAME = 1000 / 60;
-
 bool initialized = false;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
 button player1_buttons[8];
-
-uint32_t lastframe = 0;
 
 color last_screen[SCREEN_WIDTH][SCREEN_HEIGHT];
 
@@ -29,7 +25,7 @@ void initialize() {
     }
     window = SDL_CreateWindow("dgb nes", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * SCREEN_SCALE, SCREEN_HEIGHT * SCREEN_SCALE, SDL_WINDOW_SHOWN);
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (renderer == NULL) {
         errx(EXIT_FAILURE, "SDL couldn't create a renderer! %s", SDL_GetError());
@@ -136,14 +132,6 @@ void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     }
     dprintf("Updating renderer\n");
     SDL_RenderPresent(renderer);
-
-    uint32_t now = SDL_GetTicks();
-
-    if (now < lastframe + TICKS_PER_FRAME) {
-        SDL_Delay(lastframe + TICKS_PER_FRAME - now);
-    }
-
-    lastframe = SDL_GetTicks();
 }
 
 bool get_button(button btn, player p) {
