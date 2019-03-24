@@ -144,17 +144,14 @@ void write_dmc_register(dmc_oscillator* dmc, int register_num, byte value) {
         }
         case 1: { // 0x4011
             dmc->level = value & (byte)0b01111111;
-            printf("Wrote raw DMC level: %d\n", dmc->level);
             break;
         }
         case 2: { // 0x4012
             dmc->sample_address_register = (uint16_t)0xC000 | ((uint16_t)value << 6);
-            printf("Playing sample from 0x%04X\n", dmc->sample_address_register);
             break;
         }
         case 3: { // 0x4013
             dmc->sample_length_register = ((uint16_t)value << 4) | (uint16_t)1;
-            printf("Playing sample %d bytes long\n", dmc->sample_length_register);
             break;
         }
         default:
@@ -200,7 +197,7 @@ float get_dmc_sample(dmc_oscillator* dmc) {
 
 float get_noise_sample(noise_oscillator* noise) {
     int bit = noise->lfsr & 1;
-    if (!noise->enable || noise->length_counter == 0 || bit == 0) {
+    if (!noise->enable || noise->length_counter == 0 || bit == 0 || noise->timer_register < 1) {
         return 0.0f;
     }
     else {

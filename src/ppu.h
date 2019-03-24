@@ -46,7 +46,7 @@ typedef struct ppu_memory_t {
     byte mask;
     byte status;
     byte oam_address;
-    byte oam_data[0xFF];
+    byte oam_data[0x100];
     byte data;
     byte name_tables[0x800];
     byte palette_ram[0x20];
