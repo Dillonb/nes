@@ -68,6 +68,9 @@ typedef struct ppu_memory_t {
 
     // For reading from 0x2007
     byte fake_buffer;
+
+    volatile long* apu_ring_buffer_write_index;
+    volatile long* apu_ring_buffer_read_index;
 } ppu_memory;
 
 ppu_memory get_ppu_mem(rom* r);

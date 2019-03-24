@@ -11,9 +11,9 @@ int main(int argc, char** argv) {
         return 2;
     }
     rom* r = read_rom(argv[1]);
-    memory mem = get_blank_memory(r);
+    memory* mem = get_blank_memory(r);
 
-    char* disassembly = disassemble(&mem, mem.pc);
+    char* disassembly = disassemble(mem, mem->pc);
 
     printf("%s", disassembly);
 

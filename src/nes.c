@@ -33,12 +33,12 @@ int main(int argc, char** argv) {
 
     rom* r = read_rom(argv[1]);
 
-    memory mem = get_blank_memory(r);
+    memory* mem = get_blank_memory(r);
 
 
-    apu_init(&mem.apu_mem);
+    apu_init(&mem->apu_mem);
 
     while (true) {
-        system_step(&mem);
+        system_step(mem);
     }
 }

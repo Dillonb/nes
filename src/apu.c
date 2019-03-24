@@ -581,7 +581,6 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
 
     for(uint32_t i = 0; i < framesPerBuffer; i++) {
         // Read sample from ring buffer. While the ring buffer is empty, push zeroes.
-        //while (apu_mem->buffer_read_index >= apu_mem->buffer_write_index);
         if (apu_mem->buffer_read_index >= apu_mem->buffer_write_index) {
             *out++ = 0;
         }

@@ -90,27 +90,30 @@ void write_byte(memory* mem, uint16_t address, byte value) {
     }
 }
 
-memory get_blank_memory(rom* r) {
+memory* get_blank_memory(rom* r) {
     // http://wiki.nesdev.com/w/index.php/CPU_power_up_state
-    memory mem;
+    memory* mem = malloc(sizeof(memory));
 
-    mem.a = 0x00;
-    mem.x = 0x00;
-    mem.y = 0x00;
-    mem.sp = 0xFD;
-    mem.p = 0x34;
-    mem.r = r;
-    mem.ppu_mem = get_ppu_mem(r);
+    mem->a = 0x00;
+    mem->x = 0x00;
+    mem->y = 0x00;
+    mem->sp = 0xFD;
+    mem->p = 0x34;
+    mem->r = r;
+    mem->ppu_mem = get_ppu_mem(r);
 
-    mem.ctrl1.index = A;
-    mem.ctrl1.lastwrite = 0;
+    mem->ctrl1.index = A;
+    mem->ctrl1.lastwrite = 0;
 
     // Read initial value of program counter from the reset vector
-    mem.pc = (mapper_prg_read(mem.r, 0xFFFD) << 8) | mapper_prg_read(mem.r, 0xFFFC);
+    mem->pc = (mapper_prg_read(mem->r, 0xFFFD) << 8) | mapper_prg_read(mem->r, 0xFFFC);
 
-    dprintf("Set program counter to 0x%x\n", mem.pc);
+    dprintf("Set program counter to 0x%x\n", mem->pc);
 
-    mem.apu_mem = get_apu_mem();
+    mem->apu_mem = get_apu_mem();
+
+    mem->ppu_mem.apu_ring_buffer_read_index = &(mem->apu_mem.buffer_read_index);
+    mem->ppu_mem.apu_ring_buffer_write_index = &(mem->apu_mem.buffer_write_index);
 
     return mem;
 }

@@ -21,7 +21,7 @@ typedef struct step_t {
 } log_step;
 
 rom* r;
-memory mem;
+memory* mem;
 
 void test_load_rom(void) {
     if (r != NULL) {
@@ -30,8 +30,8 @@ void test_load_rom(void) {
 
     r = read_rom("nestest.nes");
     mem = get_blank_memory(r);
-    mem.pc = 0xC000; // nestest: automated tests start at a different address
-    mem.p  = 0x24; // nestest: the irrelevant bits are set differently in the log.
+    mem->pc = 0xC000; // nestest: automated tests start at a different address
+    mem->p  = 0x24; // nestest: the irrelevant bits are set differently in the log.
 }
 
 int num_steps = 8991;
@@ -119,38 +119,38 @@ int get_ppu_y(memory* mem) {
 
 void print_step_info(int index, log_step stepdata) {
     bool success = true;
-    if (stepdata.address != mem.pc) {
-        printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem.pc);
+    if (stepdata.address != mem->pc) {
+        printf("FAIL: We should be at address 0x%04X - we are at address 0x%04X\n", stepdata.address, mem->pc);
         success = false;
     }
-    if (stepdata.a != mem.a) {
-        printf("FAIL: Accumulator should be 0x%02X - but is 0x%02X\n", stepdata.a, mem.a);
+    if (stepdata.a != mem->a) {
+        printf("FAIL: Accumulator should be 0x%02X - but is 0x%02X\n", stepdata.a, mem->a);
         success = false;
     }
-    if (stepdata.x != mem.x) {
-        printf("FAIL: X should be 0x%02X - but is 0x%02X\n", stepdata.x, mem.x);
+    if (stepdata.x != mem->x) {
+        printf("FAIL: X should be 0x%02X - but is 0x%02X\n", stepdata.x, mem->x);
         success = false;
     }
-    if (stepdata.y != mem.y) {
-        printf("FAIL: Y should be 0x%02X - but is 0x%02X\n", stepdata.y, mem.y);
+    if (stepdata.y != mem->y) {
+        printf("FAIL: Y should be 0x%02X - but is 0x%02X\n", stepdata.y, mem->y);
         success = false;
     }
     if (stepdata.cycles != test_total_cycles) {
         printf("FAIL: Cycles should be %d - but is %d\n", stepdata.cycles, test_total_cycles);
         success = false;
     }
-    if (stepdata.p != mem.p) {
-        printf("FAIL: P should be 0x%02X - but is 0x%02X\n", stepdata.p, mem.p);
+    if (stepdata.p != mem->p) {
+        printf("FAIL: P should be 0x%02X - but is 0x%02X\n", stepdata.p, mem->p);
         printf("In binary: NV-BDIZC\n");
         printf("Expected:  ");
         print_byte(stepdata.p);
         printf("\nActual:    ");
-        print_byte(mem.p);
+        print_byte(mem->p);
         printf("\n");
         success = false;
     }
-    int ppu_x = get_ppu_x(&mem);
-    int ppu_y = get_ppu_y(&mem);
+    int ppu_x = get_ppu_x(mem);
+    int ppu_y = get_ppu_y(mem);
     if (stepdata.ppu_x != ppu_x) {
         printf("FAIL: ppu_x should be %d but is %d\n", stepdata.ppu_x, ppu_x);
     }
@@ -158,9 +158,9 @@ void print_step_info(int index, log_step stepdata) {
         printf("FAIL: ppu_y should be %d but is %d\n", stepdata.ppu_y, ppu_y);
     }
     if (success) {
-        char *disassembly = disassemble(&mem, mem.pc);
-        printf("%04d $%04X OPC: 0x%02X | %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X ppu: %03d,%03d cycles: %d\n", index, mem.pc, read_byte(&mem, mem.pc), disassembly, mem.a, mem.x,
-               mem.y, mem.p, mem.sp, ppu_x, ppu_y, test_total_cycles);
+        char *disassembly = disassemble(mem, mem->pc);
+        printf("%04d $%04X OPC: 0x%02X | %-20s a: 0x%02X x: 0x%02X y: 0x%02X p: 0x%02X sp: 0x%02X ppu: %03d,%03d cycles: %d\n", index, mem->pc, read_byte(mem, mem->pc), disassembly, mem->a, mem->x,
+               mem->y, mem->p, mem->sp, ppu_x, ppu_y, test_total_cycles);
         free(disassembly);
     }
 }
@@ -169,19 +169,19 @@ void test_run_rom(void) {
     for (int step = 0; step < num_steps; step++) {
         log_step stepdata = steps[step];
         print_step_info(step, stepdata);
-        TEST_ASSERT_EQUAL_UINT16(stepdata.address, mem.pc);
-        TEST_ASSERT_EQUAL_UINT8(stepdata.a, mem.a);
-        TEST_ASSERT_EQUAL_UINT8(stepdata.x, mem.x);
-        TEST_ASSERT_EQUAL_UINT8(stepdata.y, mem.y);
-        TEST_ASSERT_EQUAL_UINT8(stepdata.p, mem.p);
-        TEST_ASSERT_EQUAL_UINT8(stepdata.sp, mem.sp);
+        TEST_ASSERT_EQUAL_UINT16(stepdata.address, mem->pc);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.a, mem->a);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.x, mem->x);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.y, mem->y);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.p, mem->p);
+        TEST_ASSERT_EQUAL_UINT8(stepdata.sp, mem->sp);
         TEST_ASSERT_EQUAL_INT(stepdata.cycles, test_total_cycles);
-        int ppu_x = get_ppu_x(&mem);
+        int ppu_x = get_ppu_x(mem);
         TEST_ASSERT_EQUAL_INT(stepdata.ppu_x, ppu_x);
-        int ppu_y = get_ppu_y(&mem);
+        int ppu_y = get_ppu_y(mem);
         TEST_ASSERT_EQUAL_INT(stepdata.ppu_y, ppu_y);
 
-        int cycles = system_step(&mem);
+        int cycles = system_step(mem);
         printf("Took %d cycles\n", cycles);
         test_total_cycles += cycles;
     }
