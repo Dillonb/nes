@@ -465,6 +465,65 @@ void step_dmc_timer(dmc_oscillator* dmc) {
     }
 }
 
+#ifdef APU_TRACKER
+void dump_apu(int this_cycle, apu_memory* apu_mem) {
+    if (this_cycle % 10000 == 0) {
+
+        byte pulse1volume = apu_mem->pulse1.constant_volume ? apu_mem->pulse1.vol_and_env_period : apu_mem->pulse1.envelope_volume;
+        printf("▏ ");
+        if (apu_mem->pulse1.length_counter > 0 && apu_mem->pulse1.timer_register >= 8 && apu_mem->pulse1.enable && pulse1volume > 0) {
+            printf("%04X", apu_mem->pulse1.timer_register);
+        }
+        else {
+            printf("    ");
+        }
+
+        printf(" ▏ ");
+
+        byte pulse2volume = apu_mem->pulse2.constant_volume ? apu_mem->pulse2.vol_and_env_period : apu_mem->pulse2.envelope_volume;
+        if (apu_mem->pulse2.length_counter > 0 && apu_mem->pulse2.timer_register >= 8 && apu_mem->pulse2.enable && pulse2volume > 0) {
+            printf("%04X", apu_mem->pulse2.timer_register);
+        }
+        else {
+            printf("    ");
+        }
+
+        printf(" ▏ ");
+
+        if (apu_mem->triangle.enable && apu_mem->triangle.length_counter > 0 && apu_mem->triangle.linear_counter > 0) {
+            printf("%04X", apu_mem->triangle.timer_register);
+        }
+        else {
+            printf("    ");
+        }
+
+        printf(" ▏ ");
+
+        byte noisevolume = apu_mem->noise.cv_or_env ? apu_mem->noise.vol_and_env_period : apu_mem->noise.envelope_volume;
+        if (apu_mem->noise.enable && apu_mem->noise.length_counter > 0 && noisevolume > 0) {
+            printf("%04X", apu_mem->noise.timer_register);
+        }
+        else {
+            printf("    ");
+        }
+
+        printf(" ▏ ");
+
+        if (apu_mem->dmc.enable && apu_mem->dmc.sample_length > 0) {
+            printf("%02X", apu_mem->dmc.rate);
+        }
+        else {
+            printf("  ");
+        }
+
+        printf(" ▏ ");
+
+        printf("\n");
+    }
+
+}
+#endif
+
 void apu_step(apu_memory* apu_mem) {
     double last_cycle = apu_mem->cycle++;
     double this_cycle = apu_mem->cycle;
@@ -472,6 +531,10 @@ void apu_step(apu_memory* apu_mem) {
     if (apu_mem->buffer_write_index - apu_mem->buffer_read_index < 1) {
         //printf("Audio buffer underrun detected!\n");
     }
+
+#ifdef APU_TRACKER
+    dump_apu(this_cycle, apu_mem);
+#endif
 
     if (apu_mem->cycle % 2 == 0) { // APU clock is half as fast as CPU
         step_pulse_timer(&apu_mem->pulse1);
