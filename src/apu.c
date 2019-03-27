@@ -5,6 +5,98 @@
 #include <stdbool.h>
 #include "apu.h"
 
+#ifdef APU_TRACKER
+const char* gradient[] = {
+        "\x1b[38;2;255;255;255",
+        "\x1b[38;2;0;255;0m",
+        "\x1b[38;2;36;255;0m",
+        "\x1b[38;2;73;255;0m",
+        "\x1b[38;2;109;255;0m",
+        "\x1b[38;2;146;255;0m",
+        "\x1b[38;2;182;255;0m",
+        "\x1b[38;2;219;255;0m",
+        "\x1b[38;2;255;255;0m", // midpoint
+        "\x1b[38;2;255;219;0m",
+        "\x1b[38;2;255;182;0m",
+        "\x1b[38;2;255;146;0m",
+        "\x1b[38;2;255;109;0m",
+        "\x1b[38;2;255;73;0m",
+        "\x1b[38;2;255;36;0m",
+        "\x1b[38;2;255;0;0m"
+};
+
+void print_color_for_volume(byte volume) {
+    printf("%s", gradient[volume & 0b1111]);
+}
+
+void print_color_terminator() {
+    printf("\x1b[0m");
+}
+
+void dump_apu(apu_memory* apu_mem) {
+    byte pulse1volume = apu_mem->pulse1.constant_volume ? apu_mem->pulse1.vol_and_env_period : apu_mem->pulse1.envelope_volume;
+    printf("▏ ");
+    if (apu_mem->pulse1.length_counter > 0 && apu_mem->pulse1.timer_register >= 8 && apu_mem->pulse1.enable && pulse1volume > 0) {
+        print_color_for_volume(pulse1volume);
+        printf("%04X", apu_mem->pulse1.timer_register);
+        print_color_terminator();
+    }
+    else {
+        printf("    ");
+    }
+
+    printf(" ▏ ");
+
+    byte pulse2volume = apu_mem->pulse2.constant_volume ? apu_mem->pulse2.vol_and_env_period : apu_mem->pulse2.envelope_volume;
+    if (apu_mem->pulse2.length_counter > 0 && apu_mem->pulse2.timer_register >= 8 && apu_mem->pulse2.enable && pulse2volume > 0) {
+        print_color_for_volume(pulse2volume);
+        printf("%04X", apu_mem->pulse2.timer_register);
+        print_color_terminator();
+    }
+    else {
+        printf("    ");
+    }
+
+    printf(" ▏ ");
+
+    if (apu_mem->triangle.enable && apu_mem->triangle.length_counter > 0 && apu_mem->triangle.linear_counter > 0) {
+        print_color_for_volume(0b1111);
+        printf("%04X", apu_mem->triangle.timer_register);
+        print_color_terminator();
+    }
+    else {
+        printf("    ");
+    }
+
+    printf(" ▏ ");
+
+    byte noisevolume = apu_mem->noise.cv_or_env ? apu_mem->noise.vol_and_env_period : apu_mem->noise.envelope_volume;
+    if (apu_mem->noise.enable && apu_mem->noise.length_counter > 0 && noisevolume > 0) {
+        print_color_for_volume(noisevolume);
+        printf("%04X", apu_mem->noise.timer_register);
+        print_color_terminator();
+    }
+    else {
+        printf("    ");
+    }
+
+    printf(" ▏ ");
+
+    if (apu_mem->dmc.enable && apu_mem->dmc.sample_length > 0) {
+        printf("%02X", apu_mem->dmc.rate);
+    }
+    else {
+        printf("  ");
+    }
+
+    printf(" ▏ ");
+
+    printf("\n");
+}
+
+#endif
+
+
 byte read_apu_status(apu_memory *apu_mem) {
     byte dmc_interrupt = 0;
     byte frame_interrupt = 0;
@@ -465,65 +557,6 @@ void step_dmc_timer(dmc_oscillator* dmc) {
     }
 }
 
-#ifdef APU_TRACKER
-void dump_apu(int this_cycle, apu_memory* apu_mem) {
-    if (this_cycle % 10000 == 0) {
-
-        byte pulse1volume = apu_mem->pulse1.constant_volume ? apu_mem->pulse1.vol_and_env_period : apu_mem->pulse1.envelope_volume;
-        printf("▏ ");
-        if (apu_mem->pulse1.length_counter > 0 && apu_mem->pulse1.timer_register >= 8 && apu_mem->pulse1.enable && pulse1volume > 0) {
-            printf("%04X", apu_mem->pulse1.timer_register);
-        }
-        else {
-            printf("    ");
-        }
-
-        printf(" ▏ ");
-
-        byte pulse2volume = apu_mem->pulse2.constant_volume ? apu_mem->pulse2.vol_and_env_period : apu_mem->pulse2.envelope_volume;
-        if (apu_mem->pulse2.length_counter > 0 && apu_mem->pulse2.timer_register >= 8 && apu_mem->pulse2.enable && pulse2volume > 0) {
-            printf("%04X", apu_mem->pulse2.timer_register);
-        }
-        else {
-            printf("    ");
-        }
-
-        printf(" ▏ ");
-
-        if (apu_mem->triangle.enable && apu_mem->triangle.length_counter > 0 && apu_mem->triangle.linear_counter > 0) {
-            printf("%04X", apu_mem->triangle.timer_register);
-        }
-        else {
-            printf("    ");
-        }
-
-        printf(" ▏ ");
-
-        byte noisevolume = apu_mem->noise.cv_or_env ? apu_mem->noise.vol_and_env_period : apu_mem->noise.envelope_volume;
-        if (apu_mem->noise.enable && apu_mem->noise.length_counter > 0 && noisevolume > 0) {
-            printf("%04X", apu_mem->noise.timer_register);
-        }
-        else {
-            printf("    ");
-        }
-
-        printf(" ▏ ");
-
-        if (apu_mem->dmc.enable && apu_mem->dmc.sample_length > 0) {
-            printf("%02X", apu_mem->dmc.rate);
-        }
-        else {
-            printf("  ");
-        }
-
-        printf(" ▏ ");
-
-        printf("\n");
-    }
-
-}
-#endif
-
 void apu_step(apu_memory* apu_mem) {
     double last_cycle = apu_mem->cycle++;
     double this_cycle = apu_mem->cycle;
@@ -531,10 +564,6 @@ void apu_step(apu_memory* apu_mem) {
     if (apu_mem->buffer_write_index - apu_mem->buffer_read_index < 1) {
         //printf("Audio buffer underrun detected!\n");
     }
-
-#ifdef APU_TRACKER
-    dump_apu(this_cycle, apu_mem);
-#endif
 
     if (apu_mem->cycle % 2 == 0) { // APU clock is half as fast as CPU
         step_pulse_timer(&apu_mem->pulse1);
@@ -617,6 +646,10 @@ void apu_init(apu_memory* apu_mem) {
 }
 
 void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
+#ifdef APU_TRACKER
+    dump_apu(apu_mem);
+#endif
+
     if (register_num < 0x4) {
         // Pulse 1
         write_pulse_register(&apu_mem->pulse1, register_num % 4, value);
