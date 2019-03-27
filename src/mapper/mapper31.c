@@ -30,6 +30,8 @@ int* mapper31_get_offset(int bank, mapper_data* mapperdata) {
             return &mapperdata->prg_bank_6_offset;
         case 7:
             return &mapperdata->prg_bank_7_offset;
+        default:
+            return &mapperdata->prg_bank_7_offset;
     }
 }
 
