@@ -3,8 +3,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 #include "apu.h"
 
+#define APU_TRACKER
 #ifdef APU_TRACKER
 const char* gradient[] = {
         "\x1b[38;2;255;255;255",
@@ -576,6 +578,14 @@ void apu_step(apu_memory* apu_mem) {
 
     if ((int)(last_cycle / APU_STEPS_PER_FRAME_COUNTER_STEP) != (int)(this_cycle / APU_STEPS_PER_FRAME_COUNTER_STEP)) {
         step_frame_counter(apu_mem);
+    }
+
+    while (apu_mem->buffer_write_index - apu_mem->buffer_read_index > 5000) {
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 1000000l;
+
+        nanosleep(&ts, NULL);
     }
 
     if ((int)(last_cycle / APU_STEPS_PER_SAMPLE) != (int)(this_cycle / APU_STEPS_PER_SAMPLE)) {
