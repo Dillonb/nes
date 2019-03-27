@@ -19,4 +19,7 @@ add_library(mapper
 
         mapper7.c
         mapper7.h
+
+        mapper31.c
+        mapper31.h
         )

@@ -10,6 +10,7 @@
 #include "mapper2.h"
 #include "mapper4.h"
 #include "mapper7.h"
+#include "mapper31.h"
 
 void mapper_init(rom* r) {
     switch (r->mapper) {
@@ -26,6 +27,9 @@ void mapper_init(rom* r) {
             mapper4_init(r);
             break;
         case 7:
+            break;
+        case 31:
+            mapper31_init(&r->mapperdata);
             break;
         default:
             errx(EXIT_FAILURE, "init: Unknown mapper %d!", r->mapper);
@@ -44,6 +48,8 @@ byte mapper_prg_read(rom* r, uint16_t address) {
             return mapper4_prg_read(r, address);
         case 7:
             return mapper7_prg_read(r, address);
+        case 31:
+            return mapper31_prg_read(r, address);
         default:
             errx(EXIT_FAILURE, "prg read: Unknown mapper %d!", r->mapper);
     }
@@ -66,6 +72,9 @@ void mapper_prg_write(rom* r, uint16_t address, byte value) {
         case 7:
             mapper7_prg_write(r, address, value);
             break;
+        case 31:
+            mapper31_prg_write(r, address, value);
+            break;
         default:
             errx(EXIT_FAILURE, "prg write: Unknown mapper %d!", r->mapper);
     }
@@ -83,6 +92,8 @@ byte mapper_chr_read(rom* r, uint16_t address) {
             return mapper4_chr_read(r, address);
         case 7:
             return mapper7_chr_read(r, address);
+        case 31:
+            return mapper31_chr_read(r, address);
         default:
             errx(EXIT_FAILURE, "chr read: Unknown mapper %d!", r->mapper);
     }
@@ -104,6 +115,9 @@ void mapper_chr_write(rom* r, uint16_t address, byte value) {
             break;
         case 7:
             mapper7_chr_write(r, address, value);
+            break;
+        case 31:
+            mapper31_chr_write(r, address, value);
             break;
         default:
             errx(EXIT_FAILURE, "chr write: Unknown mapper %d!", r->mapper);
