@@ -122,14 +122,9 @@ void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
                 continue;
             }
             last_screen[x][y] = c;
-            SDL_Rect rect;
-            rect.x = x;
-            rect.y = y;
-            rect.h = 1;
-            rect.w = 1;
 
             SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-            SDL_RenderFillRect(renderer, &rect);
+            SDL_RenderDrawPoint(renderer, x, y);
         }
     }
     dprintf("Updating renderer\n");
