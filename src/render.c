@@ -5,11 +5,15 @@
 
 #include "render.h"
 #include "debugger.h"
+#include "movie.h"
 
 #define SCREEN_WIDTH 256
 #define SCREEN_HEIGHT 240
 #define SCREEN_SCALE 4
 
+bool moviemode = false;
+movie m;
+button_states btn_states;
 bool initialized = false;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -45,6 +49,11 @@ void initialize() {
             last_screen[x][y] = c;
         }
     }
+}
+
+void set_movie_mode(movie m_to_play) {
+    moviemode = true;
+    m = m_to_play;
 }
 
 void update_key(SDL_Keycode sdlk, bool state) {
@@ -89,7 +98,13 @@ void update_key(SDL_Keycode sdlk, bool state) {
     }
 }
 
-void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
+void movie_update_button_states() {
+    if (moviemode) {
+        btn_states = get_next_inputs(&m);
+    }
+}
+
+void render_screen(ppu_memory* ppu_mem) {
     if (!initialized) {
         initialize();
     }
@@ -114,7 +129,7 @@ void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
     // TODO this is probably kinda slow
     for (int y = 0; y < 240; y++) {
         for (int x = 0; x < 256; x++) {
-            color c = (*screen)[x][y];
+            color c = ppu_mem->screen[x][y];
             color lastc = last_screen[x][y];
             if (c.r == lastc.r && c.g == lastc.g && c.b == lastc.b) {
                 continue;
@@ -135,11 +150,15 @@ void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
 }
 
 bool get_button(button btn, player p) {
-    if (p == one) {
-        return player1_buttons[btn];
+    if (moviemode) {
+        return btn_states.states[p][btn];
     }
     else {
-        return false;
+        if (p == one) {
+            return player1_buttons[btn];
+        } else {
+            return false;
+        }
     }
 }
 

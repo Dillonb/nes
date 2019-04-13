@@ -579,9 +579,10 @@ void ppu_step(ppu_memory* ppu_mem) {
 
             dprintf("Rendering frame %llu\n", ppu_mem->frame);
             long buffered_samples = *(ppu_mem->apu_ring_buffer_write_index) - *(ppu_mem->apu_ring_buffer_read_index);
+            movie_update_button_states();
             // We need about 735 samples to get through a frame, wait for 1000 just to be safe
             if (buffered_samples > 1000) {
-                render_screen(&ppu_mem->screen);
+                render_screen(ppu_mem);
             }
             else {
                 printf("Skipped frame\n");

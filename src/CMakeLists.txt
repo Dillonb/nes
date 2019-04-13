@@ -27,6 +27,8 @@ add_library(core
         palette.h
         apu.c
         apu.h
+        movie.c
+        movie.h
         )
 
 add_library(nooprender
