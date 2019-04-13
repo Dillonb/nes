@@ -139,8 +139,3 @@ bool get_button(button btn, player p) {
         return false;
     }
 }
-
-// Not called from anywhere yet
-void cleanup() {
-    //TODO cleanup SDL stuff
-}
