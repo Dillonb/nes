@@ -343,7 +343,7 @@ int get_screen_x(ppu_memory* ppu_mem) {
 }
 
 int get_screen_y(ppu_memory* ppu_mem) {
-    return ppu_mem->scan_line;
+    return ppu_mem->scan_line - 1;
 }
 
 void render_pixel(ppu_memory* ppu_mem) {
