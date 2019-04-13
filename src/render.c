@@ -31,6 +31,8 @@ void initialize() {
         errx(EXIT_FAILURE, "SDL couldn't create a renderer! %s", SDL_GetError());
     }
 
+    SDL_RenderSetScale(renderer, SCREEN_SCALE, SCREEN_SCALE);
+
     for (int i = 0; i < 8; i++) {
         player1_buttons[i] = false;
     }
@@ -121,10 +123,10 @@ void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
             }
             last_screen[x][y] = c;
             SDL_Rect rect;
-            rect.x = x * SCREEN_SCALE;
-            rect.y = y * SCREEN_SCALE;
-            rect.h = SCREEN_SCALE;
-            rect.w = SCREEN_SCALE;
+            rect.x = x;
+            rect.y = y;
+            rect.h = 1;
+            rect.w = 1;
 
             SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
             SDL_RenderFillRect(renderer, &rect);
