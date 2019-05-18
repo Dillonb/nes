@@ -136,7 +136,7 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
     }
 }
 
-uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
+static inline uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
     addressing_mode mode = opcode_addressing_modes[opcode];
     switch (mode) {
         case Immediate:
