@@ -1,6 +1,10 @@
 # nes
 
-A NES emulator, still very much a WIP. Some simple games are mostly working, but there are still quite a few bugs.
+A NES emulator, still very much a WIP. Some games are working, but there are still quite a few bugs.
+
+## Mappers supported
+
+0, 1, 2, 4, 7, 31
 
 ## Building
 
