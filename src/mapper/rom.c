@@ -55,7 +55,10 @@ unsigned char get_mapper_number(rom* r) {
 void read_trainer(FILE* fp, rom* r) {
     if (has_trainer(r->header)) {
         r->trainer = malloc(TRAINER_BYTES);
-        fread(r->trainer, TRAINER_BYTES, 1, fp);
+        int trainer_read = fread(r->trainer, TRAINER_BYTES, 1, fp);
+        if (trainer_read != 1) {
+            errx(EXIT_FAILURE, "Error reading trainer");
+        }
         printf("Has trainer.\n");
     } else {
         r->trainer = NULL;
@@ -66,14 +69,20 @@ void read_trainer(FILE* fp, rom* r) {
 void read_prg_rom(FILE* fp, rom* r) {
     size_t prg_rom_bytes = get_prg_rom_bytes(r);
     r->prg_rom = malloc(prg_rom_bytes);
-    fread(r->prg_rom, prg_rom_bytes, 1, fp);
+    int prg_rom_read = fread(r->prg_rom, prg_rom_bytes, 1, fp);
+    if (prg_rom_read != 1) {
+        errx(EXIT_FAILURE, "Error reading PRG ROM");
+    }
     printf("Read %lu bytes of PRG ROM\n", prg_rom_bytes);
 }
 
 void read_chr_rom(FILE* fp, rom* r) {
     size_t chr_rom_bytes = get_chr_rom_bytes(r);
     r->chr_rom = malloc(chr_rom_bytes);
-    fread(r->chr_rom, chr_rom_bytes, 1, fp);
+    int chr_rom_read = fread(r->chr_rom, chr_rom_bytes, 1, fp);
+    if (chr_rom_read != 1) {
+        errx(EXIT_FAILURE, "Error reading CHR ROM");
+    }
     printf("Read %lu bytes of CHR ROM\n", chr_rom_bytes);
 }
 
@@ -93,7 +102,10 @@ rom* read_rom(char* filename) {
 
     FILE* fp = fopen(filename, "rb");
 
-    fread(header, sizeof(*header), 1, fp);
+    int header_read = fread(header, sizeof(*header), 1, fp);
+    if (header_read != 1) {
+        errx(EXIT_FAILURE, "Error reading ROM header");
+    }
     r->header = header;
 
     if (memcmp(r->header->nes, magic_string, 4)) {
