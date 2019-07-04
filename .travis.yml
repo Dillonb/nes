@@ -1,0 +1,59 @@
+language: cpp
+sudo: false
+dist: xenial
+
+git:
+  depth: 5
+
+matrix:
+  include:
+    - name: "GCC Debug"
+      os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
+          packages: [ 'gcc-7', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+      env: CMAKE_BUILD_TYPE=DEBUG
+
+    - name: "GCC Release (System)"
+      os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
+          packages: [ 'gcc-7', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+      env: CMAKE_BUILD_TYPE=RELEASE
+
+    - name: "Clang Debug"
+      os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: [ 'llvm-toolchain-xenial-6.0', 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
+          packages: [ 'clang-6.0', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+      env: CMAKE_BUILD_TYPE=DEBUG
+
+    - name: "Clang Release"
+      os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: [ 'llvm-toolchain-xenial-6.0', 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
+          packages: [ 'clang-6.0', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+      env: CMAKE_BUILD_TYPE=RELEASE
+
+before_install:
+  - env
+  - export SRC_DIR="`pwd`"
+  - if [ "$CC" = "gcc" ]; then export CC="gcc-7"; fi
+  - if [ "$CC" = "clang" ]; then export CC="clang-6.0"; fi
+
+script:
+  - $CXX --version
+  - cmake --version
+  - mkdir -p "$TRAVIS_BUILD_DIR/build"
+  - cd "$TRAVIS_BUILD_DIR/build"
+  - pwd
+  - cmake -DVERBOSE_LOGGING=ON -G "Unix Makefiles" "$SRC_DIR"
+  - make -j
