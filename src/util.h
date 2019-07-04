@@ -1,8 +1,6 @@
 #pragma once
 #include <stdio.h>
 
-#define CPU_FREQUENCY_DEF 1789773
-
 static const double CPU_FREQUENCY = 1789773;
 
 typedef unsigned char byte;
