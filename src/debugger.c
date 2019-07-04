@@ -31,7 +31,7 @@ void set_breakpoint(uint16_t address) {
 
 void set_breakpoints_for_rom(char* filename) {
     // Read breakpoints if file exists
-    char bpfilename[200];
+    char bpfilename[201];
     strncpy(bpfilename, filename, 200);
     strcat(bpfilename, ".breakpoints");
 
@@ -212,7 +212,7 @@ char* disassemble(memory* mem, uint16_t addr) {
     char* disassembly = malloc(buffer_size);
 
     byte opcode = read_byte(mem, mem->pc);
-    byte size = opcode_sizes[opcode];
+    //byte size = opcode_sizes[opcode];
 
     int bytesused = snprintf(disassembly, 10, "%s", opcode_to_name_short(opcode));
 
