@@ -41,7 +41,7 @@ add_library(render
         render.h
         )
 
-target_link_libraries(core mapper portaudio)
+target_link_libraries(core mapper ${PORTAUDIO_LIBRARIES})
 
 
 add_executable (nes nes.c)
