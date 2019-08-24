@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <err.h>
+#include <errno.h>
 
 #include "rom.h"
 #include "mapper.h"
@@ -70,8 +71,8 @@ void read_prg_rom(FILE* fp, rom* r) {
     size_t prg_rom_bytes = get_prg_rom_bytes(r);
     r->prg_rom = malloc(prg_rom_bytes);
     int prg_rom_read = fread(r->prg_rom, prg_rom_bytes, 1, fp);
-    if (prg_rom_read != 1) {
-        errx(EXIT_FAILURE, "Error reading PRG ROM");
+    if (prg_rom_read == -1) {
+        errx(EXIT_FAILURE, "Error reading PRG ROM: %s", strerror(errno));
     }
     printf("Read %lu bytes of PRG ROM\n", prg_rom_bytes);
 }
@@ -80,8 +81,8 @@ void read_chr_rom(FILE* fp, rom* r) {
     size_t chr_rom_bytes = get_chr_rom_bytes(r);
     r->chr_rom = malloc(chr_rom_bytes);
     int chr_rom_read = fread(r->chr_rom, chr_rom_bytes, 1, fp);
-    if (chr_rom_read != 1) {
-        errx(EXIT_FAILURE, "Error reading CHR ROM");
+    if (chr_rom_read == -1) {
+        errx(EXIT_FAILURE, "Error reading CHR ROM: %s", strerror(errno));
     }
     printf("Read %lu bytes of CHR ROM\n", chr_rom_bytes);
 }
