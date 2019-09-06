@@ -1,5 +1,7 @@
 # nes
 
+[![Build Status](https://travis-ci.org/Dillonb/nes.svg?branch=master)](https://travis-ci.org/Dillonb/nes)
+
 A NES emulator, still very much a WIP. Some games are working, but there are still quite a few bugs.
 
 ## Mappers supported
@@ -8,7 +10,7 @@ A NES emulator, still very much a WIP. Some games are working, but there are sti
 
 ## Building
 
-* Install cmake and SDL2
+* Install cmake, PortAudio, and SDL2
 * Run the following commands:
 
 ```bash

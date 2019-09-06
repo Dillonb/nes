@@ -62,7 +62,7 @@ uint16_t indirect_y_address(memory* mem, int* cycles) {
     uint16_t addr = read_address(mem, b);
     dprintf("Ind Y: b: 0x%02X ind addr: 0x%04x y: 0x%02X\n", b, addr, mem->y);
     if (cycles != NULL) {
-        *cycles += (0xFF & addr) > (0xFF & addr + mem->y); // If page crossed, add a cycle
+        *cycles += (0xFF & addr) > (0xFF & (addr + mem->y)); // If page crossed, add a cycle
     }
     addr += mem->y;
 
@@ -72,7 +72,7 @@ uint16_t indirect_y_address(memory* mem, int* cycles) {
 uint16_t absolute_x_address(memory* mem, int* cycles) {
     uint16_t addr = read_address_and_inc_pc(mem);
     if (cycles != NULL) {
-        *cycles += (0xFF & addr) > (0xFF & addr + mem->x); // If page crossed, add a cycle
+        *cycles += (0xFF & addr) > (0xFF & (addr + mem->x)); // If page crossed, add a cycle
     }
     addr += mem->x;
     return addr;
@@ -81,7 +81,7 @@ uint16_t absolute_x_address(memory* mem, int* cycles) {
 uint16_t absolute_y_address(memory* mem, int* cycles) {
     uint16_t addr = read_address_and_inc_pc(mem);
     if (cycles != NULL) {
-        *cycles += (0xFF & addr) > (0xFF & addr + mem->y); // If page crossed, add a cycle
+        *cycles += (0xFF & addr) > (0xFF & (addr + mem->y)); // If page crossed, add a cycle
     }
     addr += mem->y;
     return addr;
@@ -136,7 +136,7 @@ byte read_value(memory* mem, int* cycles, addressing_mode mode) {
     }
 }
 
-uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
+static inline uint16_t address_for_opcode(memory* mem, byte opcode, int* cycles) {
     addressing_mode mode = opcode_addressing_modes[opcode];
     switch (mode) {
         case Immediate:

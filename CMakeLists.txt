@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-ADD_COMPILE_OPTIONS(-Werror -O3)
+ADD_COMPILE_OPTIONS(-Werror -Wall -O3)
 project (NES)
 set(CMAKE_BUILD_TYPE Debug)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules")

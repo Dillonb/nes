@@ -4,7 +4,9 @@ add_subdirectory(mapper)
 
 find_package(SDL2 REQUIRED)
 find_package(PortAudio)
-include_directories("/usr/local/include")
+include_directories("/usr/local/include" ${SDL2_INCLUDE_DIR})
+
+
 link_directories("/usr/local/lib")
 
 add_library(core
@@ -39,11 +41,11 @@ add_library(render
         render.h
         )
 
-target_link_libraries(core mapper portaudio)
+target_link_libraries(core mapper ${PORTAUDIO_LIBRARIES})
 
 
 add_executable (nes nes.c)
-target_link_libraries(nes SDL2 core render mapper)
+target_link_libraries(nes core render mapper ${SDL2_LIBRARY})
 
 
 add_executable (prgdump prgdump.c)

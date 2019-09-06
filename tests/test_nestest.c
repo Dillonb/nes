@@ -44,56 +44,56 @@ void test_load_steps(void) {
 
         char buf[10];
 
-        fgets(buf, 5, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 5, fp));
 
         temp_step.address = (uint16_t) strtol(buf, NULL, 16);
 
         // Skip the raw byte values & disassembly
         fseek(fp, 46, SEEK_CUR);
 
-        fgets(buf, 3, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 3, fp));
         temp_step.a = (byte)strtol(buf, NULL, 16);
 
         // Skip label
         fseek(fp, 3, SEEK_CUR);
 
-        fgets(buf, 3, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 3, fp));
         temp_step.x = (byte)strtol(buf, NULL, 16);
 
         // Skip label
         fseek(fp, 3, SEEK_CUR);
 
-        fgets(buf, 3, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 3, fp));
         temp_step.y = (byte)strtol(buf, NULL, 16);
 
         // Skip label
         fseek(fp, 3, SEEK_CUR);
 
-        fgets(buf, 3, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 3, fp));
         temp_step.p = (byte)strtol(buf, NULL, 16);
 
         // Skip label
         fseek(fp, 4, SEEK_CUR);
 
-        fgets(buf, 3, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 3, fp));
         temp_step.sp = (byte)strtol(buf, NULL, 16);
 
         // Skip label
         fseek(fp, 5, SEEK_CUR);
 
-        fgets(buf, 4, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 4, fp));
         temp_step.ppu_x = (int)strtol(buf, NULL, 10);
 
         // Skip label
         fseek(fp, 1, SEEK_CUR);
 
-        fgets(buf, 4, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 4, fp));
         temp_step.ppu_y = (int)strtol(buf, NULL, 10);
 
         // Skip label
         fseek(fp, 5, SEEK_CUR);
 
-        fgets(buf, 9, fp);
+        TEST_ASSERT_NOT_NULL(fgets(buf, 9, fp));
         temp_step.cycles = (int)strtol(buf, NULL, 10);
 
         steps[step] = temp_step;

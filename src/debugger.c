@@ -31,7 +31,7 @@ void set_breakpoint(uint16_t address) {
 
 void set_breakpoints_for_rom(char* filename) {
     // Read breakpoints if file exists
-    char bpfilename[200];
+    char bpfilename[201];
     strncpy(bpfilename, filename, 200);
     strcat(bpfilename, ".breakpoints");
 
@@ -64,7 +64,10 @@ void set_breakpoint_on_interrupt() {
 
 void set_debug() {
     // Super hacky and non-portable way to not wait for enter after getchar().
-    system("stty -icanon");
+    int result = system("stty -icanon");
+    if (result != 0) {
+        printf("WARNING: status code of %d returned while attempting to disable waiting for enter in getchar(). The debugger might not work correctly.", result);
+    }
     debug = true;
 }
 
@@ -159,8 +162,8 @@ void debugger_read_byte(memory* mem) {
     while (true) {
         uint16_t address;
         printf("\nEnter an address (0x0000 - 0xFFFF). Enter to continue program\n0x");
-        fgets(buf, 10, stdin);
-        if (buf[0] == '\n') {
+        char* result = fgets(buf, 10, stdin);
+        if (result == NULL || buf[0] == '\n') {
             break;
         }
         address = strtol(buf, NULL, 16);
@@ -212,7 +215,7 @@ char* disassemble(memory* mem, uint16_t addr) {
     char* disassembly = malloc(buffer_size);
 
     byte opcode = read_byte(mem, mem->pc);
-    byte size = opcode_sizes[opcode];
+    //byte size = opcode_sizes[opcode];
 
     int bytesused = snprintf(disassembly, 10, "%s", opcode_to_name_short(opcode));
 
