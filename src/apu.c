@@ -460,7 +460,7 @@ void clock_triangle_linear_counter(triangle_oscillator* triangle) {
         triangle->linear_counter--;
     }
 
-    if (triangle->length_counter_halt == 0) { // This flag is reused here.
+    if (triangle->length_counter_halt) { // This flag is reused here.
         triangle->linear_counter_reload = false;
     }
 }
@@ -482,6 +482,8 @@ void step_frame_counter(apu_memory *apu_mem) {
                     clock_sweep(apu_mem);
                     break;
                 case 3:
+                    clock_envelope(apu_mem);
+                    clock_triangle_linear_counter(&apu_mem->triangle);
                     dec_length_counter(apu_mem);
                     clock_sweep(apu_mem);
                     break;
