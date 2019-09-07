@@ -397,14 +397,14 @@ void render_pixel(ppu_memory* ppu_mem) {
             set_sprite_zero_hit(ppu_mem);
         }
         if (background_color != 0 && ppu_mem->sprites[found_sprite_index].priority == 1) {
-            ppu_mem->screen[x][y] = real_background_color;
+            ppu_mem->screen[y][x] = real_background_color;
         }
         else {
-            ppu_mem->screen[x][y] = real_sprite_color;
+            ppu_mem->screen[y][x] = real_sprite_color;
         }
     }
     else {
-        ppu_mem->screen[x][y] = real_background_color;
+        ppu_mem->screen[y][x] = real_background_color;
     }
 
     dprintf("Pixel %d,%d is 0x%02X0x%02X0x%02X\n", x, y, real_background_color.r, real_background_color.g, real_background_color.b);

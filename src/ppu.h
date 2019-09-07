@@ -61,7 +61,7 @@ typedef struct ppu_memory_t {
     uint32_t temp_attribute_table;
     tiledata tile;
 
-    color screen[256][240];
+    color screen[240][256];
 
     sprite sprites[8];
     byte num_sprites;
