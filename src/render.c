@@ -13,10 +13,9 @@
 bool initialized = false;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
+SDL_Texture* buffer = NULL;
 
 button player1_buttons[8];
-
-color last_screen[SCREEN_WIDTH][SCREEN_HEIGHT];
 
 void initialize() {
     initialized = true;
@@ -26,6 +25,7 @@ void initialize() {
     window = SDL_CreateWindow("dgb nes", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * SCREEN_SCALE, SCREEN_HEIGHT * SCREEN_SCALE, SDL_WINDOW_SHOWN);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    buffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB32, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     if (renderer == NULL) {
         errx(EXIT_FAILURE, "SDL couldn't create a renderer! %s", SDL_GetError());
@@ -37,16 +37,6 @@ void initialize() {
         player1_buttons[i] = false;
     }
 
-    for (int x = 0; x < SCREEN_WIDTH; x++) {
-        for (int y = 0; y < SCREEN_HEIGHT; y++) {
-            color c;
-            c.r = 0;
-            c.g = 0;
-            c.b = 0;
-            c.a = 0;
-            last_screen[x][y] = c;
-        }
-    }
 }
 
 void update_key(SDL_Keycode sdlk, bool state) {
@@ -91,7 +81,7 @@ void update_key(SDL_Keycode sdlk, bool state) {
     }
 }
 
-void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
+void render_screen(color (*screen)[SCREEN_HEIGHT][SCREEN_WIDTH]) {
     if (!initialized) {
         initialize();
     }
@@ -112,21 +102,8 @@ void render_screen(color (*screen)[SCREEN_WIDTH][SCREEN_HEIGHT]) {
         }
     }
 
-
-    // TODO this is probably kinda slow
-    for (int y = 0; y < 240; y++) {
-        for (int x = 0; x < 256; x++) {
-            color c = (*screen)[x][y];
-            color lastc = last_screen[x][y];
-            if (c.r == lastc.r && c.g == lastc.g && c.b == lastc.b) {
-                continue;
-            }
-            last_screen[x][y] = c;
-
-            SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-            SDL_RenderDrawPoint(renderer, x, y);
-        }
-    }
+    SDL_UpdateTexture(buffer, NULL, screen, SCREEN_WIDTH * 4);
+    SDL_RenderCopy(renderer, buffer, NULL, NULL);
     dprintf("Updating renderer\n");
     SDL_RenderPresent(renderer);
 }

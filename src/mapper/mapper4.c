@@ -224,7 +224,7 @@ int mapper4_get_chr_rom_index(rom *r, uint16_t address) {
         else if (address < 0xC00) { // 1KB bank
             return r->mapperdata.chr_bank_4_offset + (address % 0x400);
         }
-        else if (address < 01000) { // 1KB bank
+        else if (address < 0x1000) { // 1KB bank
             return r->mapperdata.chr_bank_5_offset + (address % 0x400);
         }
         else if (address < 0x1800) { // 2KB bank
