@@ -10,7 +10,7 @@ A NES emulator, still very much a WIP. Some games are working, but there are sti
 
 ## Building
 
-* Install cmake, PortAudio, and SDL2
+* Install cmake, PortAudio, and SDL2 (>=2.0.5)
 * Run the following commands:
 
 ```bash
