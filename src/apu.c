@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include "apu.h"
 
-#ifdef APU_TRACKER
 const char* gradient[] = {
         "\x1b[38;2;255;255;255",
         "\x1b[38;2;0;255;0m",
@@ -31,6 +30,11 @@ void print_color_for_volume(byte volume) {
 
 void print_color_terminator() {
     printf("\x1b[0m");
+}
+
+bool apu_tracker_enabled = false;
+void set_apu_tracker_enabled(bool enabled) {
+    apu_tracker_enabled = enabled;
 }
 
 void dump_apu(apu_memory* apu_mem) {
@@ -93,9 +97,6 @@ void dump_apu(apu_memory* apu_mem) {
 
     printf("\n");
 }
-
-#endif
-
 
 byte read_apu_status(apu_memory *apu_mem) {
     byte dmc_interrupt = 0;
@@ -646,9 +647,9 @@ void apu_init(apu_memory* apu_mem) {
 }
 
 void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
-#ifdef APU_TRACKER
-    dump_apu(apu_mem);
-#endif
+    if (apu_tracker_enabled) {
+        dump_apu(apu_mem);
+    }
 
     if (register_num < 0x4) {
         // Pulse 1

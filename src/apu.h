@@ -111,3 +111,4 @@ byte read_apu_status(apu_memory *apu_mem);
 void write_apu_register(apu_memory* apu_mem, int register_num, byte value);
 void apu_step(apu_memory* apu_mem);
 void apu_init(apu_memory* apu_mem);
+void set_apu_tracker_enabled(bool enabled);

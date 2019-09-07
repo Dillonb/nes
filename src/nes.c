@@ -22,6 +22,9 @@ int main(int argc, char** argv) {
             //set_breakpoint_on_interrupt();
             set_breakpoints_for_rom(argv[1]);
         }
+        else if (strcmp(argv[2], "aputracker") == 0) {
+            set_apu_tracker_enabled(true);
+        }
     }
 
     if (argc > 3) {
