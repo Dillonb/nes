@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "apu.h"
 
+#include <SDL.h>
+
 const char* gradient[] = {
         "\x1b[38;2;255;255;255",
         "\x1b[38;2;0;255;0m",
@@ -599,17 +601,12 @@ void apu_step(apu_memory* apu_mem) {
 
 }
 
-// TODO: Put PortAudio stuff into its own file
-static int paCallback(const void *inputBuffer, void *outputBuffer,
-                      unsigned long framesPerBuffer,
-                      const PaStreamCallbackTimeInfo *timeInfo,
-                      PaStreamCallbackFlags statusFlags,
-                      void *userData) {
-    apu_memory* apu_mem = (apu_memory*)userData;
-    float* out = (float*)outputBuffer;
-    (void) inputBuffer; // Prevent unused variable warning.
+void sdlCallback(void * userdata, Uint8 * stream, int length)
+{
+    apu_memory* apu_mem = (apu_memory*)userdata;
+    float* out = (float*)stream;
 
-    for(uint32_t i = 0; i < framesPerBuffer; i++) {
+    for(uint32_t i = 0; i < length / sizeof(float); i++) {
         // Read sample from ring buffer. While the ring buffer is empty, push zeroes.
         if (apu_mem->buffer_read_index >= apu_mem->buffer_write_index) {
             *out++ = 0;
@@ -618,32 +615,33 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
             *out++ = apu_mem->buffer[(apu_mem->buffer_read_index++) % APU_RING_BUFFER_SIZE];
         }
     }
-    return 0;
 }
 
-PaStream* stream;
+SDL_AudioSpec sdlAudioSpec;
+SDL_AudioDeviceID sdlAudioDev;
 
 void apu_init(apu_memory* apu_mem) {
-    // TODO: Put PortAudio stuff into its own file
-    // Initialize PortAudio
-    PaError err = Pa_Initialize();
-    if (err != paNoError) {
-        errx(EXIT_FAILURE, "Unable to initialize PortAudio: %s", Pa_GetErrorText(err));
+
+    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+        errx(EXIT_FAILURE, "SDL couldn't initialize! %s", SDL_GetError());
     }
 
-    err = Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, AUDIO_SAMPLE_RATE, 32, paCallback, apu_mem);
+    SDL_AudioSpec request;
+    memset(&request, 0, sizeof(request));
 
+    request.freq = AUDIO_SAMPLE_RATE;
+    request.format = AUDIO_F32;
+    request.channels = 1;
+    request.samples = 32;
+    request.callback = sdlCallback;
+    request.userdata = apu_mem;
+    sdlAudioDev = SDL_OpenAudioDevice(NULL, 0, &request, &sdlAudioSpec, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
 
-    if (err != paNoError) {
-        errx(EXIT_FAILURE, "Unable to open PortAudio stream: %s", Pa_GetErrorText(err));
+    if (sdlAudioDev == 0) {
+        errx(EXIT_FAILURE, "%s", SDL_GetError());
     }
 
-    err = Pa_StartStream(stream);
-
-    if (err != paNoError) {
-        errx(EXIT_FAILURE, "Unable to start PortAudio stream: %s", Pa_GetErrorText(err));
-    }
-
+    SDL_PauseAudioDevice(sdlAudioDev, false);
 }
 
 void write_apu_register(apu_memory* apu_mem, int register_num, byte value) {
