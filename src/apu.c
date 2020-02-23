@@ -276,6 +276,8 @@ apu_memory get_apu_mem() {
     apu_mem.dmc.sample_address = 0;
     apu_mem.dmc.sample_bit = 0;
 
+    apu_mem.triangle.linear_counter_reload = false;
+
     return apu_mem;
 }
 
