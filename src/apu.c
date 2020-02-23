@@ -1,4 +1,3 @@
-#include <portaudio.h>
 #include <err.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -256,6 +255,8 @@ void write_dmc_register(dmc_oscillator* dmc, int register_num, byte value) {
 
 apu_memory get_apu_mem() {
     apu_memory apu_mem;
+    memset(&apu_mem, 0, sizeof(apu_memory));
+
     apu_mem.cycle = 0;
     apu_mem.buffer_read_index = 0;
     apu_mem.buffer_write_index = 0;
