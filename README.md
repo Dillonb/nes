@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Dillonb/nes.svg?branch=master)](https://travis-ci.org/Dillonb/nes)
 
-A NES emulator, still very much a WIP. Some games are working, but there are still quite a few bugs.
+A toy NES emulator. A little buggy, but it mostly works.
 
 ## Mappers supported
 
