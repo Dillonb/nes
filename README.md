@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Dillonb/nes.svg?branch=master)](https://travis-ci.org/Dillonb/nes)
 
-A toy NES emulator. A little buggy, but it mostly works.
+A toy NES emulator. A little buggy, but it mostly works. Tested on Linux and MacOS.
 
 ## Mappers supported
 
