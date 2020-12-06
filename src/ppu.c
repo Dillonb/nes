@@ -103,35 +103,28 @@ uint16_t mirror_nametable_address(uint16_t addr, ppu_memory* ppu_mem) {
     if (mirror_mode == HORIZONTAL) {
         if (nametable_addr < 0x400) {
             // Nothing!
-        }
-        else if (nametable_addr < 0x800) {
+        } else if (nametable_addr < 0x800) {
             // 2nd nametable is a mirror of the first
             nametable_addr -= 0x400;
-        }
-        else if (nametable_addr < 0xC00) {
+        } else if (nametable_addr < 0xC00) {
             // third nametable is the 2nd in memory
             nametable_addr -= 0x400;
-        }
-        else {
+        } else {
             // fourth nametable is a mirror of the third
             nametable_addr %= 0x800;
         }
-    }
-    else if (mirror_mode == VERTICAL) {
+    } else if (mirror_mode == VERTICAL) {
         if (nametable_addr >= 0x800) {
             // First and second nametables are 0x000-0x800
             // Third and fourth are mirrors of first and second, respectively
             nametable_addr %= 0x800;
         }
-    }
-    else if (mirror_mode == SINGLE_LOWER) {
+    } else if (mirror_mode == SINGLE_LOWER) {
         nametable_addr %= 0x400;
-    }
-    else if (mirror_mode == SINGLE_UPPER) {
+    } else if (mirror_mode == SINGLE_UPPER) {
         nametable_addr %= 0x400;
         nametable_addr += 0x400;
-    }
-    else {
+    } else {
         errx(EXIT_FAILURE, "Need to implement some kind of mirroring! Rev up those debuggers!");
     }
 

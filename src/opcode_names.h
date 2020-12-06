@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _OPCODE_NAMES_H
+#define _OPCODE_NAMES_H
 
 #include "util.h"
 #include "cpu.h"
@@ -192,9 +193,11 @@
 #define TXS 0x9A
 #define TYA 0x98
 
-byte opcode_sizes[256];
-byte opcode_cycles[256];
-addressing_mode opcode_addressing_modes[256];
+extern byte opcode_sizes[256];
+extern byte opcode_cycles[256];
+extern addressing_mode opcode_addressing_modes[256];
 
 const char* opcode_to_name_full(byte opcode);
 const char* opcode_to_name_short(byte opcode);
+
+#endif
