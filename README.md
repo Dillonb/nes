@@ -10,7 +10,7 @@ A toy NES emulator. A little buggy, but it mostly works. Tested on Linux and Mac
 
 ## Building
 
-* Install cmake, PortAudio, and SDL2 (>=2.0.5)
+* Install cmake, and SDL2 (>=2.0.5)
 * Run the following commands:
 
 ```bash

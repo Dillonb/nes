@@ -13,7 +13,7 @@ matrix:
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
-          packages: [ 'gcc-7', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+          packages: [ 'gcc-7', 'cmake', 'libsdl2-dev' ]
       env: CMAKE_BUILD_TYPE=DEBUG
 
     - name: "GCC Release (System)"
@@ -22,7 +22,7 @@ matrix:
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
-          packages: [ 'gcc-7', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+          packages: [ 'gcc-7', 'cmake', 'libsdl2-dev' ]
       env: CMAKE_BUILD_TYPE=RELEASE
 
     - name: "Clang Debug"
@@ -31,7 +31,7 @@ matrix:
       addons:
         apt:
           sources: [ 'llvm-toolchain-xenial-6.0', 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
-          packages: [ 'clang-6.0', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+          packages: [ 'clang-6.0', 'cmake', 'libsdl2-dev' ]
       env: CMAKE_BUILD_TYPE=DEBUG
 
     - name: "Clang Release"
@@ -40,7 +40,7 @@ matrix:
       addons:
         apt:
           sources: [ 'llvm-toolchain-xenial-6.0', 'ubuntu-toolchain-r-test', 'kalakris-cmake' ]
-          packages: [ 'clang-6.0', 'cmake', 'libsdl2-dev', 'portaudio19-dev' ]
+          packages: [ 'clang-6.0', 'cmake', 'libsdl2-dev' ]
       env: CMAKE_BUILD_TYPE=RELEASE
 
 before_install:
